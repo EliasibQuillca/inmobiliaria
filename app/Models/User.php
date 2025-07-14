@@ -2,34 +2,35 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'nombre',
         'email',
-        'password',
+        'telefono',
+        'clave_hash',
+        'rol',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
-        'password',
+        'clave_hash',
         'remember_token',
     ];
 
@@ -41,8 +42,56 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'creado_en' => 'datetime',
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the password attribute name for authentication
+     */
+    public function getAuthPasswordName()
+    {
+        return 'clave_hash';
+    }
+
+    /**
+     * Override para usar 'clave_hash' en lugar de 'password'
+     */
+    public function getAuthPassword()
+    {
+        return $this->clave_hash;
+    }
+
+    // Relaciones
+    public function cliente()
+    {
+        return $this->hasOne(Cliente::class, 'usuario_id');
+    }
+
+    public function asesor()
+    {
+        return $this->hasOne(Asesor::class, 'usuario_id');
+    }
+
+    public function auditorias()
+    {
+        return $this->hasMany(AuditoriaUsuario::class, 'usuario_id');
+    }
+
+    // Métodos de utilidad
+    public function esCliente()
+    {
+        return $this->rol === 'cliente';
+    }
+
+    public function esAsesor()
+    {
+        return $this->rol === 'asesor';
+    }
+
+    public function esAdministrador()
+    {
+        return $this->rol === 'administrador';
     }
 }
