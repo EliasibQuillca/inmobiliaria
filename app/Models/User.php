@@ -17,11 +17,11 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'nombre',
+        'name',
         'email',
+        'password',
+        'role',
         'telefono',
-        'clave_hash',
-        'rol',
     ];
 
     /**
@@ -30,7 +30,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
-        'clave_hash',
+        'password',
         'remember_token',
     ];
 
@@ -42,36 +42,20 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'creado_en' => 'datetime',
             'email_verified_at' => 'datetime',
+            'password' => 'hashed',
         ];
-    }
-
-    /**
-     * Get the password attribute name for authentication
-     */
-    public function getAuthPasswordName()
-    {
-        return 'clave_hash';
-    }
-
-    /**
-     * Override para usar 'clave_hash' en lugar de 'password'
-     */
-    public function getAuthPassword()
-    {
-        return $this->clave_hash;
     }
 
     // Relaciones
     public function cliente()
     {
-        return $this->hasOne(Cliente::class, 'usuario_id');
+        return $this->hasOne(Cliente::class, 'user_id');
     }
 
     public function asesor()
     {
-        return $this->hasOne(Asesor::class, 'usuario_id');
+        return $this->hasOne(Asesor::class, 'user_id');
     }
 
     public function auditorias()
@@ -82,16 +66,45 @@ class User extends Authenticatable
     // Métodos de utilidad
     public function esCliente()
     {
-        return $this->rol === 'cliente';
+        return $this->role === 'cliente';
     }
 
     public function esAsesor()
     {
-        return $this->rol === 'asesor';
+        return $this->role === 'asesor';
     }
 
     public function esAdministrador()
     {
-        return $this->rol === 'administrador';
+        return $this->role === 'administrador';
+    }
+
+    /**
+     * Check if user has one of the specified roles
+     */
+    public function hasRole($roles)
+    {
+        if (is_string($roles)) {
+            return $this->role === $roles;
+        }
+
+        if (is_array($roles)) {
+            return in_array($this->role, $roles);
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the user's role in a human-readable format
+     */
+    public function getRoleDisplayAttribute()
+    {
+        return match($this->role) {
+            'administrador' => 'Administrador',
+            'asesor' => 'Asesor',
+            'cliente' => 'Cliente',
+            default => 'Usuario',
+        };
     }
 }

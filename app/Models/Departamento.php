@@ -13,9 +13,18 @@ class Departamento extends Model
 
     protected $fillable = [
         'codigo',
+        'titulo',
+        'descripcion',
+        'ubicacion',
         'direccion',
         'precio',
+        'precio_anterior',
+        'dormitorios',
+        'banos',
+        'area_total',
+        'estacionamientos',
         'estado',
+        'disponible',
         'propietario_id',
     ];
 
