@@ -47,6 +47,26 @@ class Departamento extends Model
                     ->withTimestamps();
     }
 
+    public function imagenes()
+    {
+        return $this->hasMany(Imagen::class, 'departamento_id');
+    }
+
+    public function imagenesActivas()
+    {
+        return $this->hasMany(Imagen::class, 'departamento_id')->activas()->ordenadas();
+    }
+
+    public function imagenPrincipal()
+    {
+        return $this->hasOne(Imagen::class, 'departamento_id')->where('tipo', 'principal')->where('activa', true);
+    }
+
+    public function galeriaImagenes()
+    {
+        return $this->hasMany(Imagen::class, 'departamento_id')->where('tipo', 'galeria')->activas()->ordenadas();
+    }
+
     // Scopes
     public function scopeDisponibles($query)
     {
