@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import Layout from '@/Components/Layout/Layout';
+import Layout from '@/components/layout/Layout';
 
 export default function DetalleSolicitud({ auth, solicitudId = 1 }) {
     // Estado para la solicitud

@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import Layout from '@/Components/Layout/Layout';
+import Layout from '@/components/layout/Layout';
 import { useState } from 'react';
 
 export default function Services({ auth }) {

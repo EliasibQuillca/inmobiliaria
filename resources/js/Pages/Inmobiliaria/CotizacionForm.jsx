@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { cotizacionService } from '../../services/api';
 import { ESTADO_COTIZACION } from '../../constants';
-import PrimaryButton from '../PrimaryButton';
+import PrimaryButton from '@/components/PrimaryButton';
 import { useAuth } from '../../contexts/AuthContext';
 
 const CotizacionForm = ({ departamento, cliente, onSuccess }) => {

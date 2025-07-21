@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Cliente;
 use App\Http\Controllers\Controller;
 use App\Models\Cotizacion;
 use App\Models\Departamento;
+use App\Models\Cliente;
 use App\Models\Asesor;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -57,18 +59,59 @@ class SolicitudController extends Controller
             'preferencia_contacto' => 'required|in:email,telefono,whatsapp',
         ]);
 
-        // En una implementación real, crearíamos la solicitud en la base de datos
-        // Ejemplo:
-        // $solicitud = Cotizacion::create([
-        //     'cliente_id' => auth()->user()->id,
-        //     'departamento_id' => $validated['departamento_id'],
-        //     'tipo' => $validated['tipo_solicitud'],
-        //     'mensaje' => $validated['mensaje'],
-        //     'telefono' => $validated['telefono'],
-        //     'disponibilidad' => json_encode($validated['disponibilidad']),
-        //     'preferencia_contacto' => $validated['preferencia_contacto'],
-        //     'estado' => 'pendiente',
-        // ]);
+        // Buscar o crear un registro de cliente para el usuario autenticado si no existe
+        if (auth()->check()) {
+            $user = auth()->user();
+
+            // Buscar si ya existe un cliente asociado al usuario
+            $cliente = Cliente::where('usuario_id', $user->id)->first();
+
+            // Si no existe, crear un nuevo cliente
+            if (!$cliente) {
+                $cliente = new Cliente();
+                $cliente->usuario_id = $user->id;
+                $cliente->dni = $request->input('dni', '00000000'); // Asumiendo un valor por defecto
+                $cliente->direccion = $request->input('direccion');
+                // No necesitamos asignar fecha_registro explícitamente
+                // ya que el campo tiene un default en la migración
+                $cliente->save();
+            }            // Creamos la solicitud vinculada al cliente
+            $solicitud = new Cotizacion([
+                'cliente_id' => $cliente->getKey(), // Usar getKey() en lugar de id directo
+                'departamento_id' => $validated['departamento_id'],
+                'tipo' => $validated['tipo_solicitud'],
+                'mensaje' => $validated['mensaje'],
+                'telefono' => $validated['telefono'],
+                'disponibilidad' => json_encode($validated['disponibilidad']),
+                'preferencia_contacto' => $validated['preferencia_contacto'],
+                'estado' => 'pendiente',
+                'monto' => 0,
+            ]);
+            $solicitud->save();
+
+            // Asignar automáticamente un asesor disponible
+            $asesor = Asesor::inRandomOrder()->first();
+
+            if ($asesor) {
+                $solicitud->asesor_id = $asesor->id;
+                $solicitud->estado = 'en_proceso';
+                $solicitud->save();
+
+                // Aquí podríamos crear un comentario automático en la solicitud
+                // si tenemos un modelo para comentarios
+                /*
+                $solicitud->comentarios()->create([
+                    'usuario_id' => $asesor->usuario_id,
+                    'mensaje' => 'Su solicitud ha sido asignada a un asesor. Pronto me pondré en contacto con usted.',
+                    'rol' => 'asesor',
+                ]);
+                */
+            }
+        } else {
+            // En caso de que el usuario no esté autenticado
+            // aquí podríamos manejar la creación de solicitudes para usuarios no autenticados
+            // o redirigir al login
+        }
 
         // Redireccionar a la lista de solicitudes con mensaje de éxito
         return redirect()->route('cliente.solicitudes.index')

@@ -50,12 +50,12 @@ class User extends Authenticatable
     // Relaciones
     public function cliente()
     {
-        return $this->hasOne(Cliente::class, 'user_id');
+        return $this->hasOne(Cliente::class, 'usuario_id');
     }
 
     public function asesor()
     {
-        return $this->hasOne(Asesor::class, 'user_id');
+        return $this->hasOne(Asesor::class, 'usuario_id');
     }
 
     public function auditorias()

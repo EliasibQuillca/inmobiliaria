@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { departamentoService } from '../../services/api';
 import { ESTADO_DEPARTAMENTO } from '../../constants';
-import PrimaryButton from '../PrimaryButton';
-import SecondaryButton from '../SecondaryButton';
-import TextInput from '../TextInput';
-import InputLabel from '../InputLabel';
+import PrimaryButton from '@/components/PrimaryButton';
+import SecondaryButton from '@/components/SecondaryButton';
+import TextInput from '@/components/TextInput';
+import InputLabel from '@/components/InputLabel';
 
 const ListaDepartamentos = ({ onSeleccionarDepartamento }) => {
     const [departamentos, setDepartamentos] = useState([]);

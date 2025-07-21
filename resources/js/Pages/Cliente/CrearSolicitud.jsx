@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import Layout from '@/Components/Layout/Layout';
+import Layout from '@/components/layout/Layout';
 
 export default function CrearSolicitud({ auth, departamentoId = null }) {
     // Estado para el formulario

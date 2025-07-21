@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { reservaService } from '../../services/api';
 import { ESTADO_RESERVA } from '../../constants';
-import PrimaryButton from '../PrimaryButton';
-import SecondaryButton from '../SecondaryButton';
+import PrimaryButton from '@/components/PrimaryButton';
+import SecondaryButton from '@/components/SecondaryButton';
 import { useAuth } from '../../contexts/AuthContext';
 
 const ReservaForm = ({ cotizacion, onSuccess }) => {

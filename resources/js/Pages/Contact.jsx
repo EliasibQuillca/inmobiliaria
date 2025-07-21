@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import Layout from '@/Components/Layout/Layout';
+import Layout from '@/components/layout/Layout';
 
 export default function Contact({ auth }) {
     const [formData, setFormData] = useState({
@@ -58,55 +58,6 @@ export default function Contact({ auth }) {
         <Layout auth={auth}>
             <Head title="Contáctanos" />
             <div className="bg-white min-h-screen">
-                {/* Contact Header Section */}
-                <nav className="bg-white shadow-md py-4 mb-8">
-                    <div className="container mx-auto px-4 md:px-8 flex justify-between items-center">
-                        <Link href="/" className="flex items-center">
-                            <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-700 to-blue-500 bg-clip-text text-transparent">
-                                CUSCO PREMIUM
-                            </span>
-                        </Link>
-
-                        <div className="hidden md:flex items-center space-x-8">
-                            <Link href="/properties" className="text-gray-700 hover:text-indigo-600 font-medium">
-                                Propiedades
-                            </Link>
-                            <Link href="/about" className="text-gray-700 hover:text-indigo-600 font-medium">
-                                Nosotros
-                            </Link>
-                            <Link href="/services" className="text-gray-700 hover:text-indigo-600 font-medium">
-                                Servicios
-                            </Link>
-                            <Link href="/contact" className="text-indigo-600 font-medium">
-                                Contacto
-                            </Link>
-
-                            {auth.user ? (
-                                <Link
-                                    href={route('dashboard')}
-                                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all"
-                                >
-                                    Panel de Control
-                                </Link>
-                            ) : (
-                                <div className="flex space-x-4">
-                                    <Link
-                                        href={route('login')}
-                                        className="text-indigo-600 font-medium hover:text-indigo-800"
-                                    >
-                                        Iniciar Sesión
-                                    </Link>
-                                    <Link
-                                        href={route('register')}
-                                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all"
-                                    >
-                                        Registrarse
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </nav>
 
                 {/* Hero de Contacto */}
                 <div className="relative mb-16">
