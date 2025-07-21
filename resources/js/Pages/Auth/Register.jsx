@@ -23,11 +23,16 @@ export default function Register() {
 
     return (
         <GuestLayout>
-            <Head title="Register" />
+            <Head title="Registro" />
+
+            <div className="mb-6 text-center">
+                <h1 className="text-2xl font-bold text-gray-800">Crear Cuenta</h1>
+                <p className="text-gray-600 mt-2">Regístrate para acceder a todas nuestras propiedades</p>
+            </div>
 
             <form onSubmit={submit}>
                 <div>
-                    <InputLabel htmlFor="name" value="Name" />
+                    <InputLabel htmlFor="name" value="Nombre" />
 
                     <TextInput
                         id="name"
@@ -44,7 +49,7 @@ export default function Register() {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
+                    <InputLabel htmlFor="email" value="Correo Electrónico" />
 
                     <TextInput
                         id="email"
@@ -61,7 +66,7 @@ export default function Register() {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                    <InputLabel htmlFor="password" value="Contraseña" />
 
                     <TextInput
                         id="password"
@@ -78,10 +83,7 @@ export default function Register() {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
+                    <InputLabel htmlFor="password_confirmation" value="Confirmar Contraseña" />
 
                     <TextInput
                         id="password_confirmation"
@@ -90,31 +92,31 @@ export default function Register() {
                         value={data.password_confirmation}
                         className="mt-1 block w-full"
                         autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
+                        onChange={(e) => setData('password_confirmation', e.target.value)}
                         required
                     />
 
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
+                    <InputError message={errors.password_confirmation} className="mt-2" />
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    <Link
-                        href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Already registered?
-                    </Link>
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
+                <div className="mt-6">
+                    <PrimaryButton className="w-full justify-center bg-indigo-600 hover:bg-indigo-700 py-3" disabled={processing}>
+                        Registrarse
                     </PrimaryButton>
                 </div>
             </form>
+
+            <div className="mt-8 border-t border-gray-200 pt-6 text-center">
+                <p className="text-sm text-gray-600">
+                    ¿Ya tienes una cuenta?{' '}
+                    <Link
+                        href={route('login')}
+                        className="font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                    >
+                        Iniciar Sesión
+                    </Link>
+                </p>
+            </div>
         </GuestLayout>
     );
 }

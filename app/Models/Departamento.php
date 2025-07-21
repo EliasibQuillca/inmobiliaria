@@ -39,6 +39,12 @@ class Departamento extends Model
         return $this->belongsTo(Propietario::class, 'propietario_id');
     }
 
+    public function clientesFavoritos()
+    {
+        return $this->belongsToMany(Cliente::class, 'favoritos', 'departamento_id', 'cliente_id')
+                    ->withTimestamps();
+    }
+
     public function publicaciones()
     {
         return $this->hasMany(Publicacion::class, 'departamento_id');

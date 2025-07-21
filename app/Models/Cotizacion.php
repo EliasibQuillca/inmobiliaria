@@ -18,11 +18,17 @@ class Cotizacion extends Model
         'fecha',
         'monto',
         'estado',
+        'tipo',
+        'mensaje',
+        'telefono',
+        'disponibilidad',
+        'preferencia_contacto',
     ];
 
     protected $casts = [
         'fecha' => 'datetime',
         'monto' => 'decimal:2',
+        'disponibilidad' => 'array',
     ];
 
     // Relaciones
@@ -39,6 +45,11 @@ class Cotizacion extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'cliente_id');
+    }
+
+    public function comentarios()
+    {
+        return $this->hasMany(ComentarioSolicitud::class, 'cotizacion_id')->orderBy('created_at', 'asc');
     }
 
     public function reserva()

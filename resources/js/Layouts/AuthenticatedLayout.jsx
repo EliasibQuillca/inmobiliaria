@@ -12,14 +12,14 @@ export default function AuthenticatedLayout({ header, children }) {
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
+        <div className="min-h-screen bg-gray-50">
+            <nav className="border-b border-gray-100 bg-white shadow-sm">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
+                    <div className="flex h-20 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
                                 <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
+                                    <ApplicationLogo className="block h-10 w-auto text-teal-600" />
                                 </Link>
                             </div>
 
@@ -27,8 +27,33 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <NavLink
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
+                                    className="text-gray-700 hover:text-teal-600"
                                 >
                                     Dashboard
+                                </NavLink>
+                                <NavLink
+                                    href={route('dashboard')}
+                                    className="text-gray-700 hover:text-teal-600"
+                                >
+                                    Propiedades
+                                </NavLink>
+                                <NavLink
+                                    href={route('dashboard')}
+                                    className="text-gray-700 hover:text-teal-600"
+                                >
+                                    Clientes
+                                </NavLink>
+                                <NavLink
+                                    href={route('dashboard')}
+                                    className="text-gray-700 hover:text-teal-600"
+                                >
+                                    Ventas
+                                </NavLink>
+                                <NavLink
+                                    href={route('dashboard')}
+                                    className="text-gray-700 hover:text-teal-600"
+                                >
+                                    Reportes
                                 </NavLink>
                             </div>
                         </div>
@@ -40,7 +65,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <span className="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-4 py-2 text-sm font-medium leading-4 text-gray-700 transition duration-150 ease-in-out hover:text-teal-600 focus:outline-none"
                                             >
                                                 {user.name}
 
@@ -60,18 +85,26 @@ export default function AuthenticatedLayout({ header, children }) {
                                         </span>
                                     </Dropdown.Trigger>
 
-                                    <Dropdown.Content>
+                                    <Dropdown.Content width="48" contentClasses="py-1 bg-white">
                                         <Dropdown.Link
                                             href={route('profile.edit')}
+                                            className="hover:bg-gray-50"
                                         >
-                                            Profile
+                                            Mi Perfil
+                                        </Dropdown.Link>
+                                        <Dropdown.Link
+                                            href="#"
+                                            className="hover:bg-gray-50"
+                                        >
+                                            Configuración
                                         </Dropdown.Link>
                                         <Dropdown.Link
                                             href={route('logout')}
                                             method="post"
                                             as="button"
+                                            className="hover:bg-gray-50"
                                         >
-                                            Log Out
+                                            Cerrar Sesión
                                         </Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>
@@ -134,6 +167,18 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Dashboard
                         </ResponsiveNavLink>
+                        <ResponsiveNavLink href="#">
+                            Propiedades
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink href="#">
+                            Clientes
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink href="#">
+                            Ventas
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink href="#">
+                            Reportes
+                        </ResponsiveNavLink>
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">
@@ -148,14 +193,17 @@ export default function AuthenticatedLayout({ header, children }) {
 
                         <div className="mt-3 space-y-1">
                             <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
+                                Mi Perfil
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink href="#">
+                                Configuración
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"
                                 href={route('logout')}
                                 as="button"
                             >
-                                Log Out
+                                Cerrar Sesión
                             </ResponsiveNavLink>
                         </div>
                     </div>
@@ -170,7 +218,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </header>
             )}
 
-            <main>{children}</main>
+            <main className="py-6">{children}</main>
         </div>
     );
 }

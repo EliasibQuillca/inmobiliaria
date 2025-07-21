@@ -28,6 +28,12 @@ class Cliente extends Model
         return $this->belongsTo(User::class, 'usuario_id');
     }
 
+    public function favoritos()
+    {
+        return $this->belongsToMany(Departamento::class, 'favoritos', 'cliente_id', 'departamento_id')
+                    ->withTimestamps();
+    }
+
     public function cotizaciones()
     {
         return $this->hasMany(Cotizacion::class, 'cliente_id');
