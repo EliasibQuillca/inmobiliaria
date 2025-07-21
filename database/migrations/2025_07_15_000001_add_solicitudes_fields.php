@@ -14,7 +14,7 @@ return new class extends Migration
         // Crear tabla de comentarios de solicitudes
         Schema::create('comentarios_solicitud', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cotizacion_id')->constrained()->onDelete('cascade');
+            $table->foreignId('cotizacion_id')->constrained('cotizaciones')->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->text('mensaje');
             $table->enum('rol', ['cliente', 'asesor', 'sistema'])->default('cliente');

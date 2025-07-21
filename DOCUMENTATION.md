@@ -13,7 +13,24 @@
 10. [Estado del Proyecto](#estado-del-proyecto)
 
 ---
-
+Credenciales para Pruebas
+Administrador
+Email: admin@inmobiliaria.com
+Contraseña: password
+Rol: Administrador
+Teléfono: +51 984 123 456
+Asesor
+Email: asesor@inmobiliaria.com
+Contraseña: password
+Rol: Asesor
+Nombre: Carlos Mendoza
+Teléfono: +51 984 123 457
+Cliente (adicional para pruebas)
+Email: cliente@inmobiliaria.com
+Contraseña: password
+Rol: Cliente
+Nombre: María González
+Teléfono: +51 984 123 458  
 ## Introducción
 
 El Sistema Inmobiliario Cusco 2025 es una plataforma completa para la gestión de bienes inmuebles, clientes y ventas. Esta documentación describe la API REST que permite interactuar con todos los recursos del sistema.
