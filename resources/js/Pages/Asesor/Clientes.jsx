@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import AsesorLayout from '@/components/asesor/AsesorLayout';
+import Layout from '@/components/layout/Layout';
 import axios from 'axios';
 
 export default function ClientesAsesor({ auth }) {
@@ -140,7 +140,8 @@ export default function ClientesAsesor({ auth }) {
     };
 
     return (
-        <AsesorLayout auth={auth} title="Mis Clientes">
+        <Layout auth={auth}>
+            <Head title="Mis Clientes" />
             <Head title="Mis Clientes - Inmobiliaria" />
 
             <div className="py-12 bg-gray-100">
@@ -546,6 +547,6 @@ export default function ClientesAsesor({ auth }) {
                     )}
                 </div>
             </div>
-        </AsesorLayout>
+        </Layout>
     );
 }

@@ -4,13 +4,21 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
-import SelectInput from '@/Components/SelectInput';
-import TextArea from '@/Components/TextArea';
+import SelectInput from '@/Components/common/SelectInput';
+import TextareaInput from '@/components/common/TextareaInput';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
-import { formatCurrency } from '@/utils';
 
 export default function EditarReserva({ auth, reserva, asesores, clientes, departamentos }) {
+    // Format currency helper function
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('es-PE', {
+            style: 'currency',
+            currency: 'PEN',
+            minimumFractionDigits: 0
+        }).format(amount);
+    };
+
     const { data, setData, errors, put, processing } = useForm({
         cliente_id: reserva.cliente_id || '',
         asesor_id: reserva.asesor_id || '',
@@ -170,7 +178,7 @@ export default function EditarReserva({ auth, reserva, asesores, clientes, depar
 
                                 <div>
                                     <InputLabel htmlFor="notas" value="Notas" />
-                                    <TextArea
+                                    <TextareaInput
                                         id="notas"
                                         name="notas"
                                         value={data.notas}
@@ -182,7 +190,7 @@ export default function EditarReserva({ auth, reserva, asesores, clientes, depar
 
                                 <div>
                                     <InputLabel htmlFor="condiciones" value="Condiciones" />
-                                    <TextArea
+                                    <TextareaInput
                                         id="condiciones"
                                         name="condiciones"
                                         value={data.condiciones}

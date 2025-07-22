@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import AsesorLayout from '@/components/asesor/AsesorLayout';
+import Layout from '@/components/layout/Layout';
 import axios from 'axios';
 
 export default function PanelAsesor({ auth }) {
@@ -97,7 +97,7 @@ export default function PanelAsesor({ auth }) {
     // Si está cargando, mostrar un spinner
     if (loading) {
         return (
-            <AsesorLayout auth={auth} title="Panel de Asesor">
+            <Layout auth={auth} title="Panel de Asesor">
                 <Head title="Panel de Asesor - Inmobiliaria" />
                 <div className="py-12 bg-gray-100">
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -107,12 +107,12 @@ export default function PanelAsesor({ auth }) {
                         </div>
                     </div>
                 </div>
-            </AsesorLayout>
+            </Layout>
         );
     }
 
     return (
-        <AsesorLayout auth={auth} title="Panel de Asesor">
+        <Layout auth={auth} title="Panel de Asesor">
             <Head title="Panel de Asesor - Inmobiliaria" />
 
             <div className="py-12 bg-gray-100">
@@ -574,6 +574,6 @@ export default function PanelAsesor({ auth }) {
                     </div>
                 </div>
             </div>
-        </AsesorLayout>
+        </Layout>
     );
 }
