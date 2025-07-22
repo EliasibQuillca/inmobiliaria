@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import Layout from '@/components/layout/Layout';
+import AdminLayout from '@/components/admin/AdminLayout';
 
 export default function AdminDashboard({ auth }) {
     // Estado para las diferentes secciones del dashboard
@@ -62,7 +62,7 @@ export default function AdminDashboard({ auth }) {
     }, []);
 
     return (
-        <Layout auth={auth}>
+        <AdminLayout auth={auth} title="Panel de Administrador">
             <Head title="Panel de Administrador - Inmobiliaria" />
 
             <div className="py-12 bg-gray-100">
@@ -454,6 +454,6 @@ export default function AdminDashboard({ auth }) {
                     </div>
                 </div>
             </div>
-        </Layout>
+        </AdminLayout>
     );
 }

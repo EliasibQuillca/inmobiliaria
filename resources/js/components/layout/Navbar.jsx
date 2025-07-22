@@ -12,7 +12,7 @@ const Navbar = ({ auth }) => {
                 </Link>
 
                 <div className="hidden md:flex items-center space-x-8">
-                    <Link href="/properties" className="text-gray-700 hover:text-indigo-600 font-medium">
+                            <Link href="/catalogo" className="text-gray-700 hover:text-indigo-600 font-medium">
                         Propiedades
                     </Link>
                     <Link href="/services" className="text-gray-700 hover:text-indigo-600 font-medium">
@@ -23,11 +23,9 @@ const Navbar = ({ auth }) => {
                     </Link>
                     <Link href="/contact" className="text-gray-700 hover:text-indigo-600 font-medium">
                         Contacto
-                    </Link>
-
-                    {auth?.user ? (
+                    </Link>                    {auth?.user ? (
                         <div className="flex items-center space-x-2">
-                            <Link href="/dashboard" className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                            <Link href={auth?.user.role === 'asesor' ? "/asesor/dashboard" : "/cliente/dashboard"} className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
                                 Dashboard
                             </Link>
                         </div>

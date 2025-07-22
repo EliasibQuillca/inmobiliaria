@@ -15,12 +15,13 @@ Route::get('/', function () {
     ]);
 });
 
-// Nuevas páginas para navegación dinámica
+// Catálogo de propiedades (público)
+Route::get('/catalogo', [\App\Http\Controllers\CatalogoController::class, 'index']);
+Route::get('/catalogo/{id}', [\App\Http\Controllers\CatalogoController::class, 'show']);
+
+// Mantener la ruta properties por compatibilidad (redirige a catalogo)
 Route::get('/properties', function () {
-    return Inertia::render('Properties', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-    ]);
+    return redirect('/catalogo');
 });
 
 Route::get('/about', function () {
@@ -49,6 +50,63 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Rutas de administración
+Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->group(function () {
+    // Dashboard de administrador
+    Route::get('/dashboard', function () {
+        return Inertia::render('Admin/Dashboard');
+    })->name('admin.dashboard');
+
+    // Gestión de usuarios
+    Route::get('/usuarios', function () {
+        return Inertia::render('Admin/Usuarios');
+    })->name('admin.usuarios');
+
+    Route::get('/usuarios/crear', function () {
+        return Inertia::render('Admin/FormularioUsuario', [
+            'modo' => 'crear'
+        ]);
+    })->name('admin.usuarios.crear');
+
+    Route::get('/usuarios/{id}/editar', function ($id) {
+        return Inertia::render('Admin/FormularioUsuario', [
+            'modo' => 'editar',
+            'userId' => $id
+        ]);
+    })->name('admin.usuarios.editar');
+
+    // Gestión de departamentos
+    Route::get('/departamentos', function () {
+        return Inertia::render('Admin/GestionDepartamentos');
+    })->name('admin.departamentos');
+
+    Route::get('/departamentos/crear', function () {
+        return Inertia::render('Admin/FormularioDepartamento', [
+            'modo' => 'crear'
+        ]);
+    })->name('admin.departamentos.crear');
+
+    Route::get('/departamentos/{id}/editar', function ($id) {
+        return Inertia::render('Admin/FormularioDepartamento', [
+            'modo' => 'editar',
+            'departamentoId' => $id
+        ]);
+    })->name('admin.departamentos.editar');
+
+    // Reportes
+    Route::get('/reportes', function () {
+        return Inertia::render('Admin/Reportes');
+    })->name('admin.reportes');
+
+    Route::get('/reportes/ventas', function () {
+        return Inertia::render('Admin/ReportesVentas');
+    })->name('admin.reportes.ventas');
+
+    Route::get('/reportes/asesores', function () {
+        return Inertia::render('Admin/ReportesAsesores');
+    })->name('admin.reportes.asesores');
+});
+
 // Rutas para cliente
 Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->group(function () {
     // Dashboard y perfil
@@ -72,12 +130,14 @@ Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->gr
     Route::get('/solicitudes/{id}', [App\Http\Controllers\Cliente\SolicitudController::class, 'show'])->name('solicitudes.show');
     Route::patch('/solicitudes/{id}', [App\Http\Controllers\Cliente\SolicitudController::class, 'update'])->name('solicitudes.update');
     Route::post('/solicitudes/{id}/comentarios', [App\Http\Controllers\Cliente\SolicitudController::class, 'addComment'])->name('solicitudes.comentarios.store');
-});// Rutas para el panel de asesor
-Route::middleware(['auth', 'verified'])->prefix('asesor')->group(function () {
+});
+
+// Rutas para el panel de asesor
+Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
     // Dashboard del asesor
     Route::get('/dashboard', function () {
         return Inertia::render('Asesor/Dashboard');
-    })->name('asesor.dashboard');
+    })->name('dashboard');
 
     // Solicitudes de contacto
     Route::get('/solicitudes', function () {
@@ -167,11 +227,11 @@ Route::middleware(['auth', 'verified'])->prefix('asesor')->group(function () {
 });
 
 // Rutas para el panel de administrador
-Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard del administrador
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/Dashboard');
-    })->name('admin.dashboard');
+    })->name('dashboard');
 
     // Gestión de usuarios
     Route::get('/usuarios', function () {

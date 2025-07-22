@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\CotizacionController;
 use App\Http\Controllers\Api\ReservaController;
 use App\Http\Controllers\Api\VentaController;
 use App\Http\Controllers\Api\ImagenController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ReporteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +30,7 @@ Route::prefix('v1')->group(function () {
 
     // Departamentos públicos (catálogo)
     Route::get('/departamentos', [DepartamentoController::class, 'index']);
+    Route::get('/departamentos/destacados', [DepartamentoController::class, 'destacados']);
     Route::get('/departamentos/{id}', [DepartamentoController::class, 'show']);
 
     // Imágenes públicas (para visualización del catálogo)
@@ -85,6 +88,8 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
             Route::post('/', [DepartamentoController::class, 'store']); // Crear
             Route::put('/{id}', [DepartamentoController::class, 'update']); // Actualizar
             Route::patch('/{id}/estado', [DepartamentoController::class, 'cambiarEstado']); // Cambiar estado
+            Route::patch('/{id}/destacado', [DepartamentoController::class, 'toggleDestacado']); // Marcar/desmarcar como destacado
+            Route::delete('/{id}', [DepartamentoController::class, 'destroy']); // Eliminar departamento
         });
 
         // Cotizaciones (supervisión)
@@ -96,6 +101,22 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         // Ventas (supervisión y reportes)
         Route::get('/ventas', [VentaController::class, 'admin']);
 
+        // Gestión de usuarios
+        Route::prefix('usuarios')->group(function () {
+            Route::get('/', [UserController::class, 'index']);
+            Route::post('/', [UserController::class, 'store']);
+            Route::get('/{id}', [UserController::class, 'show']);
+            Route::put('/{id}', [UserController::class, 'update']);
+            Route::delete('/{id}', [UserController::class, 'destroy']);
+        });
+
+        // Reportes administrativos
+        Route::prefix('reportes')->group(function () {
+            Route::get('/dashboard', [ReporteController::class, 'dashboard']);
+            Route::get('/ventas', [ReporteController::class, 'ventasPorPeriodo']);
+            Route::get('/ventas/pdf', [ReporteController::class, 'generarPdfVentas']);
+            Route::get('/asesores', [ReporteController::class, 'rendimientoAsesores']);
+        });
     });
 
 });

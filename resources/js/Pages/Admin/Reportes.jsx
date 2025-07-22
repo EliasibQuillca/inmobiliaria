@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import Layout from '@/components/layout/Layout';
+import AdminLayout from '@/components/admin/AdminLayout';
 
 export default function Reportes({ auth }) {
     // Estado para los reportes
@@ -93,7 +93,7 @@ export default function Reportes({ auth }) {
     ];
 
     return (
-        <Layout auth={auth}>
+        <AdminLayout auth={auth} title="Gestión de Reportes">
             <Head title="Reportes - Inmobiliaria" />
 
             <div className="py-12 bg-gray-100">
@@ -408,6 +408,6 @@ export default function Reportes({ auth }) {
                     </div>
                 </div>
             </div>
-        </Layout>
+        </AdminLayout>
     );
 }

@@ -26,11 +26,13 @@ class Departamento extends Model
         'estado',
         'disponible',
         'propietario_id',
+        'destacado',
     ];
 
     protected $casts = [
         'precio' => 'decimal:2',
         'creado_en' => 'datetime',
+        'destacado' => 'boolean',
     ];
 
     // Relaciones

@@ -24,37 +24,75 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                    className="text-gray-700 hover:text-teal-600"
-                                >
-                                    Dashboard
-                                </NavLink>
-                                <NavLink
-                                    href={route('dashboard')}
-                                    className="text-gray-700 hover:text-teal-600"
-                                >
-                                    Propiedades
-                                </NavLink>
-                                <NavLink
-                                    href={route('dashboard')}
-                                    className="text-gray-700 hover:text-teal-600"
-                                >
-                                    Clientes
-                                </NavLink>
-                                <NavLink
-                                    href={route('dashboard')}
-                                    className="text-gray-700 hover:text-teal-600"
-                                >
-                                    Ventas
-                                </NavLink>
-                                <NavLink
-                                    href={route('dashboard')}
-                                    className="text-gray-700 hover:text-teal-600"
-                                >
-                                    Reportes
-                                </NavLink>
+                                {user.role === 'asesor' ? (
+                                    <>
+                                        <NavLink
+                                            href={route('asesor.dashboard')}
+                                            active={route().current('asesor.dashboard')}
+                                            className="text-gray-700 hover:text-teal-600"
+                                        >
+                                            Dashboard
+                                        </NavLink>
+                                        <NavLink
+                                            href="/asesor/propiedades"
+                                            className="text-gray-700 hover:text-teal-600"
+                                        >
+                                            Propiedades
+                                        </NavLink>
+                                        <NavLink
+                                            href="/asesor/clientes"
+                                            className="text-gray-700 hover:text-teal-600"
+                                        >
+                                            Clientes
+                                        </NavLink>
+                                        <NavLink
+                                            href="/asesor/cotizaciones"
+                                            className="text-gray-700 hover:text-teal-600"
+                                        >
+                                            Cotizaciones
+                                        </NavLink>
+                                        <NavLink
+                                            href="/asesor/solicitudes"
+                                            className="text-gray-700 hover:text-teal-600"
+                                        >
+                                            Solicitudes
+                                        </NavLink>
+                                    </>
+                                ) : (
+                                    <>
+                                        <NavLink
+                                            href={route('cliente.dashboard')}
+                                            active={route().current('cliente.dashboard')}
+                                            className="text-gray-700 hover:text-teal-600"
+                                        >
+                                            Dashboard
+                                        </NavLink>
+                                        <NavLink
+                                            href="/cliente/catalogo"
+                                            className="text-gray-700 hover:text-teal-600"
+                                        >
+                                            Propiedades
+                                        </NavLink>
+                                        <NavLink
+                                            href="/cliente/favoritos"
+                                            className="text-gray-700 hover:text-teal-600"
+                                        >
+                                            Favoritos
+                                        </NavLink>
+                                        <NavLink
+                                            href="/cliente/solicitudes"
+                                            className="text-gray-700 hover:text-teal-600"
+                                        >
+                                            Solicitudes
+                                        </NavLink>
+                                        <NavLink
+                                            href="/cliente/asesores"
+                                            className="text-gray-700 hover:text-teal-600"
+                                        >
+                                            Asesores
+                                        </NavLink>
+                                    </>
+                                )}
                             </div>
                         </div>
 

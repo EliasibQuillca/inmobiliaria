@@ -3,54 +3,49 @@ import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import axios from 'axios';
 
-export default function Departamentos({ auth }) {
-    // Estado para almacenar los departamentos
-    const [departamentos, setDepartamentos] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    // Estados para paginación
-    const [paginacion, setPaginacion] = useState({
-        pagina_actual: 1,
-        total_paginas: 1,
-        por_pagina: 10,
-        total: 0
-    });
-
-    // Estados para filtrado y búsqueda
+export default function Asesores({ auth }) {
+    // Estados para los asesores y filtros
+    const [asesores, setAsesores] = useState([]);
     const [filtros, setFiltros] = useState({
-        estado: '',
-        ubicacion: '',
         busqueda: '',
-        destacado: ''
+        estado: '',
+        especialidad: ''
     });
-
-    // Estado para ordenamiento
     const [ordenamiento, setOrdenamiento] = useState({
         campo: 'created_at',
         direccion: 'desc'
     });
+    const [paginacion, setPaginacion] = useState({
+        pagina_actual: 1,
+        por_pagina: 10,
+        total: 0,
+        total_paginas: 0
+    });
 
-    // Lista de ubicaciones disponibles para filtrar
-    const [ubicaciones, setUbicaciones] = useState([]);
+    // Estados para manejo de carga y errores
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Estado para confirmación de eliminación
-    const [departamentoAEliminar, setDepartamentoAEliminar] = useState(null);
+    // Estados para manejo del modal de eliminación
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [asesorAEliminar, setAsesorAEliminar] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
-    // Cargar los departamentos y las ubicaciones disponibles
-    useEffect(() => {
-        cargarDepartamentos();
-        cargarUbicaciones();
-    }, [paginacion.pagina_actual, ordenamiento, filtros]);
+    // Especialidades disponibles para el filtro
+    const especialidades = ['Ventas', 'Alquileres', 'Propiedades de lujo', 'Comercial', 'Residencial'];
 
-    // Función para cargar los departamentos
-    const cargarDepartamentos = async () => {
+    // Cargar asesores al montar el componente o cuando cambian los filtros
+    useEffect(() => {
+        cargarAsesores();
+    }, [filtros, ordenamiento, paginacion.pagina_actual]);
+
+    // Función para cargar asesores desde la API
+    const cargarAsesores = async () => {
         try {
             setLoading(true);
+            setError(null);
 
-            // Preparar los parámetros de la solicitud
+            // Construir parámetros para la consulta
             const params = {
                 page: paginacion.pagina_actual,
                 per_page: paginacion.por_pagina,
@@ -59,93 +54,35 @@ export default function Departamentos({ auth }) {
                 ...filtros
             };
 
-            // Eliminar parámetros vacíos
-            Object.keys(params).forEach(key => {
-                if (params[key] === '') {
-                    delete params[key];
-                }
-            });
+            // Realizar la petición a la API
+            const response = await axios.get('/api/v1/admin/asesores', { params });
 
-            const response = await axios.get('/api/v1/admin/departamentos', { params });
-
+            // Actualizar el estado con los datos recibidos
             if (response.data) {
-                setDepartamentos(response.data.data);
-
-                // Actualizar paginación
+                setAsesores(response.data.data);
                 setPaginacion({
                     pagina_actual: response.data.current_page,
-                    total_paginas: response.data.last_page,
                     por_pagina: response.data.per_page,
-                    total: response.data.total
+                    total: response.data.total,
+                    total_paginas: response.data.last_page
                 });
             }
         } catch (err) {
-            console.error('Error al cargar departamentos:', err);
-            setError('No se pudieron cargar los departamentos. Por favor, inténtelo de nuevo.');
+            console.error('Error al cargar asesores:', err);
+            setError('No se pudieron cargar los asesores. Por favor, inténtelo de nuevo.');
         } finally {
             setLoading(false);
         }
     };
 
-    // Función para cargar las ubicaciones disponibles
-    const cargarUbicaciones = async () => {
-        try {
-            const response = await axios.get('/api/v1/admin/departamentos/ubicaciones');
-
-            if (response.data && response.data.data) {
-                setUbicaciones(response.data.data);
-            }
-        } catch (err) {
-            console.error('Error al cargar ubicaciones:', err);
-        }
-    };
-
-    // Manejar cambio de página
-    const cambiarPagina = (pagina) => {
-        setPaginacion({
-            ...paginacion,
-            pagina_actual: pagina
-        });
-    };
-
-    // Manejar cambio de ordenamiento
-    const cambiarOrdenamiento = (campo) => {
-        // Si se hace clic en el mismo campo, invertir la dirección
-        if (ordenamiento.campo === campo) {
-            setOrdenamiento({
-                ...ordenamiento,
-                direccion: ordenamiento.direccion === 'asc' ? 'desc' : 'asc'
-            });
-        } else {
-            // Si se hace clic en un campo diferente, establecer el campo y la dirección ascendente
-            setOrdenamiento({
-                campo: campo,
-                direccion: 'asc'
-            });
-        }
-    };
-
-    // Manejar cambio de filtros
+    // Manejar cambios en los filtros
     const handleFiltroChange = (e) => {
         const { name, value } = e.target;
-
         setFiltros({
             ...filtros,
             [name]: value
         });
-
-        // Resetear a la página 1 cuando se cambia un filtro
-        setPaginacion({
-            ...paginacion,
-            pagina_actual: 1
-        });
-    };
-
-    // Manejar búsqueda
-    const handleBusqueda = (e) => {
-        e.preventDefault();
-
-        // Resetear a la página 1 y cargar los departamentos con los filtros actualizados
+        // Resetear la paginación al cambiar filtros
         setPaginacion({
             ...paginacion,
             pagina_actual: 1
@@ -155,120 +92,126 @@ export default function Departamentos({ auth }) {
     // Limpiar todos los filtros
     const limpiarFiltros = () => {
         setFiltros({
-            estado: '',
-            ubicacion: '',
             busqueda: '',
-            destacado: ''
+            estado: '',
+            especialidad: ''
         });
-
         setPaginacion({
             ...paginacion,
             pagina_actual: 1
         });
     };
 
-    // Abrir modal de confirmación de eliminación
-    const confirmarEliminar = (departamento) => {
-        setDepartamentoAEliminar(departamento);
+    // Manejar la búsqueda
+    const handleBusqueda = (e) => {
+        e.preventDefault();
+        cargarAsesores();
+    };
+
+    // Cambiar el ordenamiento de la tabla
+    const cambiarOrdenamiento = (campo) => {
+        setOrdenamiento({
+            campo,
+            direccion: ordenamiento.campo === campo && ordenamiento.direccion === 'asc' ? 'desc' : 'asc'
+        });
+    };
+
+    // Cambiar la página actual
+    const cambiarPagina = (pagina) => {
+        if (pagina < 1 || pagina > paginacion.total_paginas) return;
+
+        setPaginacion({
+            ...paginacion,
+            pagina_actual: pagina
+        });
+    };
+
+    // Abrir modal de confirmación para eliminar asesor
+    const confirmarEliminar = (asesor) => {
+        setAsesorAEliminar(asesor);
         setShowDeleteModal(true);
     };
 
-    // Cerrar modal de confirmación de eliminación
+    // Cancelar la eliminación
     const cancelarEliminar = () => {
-        setDepartamentoAEliminar(null);
         setShowDeleteModal(false);
+        setAsesorAEliminar(null);
     };
 
-    // Eliminar departamento
-    const eliminarDepartamento = async () => {
-        if (!departamentoAEliminar) return;
+    // Eliminar asesor
+    const eliminarAsesor = async () => {
+        if (!asesorAEliminar) return;
 
         try {
             setDeleteLoading(true);
 
-            await axios.delete(`/api/v1/admin/departamentos/${departamentoAEliminar.id}`);
+            // Llamada a la API para eliminar el asesor
+            await axios.delete(`/api/v1/admin/asesores/${asesorAEliminar.id}`);
 
-            // Cerrar el modal y recargar los departamentos
+            // Cerrar el modal y recargar la lista
             setShowDeleteModal(false);
-            setDepartamentoAEliminar(null);
+            setAsesorAEliminar(null);
 
-            // Volver a cargar los departamentos
-            cargarDepartamentos();
+            // Recargar la lista de asesores
+            cargarAsesores();
         } catch (err) {
-            console.error('Error al eliminar departamento:', err);
-            alert('No se pudo eliminar el departamento. Por favor, inténtelo de nuevo.');
+            console.error('Error al eliminar asesor:', err);
+            setError('No se pudo eliminar el asesor. Por favor, inténtelo de nuevo.');
         } finally {
             setDeleteLoading(false);
         }
     };
 
-    // Formatear valor de moneda
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('es-PE', {
-            style: 'currency',
-            currency: 'PEN',
-            minimumFractionDigits: 2
-        }).format(value);
+    // Formatear fecha
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
     };
 
-    // Obtener el color de la etiqueta de estado
+    // Función para dar color al estado del asesor
     const getEstadoColor = (estado) => {
         switch (estado) {
-            case 'disponible':
+            case 'activo':
                 return 'bg-green-100 text-green-800';
-            case 'reservado':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'vendido':
+            case 'inactivo':
+                return 'bg-red-100 text-red-800';
+            case 'vacaciones':
                 return 'bg-blue-100 text-blue-800';
-            case 'inactivo':
-                return 'bg-gray-100 text-gray-800';
             default:
                 return 'bg-gray-100 text-gray-800';
-        }
-    };
-
-    // Obtener el texto del estado en español
-    const getEstadoText = (estado) => {
-        switch (estado) {
-            case 'disponible':
-                return 'Disponible';
-            case 'reservado':
-                return 'Reservado';
-            case 'vendido':
-                return 'Vendido';
-            case 'inactivo':
-                return 'Inactivo';
-            default:
-                return estado;
         }
     };
 
     return (
-        <AdminLayout auth={auth} title="Departamentos">
-            <Head title="Departamentos - Inmobiliaria" />
+        <AdminLayout auth={auth} title="Asesores">
+            <Head title="Asesores - Inmobiliaria" />
 
             <div className="py-12 bg-gray-100">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* Encabezado con botón de añadir */}
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-2xl font-bold text-gray-900">
-                            Departamentos
+                            Asesores
                         </h2>
                         <Link
-                            href="/admin/departamentos/crear"
+                            href="/admin/asesores/crear"
                             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                             </svg>
-                            Añadir Departamento
+                            Añadir Asesor
                         </Link>
                     </div>
 
                     {/* Filtros y búsqueda */}
                     <div className="bg-white rounded-md shadow p-4 mb-6">
                         <form onSubmit={handleBusqueda}>
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {/* Búsqueda por texto */}
                                 <div>
                                     <label htmlFor="busqueda" className="block text-sm font-medium text-gray-700 mb-1">
@@ -280,27 +223,27 @@ export default function Departamentos({ auth }) {
                                         name="busqueda"
                                         value={filtros.busqueda}
                                         onChange={handleFiltroChange}
-                                        placeholder="Código, título, dirección..."
+                                        placeholder="Nombre, documento, email..."
                                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                     />
                                 </div>
 
-                                {/* Filtro por ubicación */}
+                                {/* Filtro por especialidad */}
                                 <div>
-                                    <label htmlFor="ubicacion" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Ubicación
+                                    <label htmlFor="especialidad" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Especialidad
                                     </label>
                                     <select
-                                        id="ubicacion"
-                                        name="ubicacion"
-                                        value={filtros.ubicacion}
+                                        id="especialidad"
+                                        name="especialidad"
+                                        value={filtros.especialidad}
                                         onChange={handleFiltroChange}
                                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                     >
-                                        <option value="">Todas las ubicaciones</option>
-                                        {ubicaciones.map((ubicacion) => (
-                                            <option key={ubicacion} value={ubicacion}>
-                                                {ubicacion}
+                                        <option value="">Todas las especialidades</option>
+                                        {especialidades.map((especialidad) => (
+                                            <option key={especialidad} value={especialidad}>
+                                                {especialidad}
                                             </option>
                                         ))}
                                     </select>
@@ -319,28 +262,9 @@ export default function Departamentos({ auth }) {
                                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                     >
                                         <option value="">Todos los estados</option>
-                                        <option value="disponible">Disponible</option>
-                                        <option value="reservado">Reservado</option>
-                                        <option value="vendido">Vendido</option>
+                                        <option value="activo">Activo</option>
                                         <option value="inactivo">Inactivo</option>
-                                    </select>
-                                </div>
-
-                                {/* Filtro por destacado */}
-                                <div>
-                                    <label htmlFor="destacado" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Destacado
-                                    </label>
-                                    <select
-                                        id="destacado"
-                                        name="destacado"
-                                        value={filtros.destacado}
-                                        onChange={handleFiltroChange}
-                                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                    >
-                                        <option value="">Todos</option>
-                                        <option value="1">Destacados</option>
-                                        <option value="0">No destacados</option>
+                                        <option value="vacaciones">Vacaciones</option>
                                     </select>
                                 </div>
                             </div>
@@ -383,7 +307,7 @@ export default function Departamentos({ auth }) {
                         </div>
                     )}
 
-                    {/* Tabla de departamentos */}
+                    {/* Tabla de asesores */}
                     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
@@ -392,11 +316,11 @@ export default function Departamentos({ auth }) {
                                         <th
                                             scope="col"
                                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                                            onClick={() => cambiarOrdenamiento('codigo')}
+                                            onClick={() => cambiarOrdenamiento('nombre')}
                                         >
                                             <div className="flex items-center">
-                                                Código
-                                                {ordenamiento.campo === 'codigo' && (
+                                                Nombre
+                                                {ordenamiento.campo === 'nombre' && (
                                                     <span className="ml-1">
                                                         {ordenamiento.direccion === 'asc' ? '↑' : '↓'}
                                                     </span>
@@ -406,25 +330,28 @@ export default function Departamentos({ auth }) {
                                         <th
                                             scope="col"
                                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                                            onClick={() => cambiarOrdenamiento('titulo')}
+                                            onClick={() => cambiarOrdenamiento('documento')}
                                         >
                                             <div className="flex items-center">
-                                                Título / Ubicación
-                                                {ordenamiento.campo === 'titulo' && (
+                                                Documento
+                                                {ordenamiento.campo === 'documento' && (
                                                     <span className="ml-1">
                                                         {ordenamiento.direccion === 'asc' ? '↑' : '↓'}
                                                     </span>
                                                 )}
                                             </div>
                                         </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Contacto
+                                        </th>
                                         <th
                                             scope="col"
                                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                                            onClick={() => cambiarOrdenamiento('precio')}
+                                            onClick={() => cambiarOrdenamiento('especialidad')}
                                         >
                                             <div className="flex items-center">
-                                                Precio
-                                                {ordenamiento.campo === 'precio' && (
+                                                Especialidad
+                                                {ordenamiento.campo === 'especialidad' && (
                                                     <span className="ml-1">
                                                         {ordenamiento.direccion === 'asc' ? '↑' : '↓'}
                                                     </span>
@@ -451,7 +378,7 @@ export default function Departamentos({ auth }) {
                                             onClick={() => cambiarOrdenamiento('created_at')}
                                         >
                                             <div className="flex items-center">
-                                                Fecha creación
+                                                Fecha registro
                                                 {ordenamiento.campo === 'created_at' && (
                                                     <span className="ml-1">
                                                         {ordenamiento.direccion === 'asc' ? '↑' : '↓'}
@@ -467,51 +394,61 @@ export default function Departamentos({ auth }) {
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {loading ? (
                                         <tr>
-                                            <td colSpan="6" className="px-6 py-4 text-center">
+                                            <td colSpan="7" className="px-6 py-4 text-center">
                                                 <div className="flex justify-center items-center">
                                                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500"></div>
                                                     <span className="ml-2">Cargando...</span>
                                                 </div>
                                             </td>
                                         </tr>
-                                    ) : departamentos.length === 0 ? (
+                                    ) : asesores.length === 0 ? (
                                         <tr>
-                                            <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                                                No se encontraron departamentos con los filtros seleccionados.
+                                            <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                                                No se encontraron asesores con los filtros seleccionados.
                                             </td>
                                         </tr>
                                     ) : (
-                                        departamentos.map((departamento) => (
-                                            <tr key={departamento.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        asesores.map((asesor) => (
+                                            <tr key={asesor.id} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
-                                                        {departamento.codigo}
-                                                        {departamento.destacado && (
-                                                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                                Destacado
-                                                            </span>
-                                                        )}
+                                                        <div className="flex-shrink-0 h-10 w-10">
+                                                            <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
+                                                                {asesor.nombre.charAt(0).toUpperCase()}
+                                                            </div>
+                                                        </div>
+                                                        <div className="ml-4">
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                {asesor.nombre} {asesor.apellido}
+                                                            </div>
+                                                            <div className="text-sm text-gray-500">
+                                                                {asesor.codigo || 'N/A'}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    <div className="font-medium">{departamento.titulo}</div>
-                                                    <div className="text-gray-500">{departamento.ubicacion}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {formatCurrency(departamento.precio)}
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {asesor.tipo_documento}: {asesor.documento}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEstadoColor(departamento.estado)}`}>
-                                                        {getEstadoText(departamento.estado)}
+                                                    <div className="text-sm text-gray-900">{asesor.email}</div>
+                                                    <div className="text-sm text-gray-500">{asesor.telefono}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {asesor.especialidad || 'General'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEstadoColor(asesor.estado)}`}>
+                                                        {asesor.estado}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {new Date(departamento.created_at).toLocaleDateString('es-ES')}
+                                                    {formatDate(asesor.created_at)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex justify-end space-x-2">
                                                         <Link
-                                                            href={`/admin/departamentos/${departamento.id}`}
+                                                            href={`/admin/asesores/${asesor.id}`}
                                                             className="text-indigo-600 hover:text-indigo-900"
                                                             title="Ver detalles"
                                                         >
@@ -521,7 +458,7 @@ export default function Departamentos({ auth }) {
                                                             </svg>
                                                         </Link>
                                                         <Link
-                                                            href={`/admin/departamentos/${departamento.id}/editar`}
+                                                            href={`/admin/asesores/${asesor.id}/editar`}
                                                             className="text-blue-600 hover:text-blue-900"
                                                             title="Editar"
                                                         >
@@ -530,7 +467,7 @@ export default function Departamentos({ auth }) {
                                                             </svg>
                                                         </Link>
                                                         <button
-                                                            onClick={() => confirmarEliminar(departamento)}
+                                                            onClick={() => confirmarEliminar(asesor)}
                                                             className="text-red-600 hover:text-red-900"
                                                             title="Eliminar"
                                                         >
@@ -688,12 +625,12 @@ export default function Departamentos({ auth }) {
                                     </div>
                                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                         <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                                            Eliminar departamento
+                                            Eliminar asesor
                                         </h3>
                                         <div className="mt-2">
                                             <p className="text-sm text-gray-500">
-                                                ¿Está seguro de que desea eliminar el departamento{' '}
-                                                <span className="font-semibold">{departamentoAEliminar?.codigo}</span>?
+                                                ¿Está seguro de que desea eliminar al asesor{' '}
+                                                <span className="font-semibold">{asesorAEliminar?.nombre} {asesorAEliminar?.apellido}</span>?
                                                 Esta acción no se puede deshacer.
                                             </p>
                                         </div>
@@ -703,7 +640,7 @@ export default function Departamentos({ auth }) {
                             <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                                 <button
                                     type="button"
-                                    onClick={eliminarDepartamento}
+                                    onClick={eliminarAsesor}
                                     disabled={deleteLoading}
                                     className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm ${
                                         deleteLoading ? 'opacity-75 cursor-not-allowed' : ''

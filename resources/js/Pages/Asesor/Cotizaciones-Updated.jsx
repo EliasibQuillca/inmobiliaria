@@ -15,15 +15,10 @@ export default function AsesorCotizaciones({ auth }) {
         total: 0,
         perPage: 10
     });
-    const [filters, setFilters] = useState({
-        status: '',
-        date: '',
-        search: ''
-    });
 
     useEffect(() => {
         fetchCotizaciones();
-    }, [filtro, filters]);
+    }, [filtro]);
 
     const fetchCotizaciones = async (page = 1) => {
         setLoading(true);
@@ -31,9 +26,7 @@ export default function AsesorCotizaciones({ auth }) {
             const response = await axios.get(`/api/v1/cotizaciones`, {
                 params: {
                     page,
-                    estado: filtro !== 'todas' ? filtro : undefined,
-                    search: filters.search || undefined,
-                    date_filter: filters.date || undefined
+                    estado: filtro !== 'todas' ? filtro : undefined
                 }
             });
             setCotizaciones(response.data.data);
@@ -72,55 +65,11 @@ export default function AsesorCotizaciones({ auth }) {
             minimumFractionDigits: 0
         }).format(amount);
     };
-    // Función para manejar cambios en la búsqueda con debounce
-    const handleSearchChange = (e) => {
-        const value = e.target.value;
-        setFilters({ ...filters, search: value });
-    };
-
-    // Función para limpiar los filtros
-    const limpiarFiltros = () => {
-        setFilters({
-            status: '',
-            date: '',
-            search: ''
-        });
-        setFiltro('todas');
-    };
-
-    // Función para exportar las cotizaciones
-    const exportarCotizaciones = async () => {
-        try {
-            // Esta función llamaría a un endpoint de API para generar un CSV/Excel
-            const response = await axios.get('/api/v1/cotizaciones/export', {
-                params: {
-                    estado: filtro !== 'todas' ? filtro : undefined,
-                    search: filters.search || undefined,
-                    date_filter: filters.date || undefined
-                },
-                responseType: 'blob'
-            });
-
-            // Crear un blob URL para el archivo
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `cotizaciones_${new Date().toISOString().split('T')[0]}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-        } catch (err) {
-            console.error('Error exporting cotizaciones:', err);
-            alert('Error al exportar las cotizaciones. Inténtelo de nuevo más tarde.');
-        }
-    };
 
     // Función para mapear los estados del backend a etiquetas legibles
     const getEstadoLabel = (estado) => {
         const estadoMap = {
             'pendiente': 'Pendiente',
-            'emitida': 'Emitida',
-            'enviada': 'Enviada',
             'aprobada': 'Aprobada',
             'rechazada': 'Rechazada',
             'vencida': 'Vencida'
@@ -132,11 +81,7 @@ export default function AsesorCotizaciones({ auth }) {
     const getEstadoClasses = (estado) => {
         switch (estado) {
             case 'pendiente':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'emitida':
                 return 'bg-blue-100 text-blue-800';
-            case 'enviada':
-                return 'bg-indigo-100 text-indigo-800';
             case 'aprobada':
                 return 'bg-green-100 text-green-800';
             case 'rechazada':
@@ -162,15 +107,6 @@ export default function AsesorCotizaciones({ auth }) {
                             </p>
                         </div>
                         <div className="flex space-x-4">
-                            <button
-                                onClick={exportarCotizaciones}
-                                className="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                Exportar
-                            </button>
                             <Link
                                 href={route('asesor.cotizaciones.crear')}
                                 className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300"
@@ -192,6 +128,13 @@ export default function AsesorCotizaciones({ auth }) {
                         </div>
                     </div>
 
+                    {/* Mensaje de error */}
+                    {error && (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                            <p>{error}</p>
+                        </div>
+                    )}
+
                     {/* Filtros */}
                     <div className="bg-white shadow rounded-lg p-4 mb-6">
                         <div className="flex flex-wrap items-center gap-4">
@@ -211,31 +154,11 @@ export default function AsesorCotizaciones({ auth }) {
                                     onClick={() => setFiltro('pendiente')}
                                     className={`px-3 py-1 rounded-full text-sm font-medium ${
                                         filtro === 'pendiente'
-                                            ? 'bg-yellow-500 text-white'
-                                            : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                                    }`}
-                                >
-                                    Pendientes
-                                </button>
-                                <button
-                                    onClick={() => setFiltro('emitida')}
-                                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        filtro === 'emitida'
                                             ? 'bg-blue-500 text-white'
                                             : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                     }`}
                                 >
-                                    Emitidas
-                                </button>
-                                <button
-                                    onClick={() => setFiltro('enviada')}
-                                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        filtro === 'enviada'
-                                            ? 'bg-indigo-500 text-white'
-                                            : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
-                                    }`}
-                                >
-                                    Enviadas
+                                    Pendientes
                                 </button>
                                 <button
                                     onClick={() => setFiltro('aprobada')}
@@ -273,68 +196,54 @@ export default function AsesorCotizaciones({ auth }) {
 
                     {/* Tabla de Cotizaciones */}
                     <div className="bg-white overflow-hidden shadow-md rounded-lg">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Cliente
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Propiedad
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Precio
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Fecha
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Estado
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Acciones
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {loading ? (
+                        {loading ? (
+                            <div className="p-6 text-center">
+                                <svg className="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <p className="mt-2 text-gray-600">Cargando cotizaciones...</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
                                         <tr>
-                                            <td colSpan="6" className="px-6 py-4 text-center">
-                                                <div className="flex justify-center items-center">
-                                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                    Cargando cotizaciones...
-                                                </div>
-                                            </td>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Cliente
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Propiedad
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Precio
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Fecha
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Estado
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Acciones
+                                            </th>
                                         </tr>
-                                    ) : error ? (
-                                        <tr>
-                                            <td colSpan="6" className="px-6 py-4 text-center text-red-500">
-                                                {error}
-                                            </td>
-                                        </tr>
-                                    ) : cotizaciones.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                                                No hay cotizaciones disponibles con el filtro actual
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        cotizaciones.map((cotizacion) => (
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {cotizaciones.map((cotizacion) => (
                                             <tr key={cotizacion.id}>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-gray-900">{cotizacion.cliente?.nombre || 'Cliente'}</div>
-                                                    <div className="text-xs text-gray-500">{cotizacion.cliente?.email || ''}</div>
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {cotizacion.cliente ? cotizacion.cliente.nombre + ' ' + cotizacion.cliente.apellidos : 'Cliente no asignado'}
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">{cotizacion.departamento?.nombre || 'Propiedad'}</div>
-                                                    <div className="text-xs text-gray-500">{cotizacion.departamento?.ubicacion || ''}</div>
+                                                    <div className="text-sm text-gray-900">
+                                                        {cotizacion.departamento ? cotizacion.departamento.nombre : 'Propiedad no disponible'}
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900 font-medium">{formatMoney(cotizacion.precio_final || 0)}</div>
+                                                    <div className="text-sm text-gray-900 font-medium">{formatMoney(cotizacion.monto)}</div>
                                                     {cotizacion.descuento > 0 && (
                                                         <div className="text-xs text-green-600">
                                                             Descuento: {formatMoney(cotizacion.descuento)}
@@ -355,7 +264,7 @@ export default function AsesorCotizaciones({ auth }) {
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex justify-end space-x-3">
                                                         <Link
-                                                            href={route('asesor.cotizaciones.ver', cotizacion.id)}
+                                                            href={route('asesor.cotizaciones.show', cotizacion.id)}
                                                             className="text-indigo-600 hover:text-indigo-900"
                                                         >
                                                             <span className="sr-only">Ver cotización</span>
@@ -364,20 +273,33 @@ export default function AsesorCotizaciones({ auth }) {
                                                                 <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                                                             </svg>
                                                         </Link>
+
                                                         {cotizacion.estado === 'pendiente' && (
-                                                            <button
-                                                                onClick={() => cambiarEstadoCotizacion(cotizacion.id, 'enviada')}
-                                                                className="text-green-600 hover:text-green-900"
-                                                            >
-                                                                <span className="sr-only">Enviar cotización</span>
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                                                                </svg>
-                                                            </button>
+                                                            <>
+                                                                <button
+                                                                    onClick={() => cambiarEstadoCotizacion(cotizacion.id, 'aprobada')}
+                                                                    className="text-green-600 hover:text-green-900"
+                                                                >
+                                                                    <span className="sr-only">Aprobar cotización</span>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                    </svg>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => cambiarEstadoCotizacion(cotizacion.id, 'rechazada')}
+                                                                    className="text-red-600 hover:text-red-900"
+                                                                >
+                                                                    <span className="sr-only">Rechazar cotización</span>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                                    </svg>
+                                                                </button>
+                                                            </>
                                                         )}
+
                                                         {cotizacion.estado === 'aprobada' && (
                                                             <Link
-                                                                href={route('asesor.reservas.crear', cotizacion.id)}
+                                                                href={route('asesor.reservas.crear', { cotizacion_id: cotizacion.id })}
                                                                 className="text-green-600 hover:text-green-900"
                                                             >
                                                                 <span className="sr-only">Crear reserva</span>
@@ -386,34 +308,36 @@ export default function AsesorCotizaciones({ auth }) {
                                                                 </svg>
                                                             </Link>
                                                         )}
-                                                        <Link
-                                                            href={route('asesor.cotizaciones.editar', cotizacion.id)}
-                                                            className="text-yellow-600 hover:text-yellow-900"
-                                                        >
-                                                            <span className="sr-only">Editar cotización</span>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                                <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                                                                <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
-                                                            </svg>
-                                                        </Link>
+
+                                                        {cotizacion.estado !== 'vencida' && (
+                                                            <Link
+                                                                href={route('asesor.cotizaciones.edit', cotizacion.id)}
+                                                                className="text-yellow-600 hover:text-yellow-900"
+                                                            >
+                                                                <span className="sr-only">Editar cotización</span>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                                                                    <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
+                                                                </svg>
+                                                            </Link>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                            {/* Mensaje cuando no hay cotizaciones */}
-                            {!loading && !error && cotizaciones.length === 0 && (
-                                <div className="px-6 py-4 text-center text-gray-500">
-                                    No hay cotizaciones que coincidan con el filtro seleccionado
-                                </div>
-                            )}
-                        </div>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {cotizaciones.length === 0 && !loading && (
+                                    <div className="px-6 py-4 text-center text-gray-500">
+                                        No hay cotizaciones que coincidan con el filtro seleccionado
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Paginación */}
-                    {pagination.lastPage > 1 && (
+                    {cotizaciones.length > 0 && (
                         <div className="mt-6 flex justify-between items-center">
                             <div className="text-sm text-gray-700">
                                 Mostrando <span className="font-medium">{cotizaciones.length}</span> de <span className="font-medium">{pagination.total}</span> cotizaciones
@@ -421,26 +345,40 @@ export default function AsesorCotizaciones({ auth }) {
                             <div className="flex justify-center">
                                 <nav className="inline-flex rounded-md shadow">
                                     <button
-                                        className={`py-2 px-4 rounded-l-md ${pagination.currentPage === 1
-                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-300'}`}
                                         onClick={() => fetchCotizaciones(pagination.currentPage - 1)}
                                         disabled={pagination.currentPage === 1}
+                                        className={`py-2 px-4 rounded-l-md border border-gray-300 ${
+                                            pagination.currentPage === 1
+                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                : 'bg-white text-gray-500 hover:bg-gray-50'
+                                        }`}
                                     >
                                         Anterior
                                     </button>
 
-                                    {/* Página actual */}
-                                    <button className="py-2 px-4 bg-indigo-600 text-white border-t border-b border-indigo-600">
-                                        {pagination.currentPage}
-                                    </button>
+                                    {/* Generamos botones para las páginas */}
+                                    {[...Array(pagination.lastPage).keys()].map(page => (
+                                        <button
+                                            key={page + 1}
+                                            onClick={() => fetchCotizaciones(page + 1)}
+                                            className={`py-2 px-4 border-t border-b ${
+                                                pagination.currentPage === page + 1
+                                                    ? 'bg-indigo-600 text-white border-indigo-600'
+                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            {page + 1}
+                                        </button>
+                                    ))}
 
                                     <button
-                                        className={`py-2 px-4 rounded-r-md ${pagination.currentPage === pagination.lastPage
-                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'}`}
                                         onClick={() => fetchCotizaciones(pagination.currentPage + 1)}
                                         disabled={pagination.currentPage === pagination.lastPage}
+                                        className={`py-2 px-4 rounded-r-md border border-gray-300 ${
+                                            pagination.currentPage === pagination.lastPage
+                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                : 'bg-white text-gray-500 hover:bg-gray-50'
+                                        }`}
                                     >
                                         Siguiente
                                     </button>

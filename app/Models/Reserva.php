@@ -14,17 +14,46 @@ class Reserva extends Model
 
     protected $fillable = [
         'cotizacion_id',
+        'cliente_id',
+        'asesor_id',
+        'departamento_id',
         'fecha_reserva',
+        'fecha_inicio',
+        'fecha_fin',
+        'monto_reserva',
+        'monto_total',
+        'estado',
+        'notas',
+        'condiciones',
     ];
 
     protected $casts = [
         'fecha_reserva' => 'datetime',
+        'fecha_inicio' => 'date',
+        'fecha_fin' => 'date',
+        'monto_reserva' => 'decimal:2',
+        'monto_total' => 'decimal:2',
     ];
 
     // Relaciones
     public function cotizacion()
     {
         return $this->belongsTo(Cotizacion::class, 'cotizacion_id');
+    }
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class, 'cliente_id');
+    }
+
+    public function asesor()
+    {
+        return $this->belongsTo(Asesor::class, 'asesor_id');
+    }
+
+    public function departamento()
+    {
+        return $this->belongsTo(Departamento::class, 'departamento_id');
     }
 
     public function venta()
