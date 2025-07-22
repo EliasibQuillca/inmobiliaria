@@ -76,17 +76,17 @@ class Cotizacion extends Model
     // Métodos de utilidad
     public function estaPendiente()
     {
-        return $this->estado === 'pendiente';
+        return $this->attributes['estado'] === 'pendiente';
     }
 
     public function estaAceptada()
     {
-        return $this->estado === 'aceptada';
+        return $this->attributes['estado'] === 'aceptada';
     }
 
     public function estaRechazada()
     {
-        return $this->estado === 'rechazada';
+        return $this->attributes['estado'] === 'rechazada';
     }
 
     public function aceptar()

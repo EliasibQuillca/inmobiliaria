@@ -42,7 +42,7 @@ class Cliente extends Model
     // Métodos de utilidad
     public function getNombreCompleto()
     {
-        return $this->usuario->nombre;
+        return $this->usuario->name;
     }
 
     public function getEmail()
@@ -52,6 +52,6 @@ class Cliente extends Model
 
     public function getTelefono()
     {
-        return $this->usuario->telefono;
+        return $this->usuario->telefono ?? null;
     }
 }

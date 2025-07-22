@@ -101,17 +101,17 @@ class Departamento extends Model
     // Métodos de utilidad
     public function estaDisponible()
     {
-        return $this->estado === 'disponible';
+        return $this->attributes['estado'] === 'disponible';
     }
 
     public function estaReservado()
     {
-        return $this->estado === 'reservado';
+        return $this->attributes['estado'] === 'reservado';
     }
 
     public function estaVendido()
     {
-        return $this->estado === 'vendido';
+        return $this->attributes['estado'] === 'vendido';
     }
 
     public function marcarComoReservado()

@@ -66,17 +66,17 @@ class User extends Authenticatable
     // Métodos de utilidad
     public function esCliente()
     {
-        return $this->role === 'cliente';
+        return $this->attributes['role'] === 'cliente';
     }
 
     public function esAsesor()
     {
-        return $this->role === 'asesor';
+        return $this->attributes['role'] === 'asesor';
     }
 
     public function esAdministrador()
     {
-        return $this->role === 'administrador';
+        return $this->attributes['role'] === 'administrador';
     }
 
     /**
@@ -85,11 +85,11 @@ class User extends Authenticatable
     public function hasRole($roles)
     {
         if (is_string($roles)) {
-            return $this->role === $roles;
+            return $this->attributes['role'] === $roles;
         }
 
         if (is_array($roles)) {
-            return in_array($this->role, $roles);
+            return in_array($this->attributes['role'], $roles);
         }
 
         return false;
@@ -100,7 +100,7 @@ class User extends Authenticatable
      */
     public function getRoleDisplayAttribute()
     {
-        return match($this->role) {
+        return match($this->attributes['role'] ?? 'usuario') {
             'administrador' => 'Administrador',
             'asesor' => 'Asesor',
             'cliente' => 'Cliente',

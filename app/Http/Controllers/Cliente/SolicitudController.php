@@ -9,6 +9,7 @@ use App\Models\Cliente;
 use App\Models\Asesor;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class SolicitudController extends Controller
@@ -60,22 +61,24 @@ class SolicitudController extends Controller
         ]);
 
         // Buscar o crear un registro de cliente para el usuario autenticado si no existe
-        if (auth()->check()) {
-            $user = auth()->user();
+        if (Auth::check()) {
+            $user = Auth::user();
 
             // Buscar si ya existe un cliente asociado al usuario
-            $cliente = Cliente::where('usuario_id', $user->id)->first();
+            $cliente = Cliente::where('usuario_id', $user->getKey())->first();
 
             // Si no existe, crear un nuevo cliente
             if (!$cliente) {
                 $cliente = new Cliente();
-                $cliente->usuario_id = $user->id;
+                $cliente->usuario_id = $user->getKey();
                 $cliente->dni = $request->input('dni', '00000000'); // Asumiendo un valor por defecto
                 $cliente->direccion = $request->input('direccion');
                 // No necesitamos asignar fecha_registro explícitamente
                 // ya que el campo tiene un default en la migración
                 $cliente->save();
-            }            // Creamos la solicitud vinculada al cliente
+            }
+
+            // Creamos la solicitud vinculada al cliente
             $solicitud = new Cotizacion([
                 'cliente_id' => $cliente->getKey(), // Usar getKey() en lugar de id directo
                 'departamento_id' => $validated['departamento_id'],
@@ -153,7 +156,7 @@ class SolicitudController extends Controller
         // $solicitud = Cotizacion::findOrFail($id);
         //
         // // Verificar que la solicitud pertenezca al cliente autenticado
-        // if ($solicitud->cliente_id !== auth()->user()->id) {
+        // if ($solicitud->cliente_id !== Auth::user()->getKey()) {
         //     abort(403, 'No autorizado');
         // }
         //
@@ -185,12 +188,12 @@ class SolicitudController extends Controller
         // $solicitud = Cotizacion::findOrFail($id);
         //
         // // Verificar que la solicitud pertenezca al cliente autenticado
-        // if ($solicitud->cliente_id !== auth()->user()->id) {
+        // if ($solicitud->cliente_id !== Auth::user()->getKey()) {
         //     abort(403, 'No autorizado');
         // }
         //
         // $solicitud->comentarios()->create([
-        //     'usuario_id' => auth()->user()->id,
+        //     'usuario_id' => Auth::id(),
         //     'mensaje' => $validated['mensaje'],
         //     'rol' => 'cliente',
         // ]);
