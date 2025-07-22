@@ -98,9 +98,19 @@ Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->
         return Inertia::render('Admin/Reportes');
     })->name('admin.reportes');
 
-    Route::get('/reportes/ventas', function () {
+        Route::get('/reportes-ventas', function () {
         return Inertia::render('Admin/ReportesVentas');
     })->name('admin.reportes.ventas');
+
+    // Rutas de reservas
+    Route::get('/reservas', [App\Http\Controllers\ReservaController::class, 'index'])->name('admin.reservas.index');
+    Route::get('/reservas/crear', [App\Http\Controllers\ReservaController::class, 'create'])->name('admin.reservas.crear');
+    Route::post('/reservas', [App\Http\Controllers\ReservaController::class, 'store'])->name('admin.reservas.store');
+    Route::get('/reservas/{id}', [App\Http\Controllers\ReservaController::class, 'show'])->name('admin.reservas.show');
+    Route::get('/reservas/{id}/editar', [App\Http\Controllers\ReservaController::class, 'edit'])->name('admin.reservas.edit');
+    Route::patch('/reservas/{id}', [App\Http\Controllers\ReservaController::class, 'update'])->name('admin.reservas.update');
+    Route::delete('/reservas/{id}', [App\Http\Controllers\ReservaController::class, 'destroy'])->name('admin.reservas.destroy');
+    Route::patch('/reservas/{id}/estado', [App\Http\Controllers\ReservaController::class, 'cambiarEstado'])->name('admin.reservas.cambiar-estado');
 
     Route::get('/reportes/asesores', function () {
         return Inertia::render('Admin/ReportesAsesores');
@@ -183,17 +193,17 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('
     })->name('asesor.reservas');
 
     Route::get('/reservas/crear', function () {
-        return Inertia::render('Asesor/Reservas/Crear');
+        return Inertia::render('Asesor/CrearReserva');
     })->name('asesor.reservas.crear');
 
     Route::get('/reservas/crear/{cotizacionId}', function ($cotizacionId) {
-        return Inertia::render('Asesor/Reservas/Crear', [
+        return Inertia::render('Asesor/CrearReserva', [
             'cotizacionId' => $cotizacionId
         ]);
     })->name('asesor.reservas.crear.desde.cotizacion');
 
     Route::get('/reservas/{id}', function ($id) {
-        return Inertia::render('Asesor/Reservas/Detalle', [
+        return Inertia::render('Asesor/DetalleReserva', [
             'reservaId' => $id
         ]);
     })->name('asesor.reservas.detalle');

@@ -23,7 +23,7 @@ class ReservaController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('Admin/Reservas', [
+        return Inertia::render('Asesor/Reservas', [
             'reservas' => $reservas,
             'filters' => request()->all('search', 'estado'),
         ]);
@@ -45,7 +45,7 @@ class ReservaController extends Controller
         $clientes = Cliente::all();
         $departamentos = Departamento::where('estado', 'disponible')->get();
 
-        return Inertia::render('Admin/CrearReserva', [
+        return Inertia::render('Asesor/CrearReserva', [
             'cotizaciones' => $cotizaciones,
             'asesores' => $asesores,
             'clientes' => $clientes,
@@ -102,7 +102,7 @@ class ReservaController extends Controller
     {
         $reserva = Reserva::with(['cliente', 'asesor', 'departamento', 'cotizacion'])->findOrFail($id);
 
-        return Inertia::render('Admin/DetalleReserva', [
+        return Inertia::render('Asesor/DetalleReserva', [
             'reserva' => $reserva,
         ]);
     }
@@ -118,11 +118,16 @@ class ReservaController extends Controller
         $reserva = Reserva::with(['cliente', 'asesor', 'departamento', 'cotizacion'])->findOrFail($id);
         $asesores = Asesor::where('estado', 'activo')->get();
         $clientes = Cliente::all();
+
+        // Obtener departamentos disponibles o el actualmente asignado
+        $departamentoId = $reserva->departamento ? $reserva->departamento->getKey() : null;
         $departamentos = Departamento::where('estado', 'disponible')
-            ->orWhere('id', $reserva->departamento_id)
+            ->when($departamentoId, function($query) use ($departamentoId) {
+                return $query->orWhere('id', $departamentoId);
+            })
             ->get();
 
-        return Inertia::render('Admin/EditarReserva', [
+        return Inertia::render('Asesor/EditarReserva', [
             'reserva' => $reserva,
             'asesores' => $asesores,
             'clientes' => $clientes,
@@ -139,11 +144,12 @@ class ReservaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $reserva = Reserva::findOrFail($id);
+        $reserva = Reserva::with('departamento')->findOrFail($id);
 
         $validated = $request->validate([
             'cliente_id' => 'required|exists:clientes,id',
             'asesor_id' => 'required|exists:asesores,id',
+            'departamento_id' => 'required|exists:departamentos,id',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after:fecha_inicio',
             'monto_reserva' => 'required|numeric|min:0',
@@ -154,22 +160,22 @@ class ReservaController extends Controller
         ]);
 
         // Si se cambia el departamento
-        if ($request->filled('departamento_id') && $reserva->departamento_id != $request->departamento_id) {
+        $departamentoIdActual = $reserva->departamento ? $reserva->departamento->getKey() : null;
+        $departamentoIdNuevo = $request->input('departamento_id');
+
+        if ($departamentoIdNuevo && $departamentoIdActual && $departamentoIdActual != $departamentoIdNuevo) {
             // Liberar el departamento anterior
-            $departamentoAnterior = Departamento::findOrFail($reserva->departamento_id);
-            $departamentoAnterior->update(['estado' => 'disponible']);
+            $reserva->departamento->update(['estado' => 'disponible']);
 
             // Reservar el nuevo departamento
-            $departamentoNuevo = Departamento::findOrFail($request->departamento_id);
+            $departamentoNuevo = Departamento::findOrFail($departamentoIdNuevo);
             $departamentoNuevo->update(['estado' => 'reservado']);
-
-            $validated['departamento_id'] = $request->departamento_id;
         }
 
         // Si se cancela la reserva, liberar el departamento
-        if ($validated['estado'] === 'cancelada' && $reserva->estado !== 'cancelada') {
-            $departamento = Departamento::findOrFail($reserva->departamento_id);
-            $departamento->update(['estado' => 'disponible']);
+        $estadoActual = $reserva->getAttribute('estado') ?? '';
+        if ($validated['estado'] === 'cancelada' && $estadoActual !== 'cancelada' && $reserva->departamento) {
+            $reserva->departamento->update(['estado' => 'disponible']);
         }
 
         $reserva->update($validated);
@@ -186,7 +192,7 @@ class ReservaController extends Controller
      */
     public function destroy($id)
     {
-        $reserva = Reserva::findOrFail($id);
+        $reserva = Reserva::with('departamento')->findOrFail($id);
 
         // Verificar si la reserva ya ha sido convertida en venta
         if ($reserva->venta()->exists()) {
@@ -194,8 +200,9 @@ class ReservaController extends Controller
         }
 
         // Liberar el departamento
-        $departamento = Departamento::findOrFail($reserva->departamento_id);
-        $departamento->update(['estado' => 'disponible']);
+        if ($reserva->departamento) {
+            $reserva->departamento->update(['estado' => 'disponible']);
+        }
 
         $reserva->delete();
 
@@ -212,18 +219,18 @@ class ReservaController extends Controller
      */
     public function cambiarEstado(Request $request, $id)
     {
-        $reserva = Reserva::findOrFail($id);
+        $reserva = Reserva::with('departamento')->findOrFail($id);
 
         $request->validate([
             'estado' => 'required|in:activa,cancelada,completada',
         ]);
 
         $nuevoEstado = $request->input('estado');
+        $estadoActual = $reserva->getAttribute('estado');
 
         // Si se cancela la reserva, liberar el departamento
-        if ($nuevoEstado === 'cancelada' && $reserva->estado !== 'cancelada') {
-            $departamento = Departamento::findOrFail($reserva->departamento_id);
-            $departamento->update(['estado' => 'disponible']);
+        if ($nuevoEstado === 'cancelada' && $estadoActual !== 'cancelada' && $reserva->departamento) {
+            $reserva->departamento->update(['estado' => 'disponible']);
         }
 
         $reserva->update(['estado' => $nuevoEstado]);
