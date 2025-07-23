@@ -6,6 +6,8 @@ use App\Models\Asesor;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class AsesorController extends Controller
@@ -203,5 +205,198 @@ class AsesorController extends Controller
 
         return redirect()->route('admin.asesores.index')
             ->with('success', 'Asesor eliminado correctamente.');
+    }
+
+    // === MÉTODOS API PARA ADMINISTRADOR ===
+
+    /**
+     * Listar todos los asesores (API para administrador)
+     */
+    public function admin(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('administrador')) {
+            return response()->json([
+                'message' => 'No autorizado',
+            ], 403);
+        }
+
+        $query = Asesor::with(['usuario']);
+
+        // Filtros
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->whereHas('usuario', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('estado')) {
+            $query->where('estado', $request->input('estado'));
+        }
+
+        // Ordenamiento
+        $sort = $request->input('sort', 'created_at');
+        $direction = $request->input('direction', 'desc');
+        $query->orderBy($sort, $direction);
+
+        $asesores = $query->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'data' => $asesores->items(),
+            'pagination' => [
+                'current_page' => $asesores->currentPage(),
+                'last_page' => $asesores->lastPage(),
+                'per_page' => $asesores->perPage(),
+                'total' => $asesores->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Mostrar un asesor específico (API)
+     */
+    public function showApi($id)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('administrador')) {
+            return response()->json([
+                'message' => 'No autorizado',
+            ], 403);
+        }
+
+        $asesor = Asesor::with(['usuario', 'cotizaciones', 'reservas'])->findOrFail($id);
+
+        return response()->json([
+            'data' => $asesor
+        ]);
+    }
+
+    /**
+     * Estadísticas de un asesor específico (API)
+     */
+    public function estadisticas($id)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('administrador')) {
+            return response()->json([
+                'message' => 'No autorizado',
+            ], 403);
+        }
+
+        $asesor = Asesor::findOrFail($id);
+
+        $estadisticas = [
+            'ventas_mes' => $asesor->reservas()->whereHas('venta')->whereMonth('created_at', now()->month)->count(),
+            'ventas_total' => $asesor->reservas()->whereHas('venta')->count(),
+            'cotizaciones_mes' => $asesor->cotizaciones()->whereMonth('created_at', now()->month)->count(),
+            'cotizaciones_total' => $asesor->cotizaciones()->count(),
+            'clientes_activos' => $asesor->cotizaciones()->distinct('cliente_id')->count(),
+            'comisiones_mes' => $asesor->reservas()->whereHas('venta')->whereMonth('created_at', now()->month)->sum('monto_total') * 0.05,
+        ];
+
+        return response()->json([
+            'data' => $estadisticas
+        ]);
+    }
+
+    /**
+     * Actividades recientes de un asesor (API)
+     */
+    public function actividades($id)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('administrador')) {
+            return response()->json([
+                'message' => 'No autorizado',
+            ], 403);
+        }
+
+        $asesor = Asesor::findOrFail($id);
+
+        $actividades = collect();
+
+        // Últimas cotizaciones
+        $cotizaciones = $asesor->cotizaciones()->with(['departamento', 'cliente.usuario'])->latest()->take(5)->get();
+        foreach ($cotizaciones as $cotizacion) {
+            $actividades->push([
+                'tipo' => 'cotizacion',
+                'fecha' => $cotizacion->created_at,
+                'descripcion' => "Cotización para {$cotizacion->departamento->titulo}",
+                'cliente' => $cotizacion->cliente->usuario->name ?? 'N/A',
+            ]);
+        }
+
+        // Últimas reservas
+        $reservas = $asesor->reservas()->with(['departamento', 'cliente.usuario'])->latest()->take(5)->get();
+        foreach ($reservas as $reserva) {
+            $actividades->push([
+                'tipo' => 'reserva',
+                'fecha' => $reserva->created_at,
+                'descripcion' => "Reserva de {$reserva->departamento->titulo}",
+                'cliente' => $reserva->cliente->usuario->name ?? 'N/A',
+            ]);
+        }
+
+        return response()->json([
+            'data' => $actividades->sortByDesc('fecha')->values()->take(10)
+        ]);
+    }
+
+    /**
+     * Clientes de un asesor específico (API)
+     */
+    public function clientesAsesor($id)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('administrador')) {
+            return response()->json([
+                'message' => 'No autorizado',
+            ], 403);
+        }
+
+        $asesor = Asesor::findOrFail($id);
+
+        $clientes = $asesor->cotizaciones()->with(['cliente.usuario'])
+                           ->distinct('cliente_id')
+                           ->get()
+                           ->pluck('cliente')
+                           ->unique('id');
+
+        return response()->json([
+            'data' => $clientes
+        ]);
+    }
+
+    /**
+     * Cambiar estado de un asesor (API)
+     */
+    public function cambiarEstado(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('administrador')) {
+            return response()->json([
+                'message' => 'No autorizado',
+            ], 403);
+        }
+
+        $request->validate([
+            'estado' => 'required|in:activo,inactivo',
+        ]);
+
+        $asesor = Asesor::findOrFail($id);
+        $asesor->update(['estado' => $request->input('estado')]);
+
+        return response()->json([
+            'message' => 'Estado actualizado exitosamente',
+            'data' => $asesor
+        ]);
     }
 }

@@ -39,6 +39,11 @@ class Cliente extends Model
         return $this->hasMany(Cotizacion::class, 'cliente_id');
     }
 
+    public function reservas()
+    {
+        return $this->hasMany(Reserva::class, 'cliente_id');
+    }
+
     // Métodos de utilidad
     public function getNombreCompleto()
     {

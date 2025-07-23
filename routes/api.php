@@ -10,122 +10,308 @@ use App\Http\Controllers\Api\VentaController;
 use App\Http\Controllers\Api\ImagenController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ReporteController;
+use App\Http\Controllers\AsesorController;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API Routes - Sistema Inmobiliario
 |--------------------------------------------------------------------------
 |
-| Aquí puedes registrar las rutas de la API para tu aplicación. Estas
-| rutas son cargadas por el RouteServiceProvider dentro del grupo "api".
+| Aquí se registran las rutas de la API REST para el sistema inmobiliario.
+| Todas las rutas están versionadas (v1) y organizadas por funcionalidad.
+| Las rutas protegidas requieren autenticación mediante Sanctum.
 |
 */
 
-// Rutas públicas (sin autenticación)
-Route::prefix('v1')->group(function () {
+/*
+|--------------------------------------------------------------------------
+| RUTAS PÚBLICAS (Sin Autenticación)
+|--------------------------------------------------------------------------
+*/
 
-    // Autenticación
+Route::prefix('v1')->group(function () {
+    // === AUTENTICACIÓN PÚBLICA ===
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register/cliente', [AuthController::class, 'registerCliente']);
+    Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
+    Route::post('/password/reset', [AuthController::class, 'resetPassword']);
 
-    // Departamentos públicos (catálogo)
-    Route::get('/departamentos', [DepartamentoController::class, 'index']);
-    Route::get('/departamentos/destacados', [DepartamentoController::class, 'destacados']);
-    Route::get('/departamentos/{id}', [DepartamentoController::class, 'show']);
+    // === CATÁLOGO PÚBLICO ===
+    Route::prefix('catalogo')->group(function () {
+        Route::get('/departamentos', [DepartamentoController::class, 'index']);
+        Route::get('/departamentos/destacados', [DepartamentoController::class, 'destacados']);
+        Route::get('/departamentos/buscar', [DepartamentoController::class, 'buscar']);
+        Route::get('/departamentos/{id}', [DepartamentoController::class, 'show']);
+        Route::get('/departamentos/{id}/imagenes', [DepartamentoController::class, 'imagenes']);
+    });
 
-    // Imágenes públicas (para visualización del catálogo)
-    Route::get('/imagenes', [ImagenController::class, 'index']);
-    Route::get('/imagenes/{id}', [ImagenController::class, 'show']);
-    Route::post('/imagenes/verificar-url', [ImagenController::class, 'verificarUrl']);
+    // === IMÁGENES PÚBLICAS ===
+    Route::prefix('imagenes')->group(function () {
+        Route::get('/', [ImagenController::class, 'index']);
+        Route::get('/{id}', [ImagenController::class, 'show']);
+        Route::post('/verificar-url', [ImagenController::class, 'verificarUrl']);
+    });
 
+    // === INFORMACIÓN GENERAL ===
+    Route::get('/estadisticas/publicas', [ReporteController::class, 'estadisticasPublicas']);
+    Route::get('/ubicaciones', [DepartamentoController::class, 'ubicaciones']);
 });
 
-// Rutas protegidas (requieren autenticación)
-Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+/*
+|--------------------------------------------------------------------------
+| RUTAS PROTEGIDAS - ADMINISTRADOR
+|--------------------------------------------------------------------------
+*/
 
-    // Autenticación
+Route::prefix('v1/admin')->middleware(['auth:sanctum', 'role:administrador'])->group(function () {
+    // === GESTIÓN DE USUARIOS ===
+    Route::prefix('usuarios')->group(function () {
+        Route::get('/', [UserController::class, 'index']);
+        Route::post('/', [UserController::class, 'store']);
+        Route::get('/{id}', [UserController::class, 'show']);
+        Route::put('/{id}', [UserController::class, 'update']);
+        Route::patch('/{id}/estado', [UserController::class, 'cambiarEstado']);
+        Route::patch('/{id}/roles', [UserController::class, 'asignarRoles']);
+        Route::delete('/{id}', [UserController::class, 'destroy']);
+    });
+
+    // === GESTIÓN DE ASESORES ===
+    Route::prefix('asesores')->group(function () {
+        Route::get('/', [AsesorController::class, 'admin']);
+        Route::get('/{id}', [AsesorController::class, 'showApi']);
+        Route::get('/{id}/estadisticas', [AsesorController::class, 'estadisticas']);
+        Route::get('/{id}/actividades', [AsesorController::class, 'actividades']);
+        Route::get('/{id}/clientes', [AsesorController::class, 'clientesAsesor']);
+        Route::put('/{id}', [AsesorController::class, 'update']);
+        Route::patch('/{id}/estado', [AsesorController::class, 'cambiarEstado']);
+    });
+
+    // === GESTIÓN DE PROPIETARIOS ===
+    Route::prefix('propietarios')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\PropietarioController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\PropietarioController::class, 'store']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\PropietarioController::class, 'show']);
+        Route::put('/{id}', [\App\Http\Controllers\Api\PropietarioController::class, 'update']);
+        Route::delete('/{id}', [\App\Http\Controllers\Api\PropietarioController::class, 'destroy']);
+    });
+
+    // === GESTIÓN DE DEPARTAMENTOS ===
+    Route::prefix('departamentos')->group(function () {
+        Route::get('/', [DepartamentoController::class, 'admin']);
+        Route::get('/{id}', [DepartamentoController::class, 'show']);
+        Route::post('/', [DepartamentoController::class, 'store']);
+        Route::put('/{id}', [DepartamentoController::class, 'update']);
+        Route::patch('/{id}/estado', [DepartamentoController::class, 'cambiarEstado']);
+        Route::patch('/{id}/destacado', [DepartamentoController::class, 'toggleDestacado']);
+        Route::patch('/{id}/publicar', [DepartamentoController::class, 'publicar']);
+        Route::delete('/{id}', [DepartamentoController::class, 'destroy']);
+    });
+
+    // === GESTIÓN DE VENTAS ===
+    Route::prefix('ventas')->group(function () {
+        Route::get('/reporte', [ReporteController::class, 'ventasDetallado']);
+        Route::post('/generar-pdf', [ReporteController::class, 'generarPdfVentas']);
+    });
+
+    // === SUPERVISIÓN DE OPERACIONES ===
+    Route::prefix('operaciones')->group(function () {
+        Route::get('/cotizaciones', [CotizacionController::class, 'admin']);
+        Route::get('/reservas', [ReservaController::class, 'admin']);
+        Route::get('/ventas', [VentaController::class, 'admin']);
+        Route::patch('/cotizaciones/{id}/aprobar', [CotizacionController::class, 'aprobar']);
+        Route::patch('/ventas/{id}/validar', [VentaController::class, 'validar']);
+    });
+
+    // === REPORTES ADMINISTRATIVOS ===
+    Route::prefix('reportes')->group(function () {
+        Route::get('/dashboard', [ReporteController::class, 'dashboard']);
+        Route::get('/ventas', [ReporteController::class, 'ventasPorPeriodo']);
+        Route::get('/ventas/detallado', [ReporteController::class, 'ventasDetallado']);
+        Route::get('/ventas/pdf', [ReporteController::class, 'generarPdfVentas']);
+        Route::get('/asesores', [ReporteController::class, 'rendimientoAsesores']);
+        Route::get('/asesores/{id}/detalle', [ReporteController::class, 'detalleAsesor']);
+        Route::get('/propiedades', [ReporteController::class, 'reportePropiedades']);
+        Route::get('/financiero', [ReporteController::class, 'reporteFinanciero']);
+    });
+
+    // === GESTIÓN DE IMÁGENES ===
+    Route::prefix('imagenes')->group(function () {
+        Route::get('/todas', [ImagenController::class, 'todas']);
+        Route::post('/masiva', [ImagenController::class, 'cargaMasiva']);
+        Route::delete('/limpiar-huerfanas', [ImagenController::class, 'limpiarHuerfanas']);
+    });
+
+    // === CONFIGURACIÓN DEL SISTEMA ===
+    Route::prefix('configuracion')->group(function () {
+        Route::get('/general', [UserController::class, 'configuracionGeneral']);
+        Route::put('/general', [UserController::class, 'actualizarConfiguracion']);
+        Route::get('/auditoria', [UserController::class, 'auditoria']);
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| RUTAS PROTEGIDAS - ASESOR
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/asesor')->middleware(['auth:sanctum', 'role:asesor'])->group(function () {
+    // === DASHBOARD Y PERFIL ===
+    Route::get('/dashboard', [AsesorController::class, 'dashboard']);
+    Route::get('/panel/resumen', [AsesorController::class, 'panelResumen']);
+    Route::get('/perfil', [AsesorController::class, 'perfil']);
+    Route::put('/perfil', [AsesorController::class, 'actualizarPerfil']);
+
+    // === GESTIÓN DE CLIENTES ===
+    Route::prefix('clientes')->group(function () {
+        Route::get('/', [AsesorController::class, 'clientes']);
+        Route::get('/recientes', [AsesorController::class, 'clientesRecientes']);
+        Route::get('/{id}', [AsesorController::class, 'detalleCliente']);
+        Route::post('/{id}/notas', [AsesorController::class, 'agregarNota']);
+    });
+
+    // === GESTIÓN DE PROPIEDADES ===
+    Route::prefix('propiedades')->group(function () {
+        Route::get('/', [DepartamentoController::class, 'asesor']);
+        Route::get('/{id}/disponibilidad', [DepartamentoController::class, 'verificarDisponibilidad']);
+    });
+
+    // === COTIZACIONES ===
+    Route::prefix('cotizaciones')->group(function () {
+        Route::get('/', [CotizacionController::class, 'index']);
+        Route::post('/', [CotizacionController::class, 'store']);
+        Route::get('/pendientes', [AsesorController::class, 'cotizacionesPendientes']);
+        Route::get('/{id}', [CotizacionController::class, 'show']);
+        Route::put('/{id}', [CotizacionController::class, 'update']);
+        Route::patch('/{id}/enviar', [CotizacionController::class, 'enviar']);
+        Route::delete('/{id}', [CotizacionController::class, 'destroy']);
+    });
+
+    // === RESERVAS ===
+    Route::prefix('reservas')->group(function () {
+        Route::get('/', [ReservaController::class, 'index']);
+        Route::post('/', [ReservaController::class, 'store']);
+        Route::get('/{id}', [ReservaController::class, 'show']);
+        Route::patch('/{id}/confirmar', [ReservaController::class, 'confirmar']);
+        Route::patch('/{id}/cancelar', [ReservaController::class, 'cancelar']);
+    });
+
+    // === VENTAS ===
+    Route::prefix('ventas')->group(function () {
+        Route::get('/', [VentaController::class, 'index']);
+        Route::post('/', [VentaController::class, 'store']);
+        Route::get('/{id}', [VentaController::class, 'show']);
+        Route::patch('/{id}/documentos', [VentaController::class, 'entregarDocumentos']);
+        Route::patch('/{id}/finalizar', [VentaController::class, 'finalizar']);
+    });
+
+    // === AGENDA Y VISITAS ===
+    Route::prefix('agenda')->group(function () {
+        Route::get('/visitas/proximas', [AsesorController::class, 'visitasProximas']);
+        Route::get('/calendario', [AsesorController::class, 'calendario']);
+        Route::post('/visitas', [AsesorController::class, 'programarVisita']);
+    });
+
+    // === COMISIONES ===
+    Route::prefix('comisiones')->group(function () {
+        Route::get('/', [AsesorController::class, 'comisiones']);
+        Route::get('/resumen', [AsesorController::class, 'resumenComisiones']);
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| RUTAS PROTEGIDAS - CLIENTE
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/cliente')->middleware(['auth:sanctum', 'role:cliente'])->group(function () {
+    // === DASHBOARD Y PERFIL ===
+    Route::get('/dashboard', [UserController::class, 'dashboardCliente']);
+    Route::get('/perfil', [UserController::class, 'perfilCliente']);
+    Route::put('/perfil', [UserController::class, 'actualizarPerfilCliente']);
+
+    // === FAVORITOS ===
+    Route::prefix('favoritos')->group(function () {
+        Route::get('/', [DepartamentoController::class, 'favoritosCliente']);
+        Route::post('/{departamentoId}', [DepartamentoController::class, 'agregarFavorito']);
+        Route::delete('/{departamentoId}', [DepartamentoController::class, 'eliminarFavorito']);
+    });
+
+    // === SOLICITUDES ===
+    Route::prefix('solicitudes')->group(function () {
+        Route::get('/', [CotizacionController::class, 'solicitudesCliente']);
+        Route::post('/', [CotizacionController::class, 'crearSolicitudCliente']);
+        Route::get('/{id}', [CotizacionController::class, 'detalleSolicitudCliente']);
+        Route::patch('/{id}', [CotizacionController::class, 'actualizarSolicitudCliente']);
+    });
+
+    // === COTIZACIONES RECIBIDAS ===
+    Route::prefix('cotizaciones')->group(function () {
+        Route::get('/', [CotizacionController::class, 'cotizacionesCliente']);
+        Route::patch('/{id}/aceptar', [CotizacionController::class, 'aceptar']);
+        Route::patch('/{id}/rechazar', [CotizacionController::class, 'rechazar']);
+    });
+
+    // === RESERVAS ===
+    Route::prefix('reservas')->group(function () {
+        Route::get('/', [ReservaController::class, 'reservasCliente']);
+        Route::get('/{id}', [ReservaController::class, 'detalleReservaCliente']);
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| RUTAS COMUNES AUTENTICADAS
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+    // === AUTENTICACIÓN ===
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/me', [AuthController::class, 'actualizarPerfil']);
 
-    // Cotizaciones
-    Route::prefix('cotizaciones')->group(function () {
-        Route::get('/', [CotizacionController::class, 'index']); // Lista del asesor
-        Route::post('/', [CotizacionController::class, 'store']); // Crear cotización
-        Route::get('/{id}', [CotizacionController::class, 'show']); // Ver específica
-        Route::patch('/{id}/aceptar', [CotizacionController::class, 'aceptar']); // Aceptar
-        Route::patch('/{id}/rechazar', [CotizacionController::class, 'rechazar']); // Rechazar
-    });
-
-    // Reservas
-    Route::prefix('reservas')->group(function () {
-        Route::get('/', [ReservaController::class, 'index']); // Lista del asesor
-        Route::post('/', [ReservaController::class, 'store']); // Crear reserva
-        Route::get('/{id}', [ReservaController::class, 'show']); // Ver específica
-    });
-
-    // Ventas
-    Route::prefix('ventas')->group(function () {
-        Route::get('/', [VentaController::class, 'index']); // Lista del asesor
-        Route::post('/', [VentaController::class, 'store']); // Registrar venta
-        Route::get('/{id}', [VentaController::class, 'show']); // Ver específica
-        Route::patch('/{id}/entregar-documentos', [VentaController::class, 'entregarDocumentos']);
-    });
-
-    // Gestión de Imágenes (solo usuarios autenticados)
+    // === GESTIÓN DE IMÁGENES ===
     Route::prefix('imagenes')->group(function () {
-        Route::post('/', [ImagenController::class, 'store']); // Agregar imagen
-        Route::patch('/{id}', [ImagenController::class, 'update']); // Actualizar imagen
-        Route::delete('/{id}', [ImagenController::class, 'destroy']); // Eliminar imagen
-        Route::post('/reordenar', [ImagenController::class, 'reordenar']); // Reordenar imágenes
+        Route::post('/', [ImagenController::class, 'store']);
+        Route::patch('/{id}', [ImagenController::class, 'update']);
+        Route::delete('/{id}', [ImagenController::class, 'destroy']);
+        Route::post('/reordenar', [ImagenController::class, 'reordenar']);
     });
 
-    // Rutas de administrador
-    Route::prefix('admin')->middleware('role:administrador')->group(function () {
-
-        // Departamentos (administración)
-        Route::prefix('departamentos')->group(function () {
-            Route::get('/', [DepartamentoController::class, 'admin']); // Lista completa
-            Route::post('/', [DepartamentoController::class, 'store']); // Crear
-            Route::put('/{id}', [DepartamentoController::class, 'update']); // Actualizar
-            Route::patch('/{id}/estado', [DepartamentoController::class, 'cambiarEstado']); // Cambiar estado
-            Route::patch('/{id}/destacado', [DepartamentoController::class, 'toggleDestacado']); // Marcar/desmarcar como destacado
-            Route::delete('/{id}', [DepartamentoController::class, 'destroy']); // Eliminar departamento
-        });
-
-        // Cotizaciones (supervisión)
-        Route::get('/cotizaciones', [CotizacionController::class, 'admin']);
-
-        // Reservas (supervisión)
-        Route::get('/reservas', [ReservaController::class, 'admin']);
-
-        // Ventas (supervisión y reportes)
-        Route::get('/ventas', [VentaController::class, 'admin']);
-
-        // Gestión de usuarios
-        Route::prefix('usuarios')->group(function () {
-            Route::get('/', [UserController::class, 'index']);
-            Route::post('/', [UserController::class, 'store']);
-            Route::get('/{id}', [UserController::class, 'show']);
-            Route::put('/{id}', [UserController::class, 'update']);
-            Route::delete('/{id}', [UserController::class, 'destroy']);
-        });
-
-        // Reportes administrativos
-        Route::prefix('reportes')->group(function () {
-            Route::get('/dashboard', [ReporteController::class, 'dashboard']);
-            Route::get('/ventas', [ReporteController::class, 'ventasPorPeriodo']);
-            Route::get('/ventas/pdf', [ReporteController::class, 'generarPdfVentas']);
-            Route::get('/asesores', [ReporteController::class, 'rendimientoAsesores']);
-        });
+    // === NOTIFICACIONES ===
+    Route::prefix('notificaciones')->group(function () {
+        Route::get('/', [UserController::class, 'notificaciones']);
+        Route::patch('/{id}/leer', [UserController::class, 'marcarComoLeida']);
+        Route::patch('/marcar-todas-leidas', [UserController::class, 'marcarTodasComoLeidas']);
     });
-
 });
 
-// Ruta de prueba
-Route::get('/test', function () {
+/*
+|--------------------------------------------------------------------------
+| RUTAS DE PRUEBA Y UTILIDADES
+|--------------------------------------------------------------------------
+*/
+
+// Ruta de estado de la API
+Route::get('/health', function () {
     return response()->json([
+        'status' => 'ok',
         'message' => 'API Sistema Inmobiliario funcionando correctamente',
         'version' => '1.0',
         'timestamp' => now(),
+        'environment' => app()->environment(),
     ]);
 });
+
+// Ruta de prueba (solo en desarrollo)
+if (app()->environment('local', 'development')) {
+    Route::get('/test', function () {
+        return response()->json([
+            'message' => 'API en modo desarrollo',
+            'version' => '1.0',
+            'timestamp' => now(),
+        ]);
+    });
+}

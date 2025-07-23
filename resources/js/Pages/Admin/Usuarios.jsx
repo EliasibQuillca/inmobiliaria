@@ -1,12 +1,36 @@
 import { Head, Link } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import AdminLayout from '@/components/admin/AdminLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 
 export default function GestionUsuarios({ auth }) {
-    // Estado para los usuarios
-    const [usuarios, setUsuarios] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // Estado para los usuarios (datos simulados)
+    const [usuarios, setUsuarios] = useState([
+        {
+            id: 1,
+            name: 'Juan Pérez',
+            email: 'juan@inmobiliaria.com',
+            role: 'Administrador',
+            status: 'activo',
+            created_at: '2024-01-15'
+        },
+        {
+            id: 2,
+            name: 'María González',
+            email: 'maria@inmobiliaria.com',
+            role: 'Asesor',
+            status: 'activo',
+            created_at: '2024-01-18'
+        },
+        {
+            id: 3,
+            name: 'Carlos Mendoza',
+            email: 'carlos@inmobiliaria.com',
+            role: 'Cliente',
+            status: 'activo',
+            created_at: '2024-01-20'
+        }
+    ]);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     // Estado para la paginación
@@ -14,7 +38,7 @@ export default function GestionUsuarios({ auth }) {
         currentPage: 1,
         lastPage: 1,
         perPage: 10,
-        total: 0,
+        total: 3,
     });
 
     // Estado para los filtros
@@ -35,39 +59,19 @@ export default function GestionUsuarios({ auth }) {
         });
     };
 
-    // Función para cargar usuarios desde la API
-    const cargarUsuarios = async () => {
-        setLoading(true);
-        setError(null);
+    // Función para filtrar usuarios localmente
+    const filtrarUsuarios = () => {
+        return usuarios.filter(usuario => {
+            const matchBusqueda = !filtros.busqueda ||
+                usuario.name.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
+                usuario.email.toLowerCase().includes(filtros.busqueda.toLowerCase());
 
-        try {
-            // Construir los parámetros de consulta
-            const params = new URLSearchParams();
-            if (filtros.busqueda) params.append('search', filtros.busqueda);
-            if (filtros.role) params.append('role', filtros.role);
-            if (filtros.estado) params.append('status', filtros.estado);
-            params.append('page', filtros.page);
+            const matchRole = !filtros.role || usuario.role === filtros.role;
+            const matchEstado = !filtros.estado || usuario.status === filtros.estado;
 
-            const response = await axios.get(`/api/v1/admin/usuarios?${params.toString()}`);
-
-            if (response.data && response.data.data) {
-                setUsuarios(response.data.data);
-                setPaginacion(response.data.pagination || {
-                    currentPage: 1,
-                    lastPage: 1,
-                    perPage: 10,
-                    total: response.data.data.length,
-                });
-            }
-        } catch (err) {
-            console.error('Error al cargar usuarios:', err);
-            setError('No se pudieron cargar los usuarios. Por favor, inténtelo de nuevo.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Cambiar de página
+            return matchBusqueda && matchRole && matchEstado;
+        });
+    };    // Cambiar de página
     const cambiarPagina = (nuevaPagina) => {
         if (nuevaPagina > 0 && nuevaPagina <= paginacion.lastPage) {
             setFiltros({
@@ -111,26 +115,18 @@ export default function GestionUsuarios({ auth }) {
         }
     };
 
-    // Cargar usuarios cuando cambian los filtros
-    useEffect(() => {
-        cargarUsuarios();
-    }, [filtros.page]);
-
-    // Cargar usuarios cuando se cambian los filtros (con debounce para la búsqueda)
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            if (filtros.page === 1) {
-                cargarUsuarios();
-            } else {
-                setFiltros(prev => ({ ...prev, page: 1 }));
-            }
-        }, 300);
-
-        return () => clearTimeout(timeoutId);
-    }, [filtros.busqueda, filtros.role, filtros.estado]);
+    // Los usuarios filtrados se calculan en tiempo real
+    const usuariosFiltrados = filtrarUsuarios();
 
     return (
-        <AdminLayout auth={auth} title="Gestión de Usuarios">
+        <AdminLayout
+            auth={auth}
+            header={
+                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+                    Gestión de Usuarios
+                </h2>
+            }
+        >
             <Head title="Gestión de Usuarios - Inmobiliaria" />
 
             <div className="py-12 bg-gray-100">
@@ -251,8 +247,8 @@ export default function GestionUsuarios({ auth }) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {usuarios.length > 0 ? (
-                                            usuarios.map((usuario) => (
+                                        {usuariosFiltrados.length > 0 ? (
+                                            usuariosFiltrados.map((usuario) => (
                                                 <tr key={usuario.id}>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
@@ -275,17 +271,16 @@ export default function GestionUsuarios({ auth }) {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                            ${usuario.role === 'administrador' ? 'bg-purple-100 text-purple-800' :
-                                                              usuario.role === 'asesor' ? 'bg-blue-100 text-blue-800' :
+                                                            ${usuario.role === 'Administrador' ? 'bg-purple-100 text-purple-800' :
+                                                              usuario.role === 'Asesor' ? 'bg-blue-100 text-blue-800' :
                                                               'bg-green-100 text-green-800'}`}>
-                                                            {usuario.role === 'administrador' ? 'Administrador' :
-                                                             usuario.role === 'asesor' ? 'Asesor' : 'Cliente'}
+                                                            {usuario.role}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                            ${usuario.estado === 'activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                            {usuario.estado === 'activo' ? 'Activo' : 'Inactivo'}
+                                                            ${usuario.status === 'activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                            {usuario.status === 'activo' ? 'Activo' : 'Inactivo'}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

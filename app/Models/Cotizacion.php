@@ -17,18 +17,18 @@ class Cotizacion extends Model
         'cliente_id',
         'fecha',
         'monto',
+        'descuento',
+        'fecha_validez',
         'estado',
-        'tipo',
-        'mensaje',
-        'telefono',
-        'disponibilidad',
-        'preferencia_contacto',
+        'notas',
+        'condiciones',
     ];
 
     protected $casts = [
         'fecha' => 'datetime',
+        'fecha_validez' => 'date',
         'monto' => 'decimal:2',
-        'disponibilidad' => 'array',
+        'descuento' => 'decimal:2',
     ];
 
     // Relaciones

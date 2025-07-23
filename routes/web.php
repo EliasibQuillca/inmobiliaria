@@ -5,6 +5,12 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+/*
+|--------------------------------------------------------------------------
+| RUTAS PÚBLICAS
+|--------------------------------------------------------------------------
+*/
+
 // Página de inicio
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -15,15 +21,7 @@ Route::get('/', function () {
     ]);
 });
 
-// Catálogo de propiedades (público)
-Route::get('/catalogo', [\App\Http\Controllers\CatalogoController::class, 'index']);
-Route::get('/catalogo/{id}', [\App\Http\Controllers\CatalogoController::class, 'show']);
-
-// Mantener la ruta properties por compatibilidad (redirige a catalogo)
-Route::get('/properties', function () {
-    return redirect('/catalogo');
-});
-
+// Páginas informativas
 Route::get('/about', function () {
     return Inertia::render('About', [
         'canLogin' => Route::has('login'),
@@ -45,95 +43,307 @@ Route::get('/contact', function () {
     ]);
 });
 
-// Rutas protegidas por autenticación
+// Catálogo de propiedades (público)
+Route::get('/catalogo', [\App\Http\Controllers\CatalogoController::class, 'index']);
+Route::get('/catalogo/{id}', [\App\Http\Controllers\CatalogoController::class, 'show']);
+
+// Mantener la ruta properties por compatibilidad (redirige a catalogo)
+Route::get('/properties', function () {
+    return redirect('/catalogo');
+});
+
+/*
+|--------------------------------------------------------------------------
+| DASHBOARD PRINCIPAL (REDIRIGE SEGÚN ROL)
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/dashboard', function () {
+    $user = \Illuminate\Support\Facades\Auth::user();
+
+    // Redirigir según el rol del usuario
+    if ($user->hasRole('administrador')) {
+        return redirect()->route('admin.dashboard');
+    } elseif ($user->hasRole('asesor')) {
+        return redirect()->route('asesor.dashboard');
+    } elseif ($user->hasRole('cliente')) {
+        return redirect()->route('cliente.dashboard');
+    }
+
+    // Dashboard por defecto si no tiene rol específico
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Rutas de administración
-Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->group(function () {
-    // Dashboard de administrador
+/*
+|--------------------------------------------------------------------------
+| RUTAS PARA ADMINISTRADOR
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
+    // Dashboard del administrador
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/Dashboard');
-    })->name('admin.dashboard');
+    })->name('dashboard');
 
-    // Gestión de usuarios
+    // === GESTIÓN DE USUARIOS ===
     Route::get('/usuarios', function () {
         return Inertia::render('Admin/Usuarios');
-    })->name('admin.usuarios');
+    })->name('usuarios');
 
     Route::get('/usuarios/crear', function () {
-        return Inertia::render('Admin/FormularioUsuario', [
-            'modo' => 'crear'
-        ]);
-    })->name('admin.usuarios.crear');
+        return Inertia::render('Admin/CrearUsuario');
+    })->name('usuarios.crear');
+
+    Route::get('/usuarios/create', function () {
+        return Inertia::render('Admin/CrearUsuario');
+    })->name('usuarios.create');
 
     Route::get('/usuarios/{id}/editar', function ($id) {
-        return Inertia::render('Admin/FormularioUsuario', [
-            'modo' => 'editar',
-            'userId' => $id
+        return Inertia::render('Admin/EditarUsuario', [
+            'usuarioId' => $id
         ]);
-    })->name('admin.usuarios.editar');
+    })->name('usuarios.editar');
 
-    // Gestión de departamentos
+    // === GESTIÓN DE DEPARTAMENTOS ===
     Route::get('/departamentos', function () {
-        return Inertia::render('Admin/GestionDepartamentos');
-    })->name('admin.departamentos');
+        return Inertia::render('Admin/Departamentos');
+    })->name('departamentos');
 
     Route::get('/departamentos/crear', function () {
-        return Inertia::render('Admin/FormularioDepartamento', [
-            'modo' => 'crear'
-        ]);
-    })->name('admin.departamentos.crear');
+        return Inertia::render('Admin/CrearDepartamento');
+    })->name('departamentos.crear');
 
-    Route::get('/departamentos/{id}/editar', function ($id) {
-        return Inertia::render('Admin/FormularioDepartamento', [
-            'modo' => 'editar',
+    Route::get('/departamentos/{id}', function ($id) {
+        return Inertia::render('Admin/VerDepartamento', [
             'departamentoId' => $id
         ]);
-    })->name('admin.departamentos.editar');
+    })->name('departamentos.ver');
 
-    // Reportes
+    Route::get('/departamentos/{id}/editar', function ($id) {
+        return Inertia::render('Admin/EditarDepartamento', [
+            'departamentoId' => $id
+        ]);
+    })->name('departamentos.editar');
+
+    // === GESTIÓN DE PROPIEDADES ===
+    Route::get('/propiedades', function () {
+        return Inertia::render('Admin/Propiedades');
+    })->name('propiedades');
+
+    Route::get('/propiedades/crear', function () {
+        return Inertia::render('Admin/CrearPropiedad');
+    })->name('propiedades.crear');
+
+    Route::get('/propiedades/create', function () {
+        return Inertia::render('Admin/CrearPropiedad');
+    })->name('propiedades.create');
+
+    Route::get('/propiedades/{id}', function ($id) {
+        return Inertia::render('Admin/VerPropiedad', [
+            'propiedadId' => $id
+        ]);
+    })->name('propiedades.ver');
+
+    Route::get('/propiedades/{id}/editar', function ($id) {
+        return Inertia::render('Admin/EditarPropiedad', [
+            'propiedadId' => $id
+        ]);
+    })->name('propiedades.editar');
+
+    // === GESTIÓN DE VENTAS ===
+    Route::get('/ventas', function () {
+        return Inertia::render('Admin/Ventas');
+    })->name('ventas');
+
+    Route::get('/ventas/crear', function () {
+        return Inertia::render('Admin/CrearVenta');
+    })->name('ventas.crear');
+
+    Route::get('/ventas/{id}', function ($id) {
+        return Inertia::render('Admin/VerVenta', [
+            'ventaId' => $id
+        ]);
+    })->name('ventas.ver');
+
+    Route::get('/ventas/{id}/editar', function ($id) {
+        return Inertia::render('Admin/EditarVenta', [
+            'ventaId' => $id
+        ]);
+    })->name('ventas.editar');
+
+    // === REPORTES ===
     Route::get('/reportes', function () {
         return Inertia::render('Admin/Reportes');
-    })->name('admin.reportes');
+    })->name('reportes');
 
-        Route::get('/reportes-ventas', function () {
-        return Inertia::render('Admin/ReportesVentas');
-    })->name('admin.reportes.ventas');
+    Route::get('/reportes/generar', function () {
+        return Inertia::render('Admin/GenerarReporte');
+    })->name('reportes.generar');
 
-    // Rutas de reservas
-    Route::get('/reservas', [App\Http\Controllers\ReservaController::class, 'index'])->name('admin.reservas.index');
-    Route::get('/reservas/crear', [App\Http\Controllers\ReservaController::class, 'create'])->name('admin.reservas.crear');
-    Route::post('/reservas', [App\Http\Controllers\ReservaController::class, 'store'])->name('admin.reservas.store');
-    Route::get('/reservas/{id}', [App\Http\Controllers\ReservaController::class, 'show'])->name('admin.reservas.show');
-    Route::get('/reservas/{id}/editar', [App\Http\Controllers\ReservaController::class, 'edit'])->name('admin.reservas.edit');
-    Route::patch('/reservas/{id}', [App\Http\Controllers\ReservaController::class, 'update'])->name('admin.reservas.update');
-    Route::delete('/reservas/{id}', [App\Http\Controllers\ReservaController::class, 'destroy'])->name('admin.reservas.destroy');
-    Route::patch('/reservas/{id}/estado', [App\Http\Controllers\ReservaController::class, 'cambiarEstado'])->name('admin.reservas.cambiar-estado');
+    Route::get('/reportes/{id}', function ($id) {
+        return Inertia::render('Admin/VerReporte', [
+            'reporteId' => $id
+        ]);
+    })->name('reportes.ver');
 
-    Route::get('/reportes/asesores', function () {
-        return Inertia::render('Admin/ReportesAsesores');
-    })->name('admin.reportes.asesores');
+    // === CONFIGURACIÓN Y ACTIVIDADES ===
+    Route::get('/configuracion', function () {
+        return Inertia::render('Admin/Configuracion');
+    })->name('configuracion');
+
+    Route::get('/actividades', function () {
+        return Inertia::render('Admin/Actividades');
+    })->name('actividades');
 });
 
-// Rutas para cliente
+/*
+|--------------------------------------------------------------------------
+| RUTAS PARA ASESOR
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
+    // Dashboard del asesor
+    Route::get('/dashboard', function () {
+        return Inertia::render('Asesor/Dashboard');
+    })->name('dashboard');
+
+    // === PERFIL Y CONFIGURACIÓN ===
+    Route::get('/perfil', function () {
+        return Inertia::render('Asesor/Perfil');
+    })->name('perfil');
+
+    Route::get('/configuracion', function () {
+        return Inertia::render('Asesor/Configuracion');
+    })->name('configuracion');
+
+    // === GESTIÓN DE CLIENTES ===
+    Route::get('/clientes', function () {
+        return Inertia::render('Asesor/Clientes');
+    })->name('clientes');
+
+    // === GESTIÓN DE PROPIEDADES ===
+    Route::get('/propiedades', function () {
+        return Inertia::render('Asesor/Propiedades');
+    })->name('propiedades');
+
+    // === SOLICITUDES DE CONTACTO ===
+    Route::get('/solicitudes', function () {
+        return Inertia::render('Asesor/Solicitudes');
+    })->name('solicitudes');
+
+    Route::get('/solicitudes/{id}', function ($id) {
+        return Inertia::render('Asesor/Solicitudes/Detalle', [
+            'solicitudId' => $id
+        ]);
+    })->name('solicitudes.detalle');
+
+    // === COTIZACIONES ===
+    Route::get('/cotizaciones', function () {
+        return Inertia::render('Asesor/Cotizaciones');
+    })->name('cotizaciones');
+
+    Route::get('/cotizaciones/crear', function () {
+        return Inertia::render('Asesor/Cotizaciones/Crear');
+    })->name('cotizaciones.crear');
+
+    Route::get('/cotizaciones/crear/{solicitudId}', function ($solicitudId) {
+        return Inertia::render('Asesor/Cotizaciones/Crear', [
+            'solicitudId' => $solicitudId
+        ]);
+    })->name('cotizaciones.crear.desde.solicitud');
+
+    Route::get('/cotizaciones/{id}', function ($id) {
+        return Inertia::render('Asesor/Cotizaciones/Detalle', [
+            'cotizacionId' => $id
+        ]);
+    })->name('cotizaciones.detalle');
+
+    Route::get('/cotizaciones/editar/{id}', function ($id) {
+        return Inertia::render('Asesor/Cotizaciones/Editar', [
+            'cotizacionId' => $id
+        ]);
+    })->name('cotizaciones.editar');
+
+    // === RESERVAS ===
+    Route::get('/reservas', function () {
+        return Inertia::render('Asesor/Reservas');
+    })->name('reservas');
+
+    Route::get('/reservas/crear', function () {
+        return Inertia::render('Asesor/CrearReserva');
+    })->name('reservas.crear');
+
+    Route::get('/reservas/crear/{cotizacionId}', function ($cotizacionId) {
+        return Inertia::render('Asesor/CrearReserva', [
+            'cotizacionId' => $cotizacionId
+        ]);
+    })->name('reservas.crear.desde.cotizacion');
+
+    Route::get('/reservas/{id}', function ($id) {
+        return Inertia::render('Asesor/DetalleReserva', [
+            'reservaId' => $id
+        ]);
+    })->name('reservas.detalle');
+
+    // === VENTAS ===
+    Route::get('/ventas', function () {
+        return Inertia::render('Asesor/Ventas');
+    })->name('ventas');
+
+    Route::get('/ventas/crear', function () {
+        return Inertia::render('Asesor/Ventas/Crear');
+    })->name('ventas.crear');
+
+    Route::get('/ventas/crear/{reservaId}', function ($reservaId) {
+        return Inertia::render('Asesor/Ventas/Crear', [
+            'reservaId' => $reservaId
+        ]);
+    })->name('ventas.crear.desde.reserva');
+
+    Route::get('/ventas/{id}', function ($id) {
+        return Inertia::render('Asesor/Ventas/Detalle', [
+            'ventaId' => $id
+        ]);
+    })->name('ventas.detalle');
+
+    Route::get('/ventas/documentos/{id}', function ($id) {
+        return Inertia::render('Asesor/Ventas/Documentos', [
+            'ventaId' => $id
+        ]);
+    })->name('ventas.documentos');
+
+    // === COMISIONES ===
+    Route::get('/comisiones', function () {
+        return Inertia::render('Asesor/Comisiones');
+    })->name('comisiones');
+});
+
+/*
+|--------------------------------------------------------------------------
+| RUTAS PARA CLIENTE
+|--------------------------------------------------------------------------
+*/
+
 Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->group(function () {
-    // Dashboard y perfil
+    // === DASHBOARD Y PERFIL ===
     Route::get('/dashboard', [App\Http\Controllers\Cliente\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'perfil'])->name('perfil');
     Route::patch('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'actualizarPerfil'])->name('perfil.update');
+
+    // === FAVORITOS Y ASESORES ===
     Route::get('/favoritos', [App\Http\Controllers\Cliente\DashboardController::class, 'favoritos'])->name('favoritos');
     Route::get('/asesores', [App\Http\Controllers\Cliente\DashboardController::class, 'asesores'])->name('asesores');
 
-    // Departamentos
+    // === DEPARTAMENTOS Y CATÁLOGO ===
     Route::get('/catalogo', [App\Http\Controllers\Cliente\DepartamentoController::class, 'index'])->name('catalogo');
     Route::get('/departamentos/buscar', [App\Http\Controllers\Cliente\DepartamentoController::class, 'search'])->name('departamentos.search');
     Route::get('/departamentos/{id}', [App\Http\Controllers\Cliente\DepartamentoController::class, 'show'])->name('departamentos.show');
     Route::post('/departamentos/{id}/favorito', [App\Http\Controllers\Cliente\DepartamentoController::class, 'agregarFavorito'])->name('departamentos.favorito.agregar');
     Route::delete('/departamentos/{id}/favorito', [App\Http\Controllers\Cliente\DepartamentoController::class, 'eliminarFavorito'])->name('departamentos.favorito.eliminar');
 
-    // Solicitudes
+    // === SOLICITUDES ===
     Route::get('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('solicitudes.index');
     Route::get('/solicitudes/crear', [App\Http\Controllers\Cliente\SolicitudController::class, 'create'])->name('solicitudes.create');
     Route::post('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'store'])->name('solicitudes.store');
@@ -142,167 +352,26 @@ Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->gr
     Route::post('/solicitudes/{id}/comentarios', [App\Http\Controllers\Cliente\SolicitudController::class, 'addComment'])->name('solicitudes.comentarios.store');
 });
 
-// Rutas para el panel de asesor
-Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
-    // Dashboard del asesor
-    Route::get('/dashboard', function () {
-        return Inertia::render('Asesor/Dashboard');
-    })->name('dashboard');
+/*
+|--------------------------------------------------------------------------
+| RUTAS API PARA ADMINISTRADOR
+|--------------------------------------------------------------------------
+*/
 
-    // Solicitudes de contacto
-    Route::get('/solicitudes', function () {
-        return Inertia::render('Asesor/Solicitudes');
-    })->name('asesor.solicitudes');
-
-    Route::get('/solicitudes/{id}', function ($id) {
-        return Inertia::render('Asesor/Solicitudes/Detalle', [
-            'solicitudId' => $id
-        ]);
-    })->name('asesor.solicitudes.detalle');
-
-    // Cotizaciones
-    Route::get('/cotizaciones', function () {
-        return Inertia::render('Asesor/Cotizaciones');
-    })->name('asesor.cotizaciones');
-
-    Route::get('/cotizaciones/crear', function () {
-        return Inertia::render('Asesor/Cotizaciones/Crear');
-    })->name('asesor.cotizaciones.crear');
-
-    Route::get('/cotizaciones/crear/{solicitudId}', function ($solicitudId) {
-        return Inertia::render('Asesor/Cotizaciones/Crear', [
-            'solicitudId' => $solicitudId
-        ]);
-    })->name('asesor.cotizaciones.crear.desde.solicitud');
-
-    Route::get('/cotizaciones/{id}', function ($id) {
-        return Inertia::render('Asesor/Cotizaciones/Detalle', [
-            'cotizacionId' => $id
-        ]);
-    })->name('asesor.cotizaciones.detalle');
-
-    Route::get('/cotizaciones/editar/{id}', function ($id) {
-        return Inertia::render('Asesor/Cotizaciones/Editar', [
-            'cotizacionId' => $id
-        ]);
-    })->name('asesor.cotizaciones.editar');
-
-    // Reservas
-    Route::get('/reservas', function () {
-        return Inertia::render('Asesor/Reservas');
-    })->name('asesor.reservas');
-
-    Route::get('/reservas/crear', function () {
-        return Inertia::render('Asesor/CrearReserva');
-    })->name('asesor.reservas.crear');
-
-    Route::get('/reservas/crear/{cotizacionId}', function ($cotizacionId) {
-        return Inertia::render('Asesor/CrearReserva', [
-            'cotizacionId' => $cotizacionId
-        ]);
-    })->name('asesor.reservas.crear.desde.cotizacion');
-
-    Route::get('/reservas/{id}', function ($id) {
-        return Inertia::render('Asesor/DetalleReserva', [
-            'reservaId' => $id
-        ]);
-    })->name('asesor.reservas.detalle');
-
-    // Ventas
-    Route::get('/ventas', function () {
-        return Inertia::render('Asesor/Ventas');
-    })->name('asesor.ventas');
-
-    Route::get('/ventas/crear', function () {
-        return Inertia::render('Asesor/Ventas/Crear');
-    })->name('asesor.ventas.crear');
-
-    Route::get('/ventas/crear/{reservaId}', function ($reservaId) {
-        return Inertia::render('Asesor/Ventas/Crear', [
-            'reservaId' => $reservaId
-        ]);
-    })->name('asesor.ventas.crear.desde.reserva');
-
-    Route::get('/ventas/{id}', function ($id) {
-        return Inertia::render('Asesor/Ventas/Detalle', [
-            'ventaId' => $id
-        ]);
-    })->name('asesor.ventas.detalle');
-
-    Route::get('/ventas/documentos/{id}', function ($id) {
-        return Inertia::render('Asesor/Ventas/Documentos', [
-            'ventaId' => $id
-        ]);
-    })->name('asesor.ventas.documentos');
+Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin/api')->name('admin.api.')->group(function () {
+    // API para reportes
+    Route::prefix('reportes')->name('reportes.')->group(function () {
+        Route::get('/ventas', [\App\Http\Controllers\Admin\ReporteController::class, 'reporteVentas'])->name('ventas');
+        Route::get('/asesores', [\App\Http\Controllers\Admin\ReporteController::class, 'reporteAsesores'])->name('asesores');
+        Route::get('/propiedades', [\App\Http\Controllers\Admin\ReporteController::class, 'reportePropiedades'])->name('propiedades');
+    });
 });
 
-// Rutas para el panel de administrador
-Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
-    // Dashboard del administrador
-    Route::get('/dashboard', function () {
-        return Inertia::render('Admin/Dashboard');
-    })->name('dashboard');
-
-    // Gestión de usuarios
-    Route::get('/usuarios', function () {
-        return Inertia::render('Admin/Usuarios');
-    })->name('admin.usuarios');
-
-    Route::get('/usuarios/crear', function () {
-        return Inertia::render('Admin/CrearUsuario');
-    })->name('admin.usuarios.crear');
-
-    Route::get('/usuarios/{id}/editar', function ($id) {
-        return Inertia::render('Admin/EditarUsuario', [
-            'usuarioId' => $id
-        ]);
-    })->name('admin.usuarios.editar');
-
-    // Gestión de departamentos
-    Route::get('/departamentos', function () {
-        return Inertia::render('Admin/Departamentos');
-    })->name('admin.departamentos');
-
-    Route::get('/departamentos/crear', function () {
-        return Inertia::render('Admin/CrearDepartamento');
-    })->name('admin.departamentos.crear');
-
-    Route::get('/departamentos/{id}', function ($id) {
-        return Inertia::render('Admin/VerDepartamento', [
-            'departamentoId' => $id
-        ]);
-    })->name('admin.departamentos.ver');
-
-    Route::get('/departamentos/{id}/editar', function ($id) {
-        return Inertia::render('Admin/EditarDepartamento', [
-            'departamentoId' => $id
-        ]);
-    })->name('admin.departamentos.editar');
-
-    // Reportes
-    Route::get('/reportes', function () {
-        return Inertia::render('Admin/Reportes');
-    })->name('admin.reportes');
-
-    Route::get('/reportes/generar', function () {
-        return Inertia::render('Admin/GenerarReporte');
-    })->name('admin.reportes.generar');
-
-    Route::get('/reportes/{id}', function ($id) {
-        return Inertia::render('Admin/VerReporte', [
-            'reporteId' => $id
-        ]);
-    })->name('admin.reportes.ver');
-
-    // Otras secciones de administración
-    Route::get('/configuracion', function () {
-        return Inertia::render('Admin/Configuracion');
-    })->name('admin.configuracion');
-
-    Route::get('/actividades', function () {
-        return Inertia::render('Admin/Actividades');
-    })->name('admin.actividades');
-});
+/*
+|--------------------------------------------------------------------------
+| RUTAS DE PERFIL Y AUTENTICACIÓN
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

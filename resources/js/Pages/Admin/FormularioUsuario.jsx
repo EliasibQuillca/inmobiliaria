@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import AdminLayout from '@/components/admin/AdminLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 import axios from 'axios';
 
 export default function FormularioUsuario({ auth, userId = null, modo = 'crear' }) {

@@ -26,7 +26,7 @@ class UserController extends Controller
             ], 403);
         }
 
-        $query = User::query();
+        $query = User::with(['cliente', 'asesor']);
 
         // Filtros
         if ($request->has('role')) {
@@ -48,8 +48,25 @@ class UserController extends Controller
 
         $users = $query->paginate($request->input('per_page', 15));
 
+        // Formatear los datos para la respuesta
+        $formattedUsers = $users->getCollection()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'telefono' => $user->telefono,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+                'role_display' => $user->getRoleDisplayAttribute(),
+                'can_delete' => $this->canDeleteUser($user),
+                'asesor' => $user->asesor,
+                'cliente' => $user->cliente,
+            ];
+        });
+
         return response()->json([
-            'data' => $users->items(),
+            'data' => $formattedUsers,
             'pagination' => [
                 'current_page' => $users->currentPage(),
                 'last_page' => $users->lastPage(),
@@ -57,6 +74,45 @@ class UserController extends Controller
                 'total' => $users->total(),
             ],
         ]);
+    }
+
+    /**
+     * Verificar si un usuario puede ser eliminado
+     */
+    private function canDeleteUser($user)
+    {
+        // El administrador principal no puede ser eliminado
+        if ($user->email === 'admin@inmobiliaria.com') {
+            return false;
+        }
+
+        // Si es cliente, verificar si tiene actividad comercial
+        if ($user->esCliente() && $user->cliente) {
+            $cliente = $user->cliente;
+
+            // No se puede eliminar si tiene cotizaciones, reservas o ventas
+            $tieneCotizaciones = $cliente->cotizaciones()->exists();
+            $tieneReservas = $cliente->reservas()->exists();
+
+            if ($tieneCotizaciones || $tieneReservas) {
+                return false;
+            }
+        }
+
+        // Si es asesor, verificar si tiene actividad comercial
+        if ($user->esAsesor() && $user->asesor) {
+            $asesor = $user->asesor;
+
+            // No se puede eliminar si tiene cotizaciones, reservas o ventas activas
+            $tieneCotizaciones = $asesor->cotizaciones()->exists();
+            $tieneReservas = $asesor->reservas()->exists();
+
+            if ($tieneCotizaciones || $tieneReservas) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -231,7 +287,7 @@ class UserController extends Controller
     }
 
     /**
-     * Eliminar un usuario (desactivar)
+     * Eliminar un usuario (con validaciones de seguridad)
      */
     public function destroy($id)
     {
@@ -249,13 +305,28 @@ class UserController extends Controller
             ], 400);
         }
 
-        $targetUser = User::findOrFail($id);
+        $targetUser = User::with(['cliente', 'asesor'])->findOrFail($id);
+
+        // Verificar si el usuario puede ser eliminado
+        if (!$this->canDeleteUser($targetUser)) {
+            $reason = $this->getDeletionBlockReason($targetUser);
+            return response()->json([
+                'message' => 'No se puede eliminar este usuario',
+                'reason' => $reason,
+            ], 422);
+        }
 
         try {
-            // En lugar de eliminar, podríamos marcar como inactivo
-            // o mover a una tabla de usuarios eliminados
+            // Eliminar registros relacionados primero
+            if ($targetUser->cliente) {
+                $targetUser->cliente->delete();
+            }
 
-            // Si realmente queremos eliminarlo
+            if ($targetUser->asesor) {
+                $targetUser->asesor->delete();
+            }
+
+            // Eliminar el usuario
             $targetUser->delete();
 
             return response()->json([
@@ -264,9 +335,45 @@ class UserController extends Controller
 
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Error al desactivar el usuario',
+                'message' => 'Error al eliminar el usuario',
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Obtener la razón por la cual no se puede eliminar un usuario
+     */
+    private function getDeletionBlockReason($user)
+    {
+        if ($user->email === 'admin@inmobiliaria.com') {
+            return 'No se puede eliminar el administrador principal del sistema.';
+        }
+
+        if ($user->esCliente() && $user->cliente) {
+            $cliente = $user->cliente;
+
+            if ($cliente->cotizaciones()->exists()) {
+                return 'Este cliente tiene cotizaciones registradas. Para proteger la integridad de los datos comerciales, no se puede eliminar.';
+            }
+
+            if ($cliente->reservas()->exists()) {
+                return 'Este cliente tiene reservas registradas. Para proteger la integridad de los datos comerciales, no se puede eliminar.';
+            }
+        }
+
+        if ($user->esAsesor() && $user->asesor) {
+            $asesor = $user->asesor;
+
+            if ($asesor->cotizaciones()->exists()) {
+                return 'Este asesor tiene cotizaciones registradas. Para proteger la integridad de los datos comerciales, no se puede eliminar.';
+            }
+
+            if ($asesor->reservas()->exists()) {
+                return 'Este asesor tiene reservas registradas. Para proteger la integridad de los datos comerciales, no se puede eliminar.';
+            }
+        }
+
+        return 'Usuario protegido por políticas de seguridad.';
     }
 }

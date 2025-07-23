@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import AdminLayout from '@/components/admin/AdminLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 import InputError from '@/components/common/InputError';
 import InputLabel from '@/components/common/InputLabel';
 import TextInput from '@/components/common/TextInput';

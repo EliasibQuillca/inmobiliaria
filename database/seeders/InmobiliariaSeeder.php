@@ -4,156 +4,284 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Asesor;
 use App\Models\Cliente;
+use App\Models\Asesor;
 use App\Models\Propietario;
 use App\Models\Departamento;
-use App\Models\Atributo;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Cotizacion;
+use App\Models\Reserva;
+use App\Models\Venta;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class InmobiliariaSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Crear usuario administrador
-        $admin = User::create([
-            'nombre' => 'Administrador Sistema',
-            'email' => 'admin@inmobiliaria.com',
-            'telefono' => '+51987654321',
-            'clave_hash' => Hash::make('admin123'),
-            'rol' => 'administrador',
-        ]);
+        DB::beginTransaction();
 
-        // Crear usuario asesor
-        $userAsesor = User::create([
-            'nombre' => 'Juan Carlos Mendoza',
-            'email' => 'asesor@inmobiliaria.com',
-            'telefono' => '+51987654322',
-            'clave_hash' => Hash::make('asesor123'),
-            'rol' => 'asesor',
-        ]);
+        try {
+            $this->command->info('Iniciando seeder de inmobiliaria...');
 
-        // Crear perfil de asesor
-        $asesor = Asesor::create([
-            'usuario_id' => $userAsesor->id,
-            'fecha_contrato' => '2023-01-15',
-        ]);
+            // Crear datos mínimos para testing
+            $admin = $this->crearAdmin();
+            $asesores = $this->crearAsesoresMinimos();
+            $clientes = $this->crearClientesMinimos();
+            $propietarios = $this->crearPropietariosMinimos();
+            $departamentos = $this->crearDepartamentosMinimos($propietarios);
 
-        // Crear usuario cliente
-        $userCliente = User::create([
-            'nombre' => 'María Elena Quispe',
-            'email' => 'cliente@email.com',
-            'telefono' => '+51987654323',
-            'clave_hash' => Hash::make('cliente123'),
-            'rol' => 'cliente',
-        ]);
+            // Crear algunas transacciones básicas
+            $this->crearTransaccionesMinimas($asesores, $clientes, $departamentos);
 
-        // Crear perfil de cliente
-        $cliente = Cliente::create([
-            'usuario_id' => $userCliente->id,
-            'dni' => '70123456',
-            'direccion' => 'Av. El Sol 123, Cusco',
-            'fecha_registro' => now(),
-        ]);
+            DB::commit();
+            $this->mostrarEstadisticas();
 
-        // Crear propietarios
-        $propietario1 = Propietario::create([
-            'nombre' => 'Constructora Cusco SAC',
-            'dni' => '20123456789',
-            'tipo' => 'juridico',
-            'contacto' => 'gerencia@constructora.com',
-            'direccion' => 'Av. La Cultura 456, Cusco',
-            'registrado_sunarp' => true,
-        ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            $this->command->error('Error en seeder simple: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 
-        $propietario2 = Propietario::create([
-            'nombre' => 'Carlos Alberto Huamán',
-            'dni' => '70987654',
-            'tipo' => 'natural',
-            'contacto' => '+51987123456',
-            'direccion' => 'Calle Plateros 789, Cusco',
-            'registrado_sunarp' => true,
-        ]);
+    private function crearAdmin(): User
+    {
+        return User::firstOrCreate(
+            ['email' => 'admin@inmobiliaria.com'],
+            [
+                'name' => 'Administrador Principal',
+                'password' => bcrypt('admin123'),
+                'role' => 'administrador',
+                'telefono' => '555-0001'
+            ]
+        );
+    }
 
-        // Crear atributos
-        $atributos = [
-            ['nombre' => 'Área (m²)', 'tipo' => 'number'],
-            ['nombre' => 'Número de dormitorios', 'tipo' => 'number'],
-            ['nombre' => 'Número de baños', 'tipo' => 'number'],
-            ['nombre' => 'Tiene balcón', 'tipo' => 'boolean'],
-            ['nombre' => 'Tiene estacionamiento', 'tipo' => 'boolean'],
-            ['nombre' => 'Piso', 'tipo' => 'number'],
-            ['nombre' => 'Amoblado', 'tipo' => 'boolean'],
-            ['nombre' => 'Fecha de construcción', 'tipo' => 'date'],
-        ];
+    /**
+     * @return array<int, Asesor>
+     */
+    private function crearAsesoresMinimos(): array
+    {
+        $asesores = [];
 
-        foreach ($atributos as $atributo) {
-            Atributo::create($atributo);
+        for ($i = 1; $i <= 2; $i++) {
+            $user = User::firstOrCreate(
+                ['email' => "asesor{$i}@inmobiliaria.com"],
+                [
+                    'name' => "Asesor {$i}",
+                    'password' => bcrypt('asesor123'),
+                    'role' => 'asesor',
+                    'telefono' => "555-010{$i}"
+                ]
+            );
+
+            $asesor = Asesor::firstOrCreate(
+                ['usuario_id' => $user->getKey()],
+                [
+                    'fecha_contrato' => Carbon::now()->subMonths(rand(6, 18)),
+                    'nombre' => "Asesor {$i}",
+                    'apellidos' => "Apellido {$i}",
+                    'telefono' => "555-010{$i}",
+                    'documento' => "7654321{$i}",
+                    'direccion' => "Calle Asesor {$i}",
+                    'fecha_nacimiento' => Carbon::now()->subYears(rand(28, 40)),
+                    'especialidad' => ['residencial', 'comercial'][rand(0, 1)],
+                    'experiencia' => rand(2, 8),
+                    'biografia' => "Asesor simple con experiencia básica",
+                    'estado' => 'activo',
+                    'comision_porcentaje' => 5.0
+                ]
+            );
+
+            $asesores[] = $asesor;
         }
 
-        // Crear departamentos
-        $departamento1 = Departamento::create([
-            'codigo' => 'DEPT-001',
-            'direccion' => 'Av. El Sol 250, Departamento 3A, Cusco',
-            'precio' => 280000.00,
-            'estado' => 'disponible',
-            'propietario_id' => $propietario1->id,
-        ]);
+        $this->command->info('Asesores mínimos creados: ' . count($asesores));
+        return $asesores;
+    }
 
-        $departamento2 = Departamento::create([
-            'codigo' => 'DEPT-002',
-            'direccion' => 'Calle Saphi 180, Departamento 2B, Cusco',
-            'precio' => 350000.00,
-            'estado' => 'disponible',
-            'propietario_id' => $propietario1->id,
-        ]);
+    /**
+     * @return array<int, Cliente>
+     */
+    private function crearClientesMinimos(): array
+    {
+        $clientes = [];
 
-        $departamento3 = Departamento::create([
-            'codigo' => 'DEPT-003',
-            'direccion' => 'Av. La Cultura 320, Departamento 1C, Cusco',
-            'precio' => 420000.00,
-            'estado' => 'disponible',
-            'propietario_id' => $propietario2->id,
-        ]);
+        for ($i = 1; $i <= 5; $i++) {
+            $user = User::firstOrCreate(
+                ['email' => "cliente{$i}@example.com"],
+                [
+                    'name' => "Cliente Simple {$i}",
+                    'password' => bcrypt('cliente123'),
+                    'role' => 'cliente',
+                    'telefono' => "555-020{$i}"
+                ]
+            );
 
-        // Asignar atributos a departamentos
-        $atributosModels = Atributo::all();
+            $cliente = Cliente::firstOrCreate(
+                ['usuario_id' => $user->getKey()],
+                [
+                    'dni' => "1234567{$i}",
+                    'direccion' => "Dirección Cliente {$i}",
+                    'fecha_registro' => Carbon::now()->subDays(rand(5, 60))
+                ]
+            );
 
-        // Departamento 1 - Económico
-        $departamento1->atributos()->attach($atributosModels[0]->id, ['valor' => '65']);  // Área
-        $departamento1->atributos()->attach($atributosModels[1]->id, ['valor' => '2']);   // Dormitorios
-        $departamento1->atributos()->attach($atributosModels[2]->id, ['valor' => '1']);   // Baños
-        $departamento1->atributos()->attach($atributosModels[3]->id, ['valor' => 'true']); // Balcón
-        $departamento1->atributos()->attach($atributosModels[4]->id, ['valor' => 'false']); // Estacionamiento
-        $departamento1->atributos()->attach($atributosModels[5]->id, ['valor' => '3']);   // Piso
+            $clientes[] = $cliente;
+        }
 
-        // Departamento 2 - Medio
-        $departamento2->atributos()->attach($atributosModels[0]->id, ['valor' => '85']);  // Área
-        $departamento2->atributos()->attach($atributosModels[1]->id, ['valor' => '3']);   // Dormitorios
-        $departamento2->atributos()->attach($atributosModels[2]->id, ['valor' => '2']);   // Baños
-        $departamento2->atributos()->attach($atributosModels[3]->id, ['valor' => 'true']); // Balcón
-        $departamento2->atributos()->attach($atributosModels[4]->id, ['valor' => 'true']); // Estacionamiento
-        $departamento2->atributos()->attach($atributosModels[5]->id, ['valor' => '2']);   // Piso
+        $this->command->info('Clientes mínimos creados: ' . count($clientes));
+        return $clientes;
+    }
 
-        // Departamento 3 - Premium
-        $departamento3->atributos()->attach($atributosModels[0]->id, ['valor' => '120']); // Área
-        $departamento3->atributos()->attach($atributosModels[1]->id, ['valor' => '4']);   // Dormitorios
-        $departamento3->atributos()->attach($atributosModels[2]->id, ['valor' => '3']);   // Baños
-        $departamento3->atributos()->attach($atributosModels[3]->id, ['valor' => 'true']); // Balcón
-        $departamento3->atributos()->attach($atributosModels[4]->id, ['valor' => 'true']); // Estacionamiento
-        $departamento3->atributos()->attach($atributosModels[5]->id, ['valor' => '1']);   // Piso
-        $departamento3->atributos()->attach($atributosModels[6]->id, ['valor' => 'true']); // Amoblado
+    /**
+     * @return array<int, Propietario>
+     */
+    private function crearPropietariosMinimos(): array
+    {
+        $propietarios = [];
 
-        echo "Seeder completado exitosamente!\n";
-        echo "Usuarios creados:\n";
-        echo "- Administrador: admin@inmobiliaria.com / admin123\n";
-        echo "- Asesor: asesor@inmobiliaria.com / asesor123\n";
-        echo "- Cliente: cliente@email.com / cliente123\n";
-        echo "Departamentos creados: 3\n";
-        echo "Propietarios creados: 2\n";
-        echo "Atributos creados: 8\n";
+        for ($i = 1; $i <= 3; $i++) {
+            $propietario = Propietario::firstOrCreate(
+                ['dni' => "9876543{$i}"],
+                [
+                    'nombre' => "Propietario {$i} Apellido {$i}",
+                    'dni' => "9876543{$i}",
+                    'tipo' => 'natural',
+                    'contacto' => "555-030{$i}",
+                    'direccion' => "Dirección Propietario {$i}",
+                    'registrado_sunarp' => true
+                ]
+            );
+
+            $propietarios[] = $propietario;
+        }
+
+        $this->command->info('Propietarios mínimos creados: ' . count($propietarios));
+        return $propietarios;
+    }
+
+    /**
+     * @param array<int, Propietario> $propietarios
+     * @return array<int, Departamento>
+     */
+    private function crearDepartamentosMinimos(array $propietarios): array
+    {
+        $departamentos = [];
+
+        for ($i = 1; $i <= 5; $i++) {
+            $precio = rand(200000, 400000);
+            $propietario = $propietarios[rand(0, count($propietarios) - 1)];
+
+            $departamento = Departamento::firstOrCreate(
+                ['codigo' => "SIM-" . str_pad($i, 3, '0', STR_PAD_LEFT)],
+                [
+                    'titulo' => "Departamento Simple {$i}",
+                    'descripcion' => "Departamento básico para testing {$i}",
+                    'ubicacion' => "Zona Simple {$i}",
+                    'direccion' => "Calle Simple {$i}",
+                    'precio' => $precio,
+                    'precio_anterior' => $precio + rand(5000, 15000),
+                    'dormitorios' => rand(2, 3),
+                    'banos' => rand(1, 2),
+                    'area_total' => rand(70, 120),
+                    'estacionamientos' => rand(1, 2),
+                    'estado' => 'disponible',
+                    'disponible' => true,
+                    'propietario_id' => $propietario->getKey(),
+                    'destacado' => false,
+                ]
+            );
+
+            $departamentos[] = $departamento;
+        }
+
+        $this->command->info('Departamentos mínimos creados: ' . count($departamentos));
+        return $departamentos;
+    }
+
+    /**
+     * @param array<int, Asesor> $asesores
+     * @param array<int, Cliente> $clientes
+     * @param array<int, Departamento> $departamentos
+     */
+    private function crearTransaccionesMinimas(array $asesores, array $clientes, array $departamentos): void
+    {
+        if (count($asesores) === 0 || count($clientes) === 0 || count($departamentos) === 0) {
+            $this->command->warn('No hay datos suficientes para crear transacciones');
+            return;
+        }
+
+        $contadorTotal = 0;
+
+        // Crear solo 3 transacciones completas para testing
+        for ($i = 0; $i < 3; $i++) {
+            $fechaCotizacion = Carbon::now()->subDays(rand(5, 30));
+            $asesor = $asesores[rand(0, count($asesores) - 1)];
+            $cliente = $clientes[rand(0, count($clientes) - 1)];
+            $departamento = $departamentos[rand(0, count($departamentos) - 1)];
+
+            $precioOriginal = (float) $departamento->getAttribute('precio');
+            $descuento = rand(50, 999); // Ajustado para no exceder decimal(5,2)
+            $precioFinal = $precioOriginal - $descuento;
+
+            // Crear cotización
+            $cotizacion = Cotizacion::create([
+                'cliente_id' => $cliente->getKey(),
+                'asesor_id' => $asesor->getKey(),
+                'departamento_id' => $departamento->getKey(),
+                'fecha' => $fechaCotizacion,
+                'monto' => $precioFinal,
+                'descuento' => $descuento,
+                'fecha_validez' => $fechaCotizacion->copy()->addDays(30),
+                'estado' => 'aprobada',
+                'notas' => 'Cotización simple para testing',
+                'condiciones' => 'Condiciones simples de testing'
+            ]);
+
+            // Crear reserva
+            $fechaReserva = $fechaCotizacion->copy()->addDays(rand(2, 5));
+            $reserva = Reserva::create([
+                'cotizacion_id' => $cotizacion->getKey(),
+                'cliente_id' => $cliente->getKey(),
+                'asesor_id' => $asesor->getKey(),
+                'departamento_id' => $departamento->getKey(),
+                'fecha_reserva' => $fechaReserva,
+                'fecha_inicio' => $fechaReserva->copy()->addDays(2),
+                'fecha_fin' => $fechaReserva->copy()->addDays(30),
+                'monto_reserva' => $precioFinal * 0.1,
+                'monto_total' => $precioFinal,
+                'estado' => 'activa',
+                'notas' => 'Reserva simple',
+                'condiciones' => 'Reserva básica'
+            ]);
+
+            // Crear venta (solo para el primer caso)
+            if ($i === 0) {
+                $fechaVenta = $fechaReserva->copy()->addDays(rand(15, 25));
+                Venta::create([
+                    'reserva_id' => $reserva->getKey(),
+                    'fecha_venta' => $fechaVenta,
+                    'monto_final' => $precioFinal,
+                    'documentos_entregados' => true
+                ]);
+            }
+
+            $contadorTotal++;
+        }
+
+        $this->command->info("Transacciones simples creadas: {$contadorTotal}");
+    }
+
+    private function mostrarEstadisticas(): void
+    {
+        $this->command->info('=== ESTADÍSTICAS SEEDER SIMPLE ===');
+        $this->command->info('Usuarios: ' . User::count());
+        $this->command->info('Asesores: ' . Asesor::count());
+        $this->command->info('Clientes: ' . Cliente::count());
+        $this->command->info('Departamentos: ' . Departamento::count());
+        $this->command->info('Cotizaciones: ' . Cotizacion::count());
+        $this->command->info('Reservas: ' . Reserva::count());
+        $this->command->info('Ventas: ' . Venta::count());
+        $this->command->info('==================================');
     }
 }

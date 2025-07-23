@@ -63,6 +63,19 @@ class User extends Authenticatable
         return $this->hasMany(AuditoriaUsuario::class, 'usuario_id');
     }
 
+    // Relación a través del modelo Asesor para las reservas
+    public function reservasComplejas()
+    {
+        return $this->hasManyThrough(
+            Reserva::class,
+            Asesor::class,
+            'usuario_id', // Foreign key en asesores
+            'asesor_id',  // Foreign key en reservas
+            'id',         // Local key en users
+            'id'          // Local key en asesores
+        );
+    }
+
     // Métodos de utilidad
     public function esCliente()
     {

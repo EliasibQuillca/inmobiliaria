@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 
 export default function CrearUsuario({ auth }) {
     // Estado para el formulario de usuario
@@ -85,7 +85,14 @@ export default function CrearUsuario({ auth }) {
     };
 
     return (
-        <AdminLayout auth={auth} title="Crear Usuario">
+        <AdminLayout
+            auth={auth}
+            header={
+                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+                    Crear Usuario
+                </h2>
+            }
+        >
             <Head title="Crear Usuario - Inmobiliaria" />
 
             <div className="py-12 bg-gray-100">

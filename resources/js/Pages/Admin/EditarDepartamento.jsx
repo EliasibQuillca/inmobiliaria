@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
-import AdminLayout from '@/components/admin/AdminLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 import axios from 'axios';
 
 export default function EditarDepartamento({ auth, departamentoId }) {

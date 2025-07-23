@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
-import AdminLayout from '@/components/admin/AdminLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
 
 export default function GestionDepartamentos({ auth }) {
     // Estado para los departamentos
