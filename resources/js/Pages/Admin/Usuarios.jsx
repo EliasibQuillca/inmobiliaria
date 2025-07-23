@@ -1,82 +1,59 @@
-import { Head, Link } from '@inertiajs/react';
-import React, { useState, useEffect } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
-export default function GestionUsuarios({ auth }) {
-    // Estado para los usuarios (datos simulados)
-    const [usuarios, setUsuarios] = useState([
-        {
-            id: 1,
-            name: 'Juan Pérez',
-            email: 'juan@inmobiliaria.com',
-            role: 'Administrador',
-            status: 'activo',
-            created_at: '2024-01-15'
-        },
-        {
-            id: 2,
-            name: 'María González',
-            email: 'maria@inmobiliaria.com',
-            role: 'Asesor',
-            status: 'activo',
-            created_at: '2024-01-18'
-        },
-        {
-            id: 3,
-            name: 'Carlos Mendoza',
-            email: 'carlos@inmobiliaria.com',
-            role: 'Cliente',
-            status: 'activo',
-            created_at: '2024-01-20'
-        }
-    ]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-
-    // Estado para la paginación
-    const [paginacion, setPaginacion] = useState({
-        currentPage: 1,
-        lastPage: 1,
-        perPage: 10,
-        total: 3,
-    });
-
+export default function GestionUsuarios({ auth, usuarios, pagination, filters, error }) {
     // Estado para los filtros
-    const [filtros, setFiltros] = useState({
-        busqueda: '',
+    const [filtros, setFiltros] = useState(filters || {
+        search: '',
         role: '',
         estado: '',
         page: 1,
     });
 
+    const [loading, setLoading] = useState(false);
+
+    // Datos de usuarios que vienen del servidor
+    const listaUsuarios = usuarios?.data || [];
+    const paginacion = pagination || { current_page: 1, last_page: 1, per_page: 15, total: 0 };
+
     // Función para manejar cambios en los filtros
     const handleFiltroChange = (e) => {
         const { name, value } = e.target;
-        setFiltros({
+        const nuevosFiltros = {
             ...filtros,
             [name]: value,
             page: 1, // Resetear la página al cambiar filtros
-        });
+        };
+        setFiltros(nuevosFiltros);
+
+        // Para búsqueda, usar debounce
+        if (name === 'search') {
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(() => {
+                router.get('/admin/usuarios', nuevosFiltros, {
+                    preserveState: true,
+                    preserveScroll: true,
+                });
+            }, 500);
+        } else {
+            router.get('/admin/usuarios', nuevosFiltros, {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }
     };
 
-    // Función para filtrar usuarios localmente
-    const filtrarUsuarios = () => {
-        return usuarios.filter(usuario => {
-            const matchBusqueda = !filtros.busqueda ||
-                usuario.name.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
-                usuario.email.toLowerCase().includes(filtros.busqueda.toLowerCase());
-
-            const matchRole = !filtros.role || usuario.role === filtros.role;
-            const matchEstado = !filtros.estado || usuario.status === filtros.estado;
-
-            return matchBusqueda && matchRole && matchEstado;
-        });
-    };    // Cambiar de página
+    // Cambiar de página
     const cambiarPagina = (nuevaPagina) => {
-        if (nuevaPagina > 0 && nuevaPagina <= paginacion.lastPage) {
-            setFiltros({
+        if (nuevaPagina > 0 && nuevaPagina <= paginacion.last_page) {
+            const nuevosFiltros = {
                 ...filtros,
                 page: nuevaPagina,
+            };
+            router.get('/admin/usuarios', nuevosFiltros, {
+                preserveState: true,
+                preserveScroll: true,
             });
         }
     };
@@ -84,39 +61,124 @@ export default function GestionUsuarios({ auth }) {
     // Función para desactivar/activar un usuario
     const toggleEstadoUsuario = async (id, estadoActual) => {
         try {
-            const nuevoEstado = estadoActual === 'Activo' ? 'Inactivo' : 'Activo';
+            const nuevoEstado = estadoActual === 'activo' ? 'inactivo' : 'activo';
+            const accion = nuevoEstado === 'activo' ? 'activar' : 'desactivar';
 
-            await axios.put(`/api/v1/admin/usuarios/${id}`, {
-                estado: nuevoEstado.toLowerCase()
+            setLoading(true);
+
+            router.patch(`/admin/usuarios/${id}/estado`, {
+                estado: nuevoEstado
+            }, {
+                preserveState: false,
+                onSuccess: () => {
+                    alert(`✅ Usuario ${accion === 'activar' ? 'activado' : 'desactivado'} correctamente`);
+                    router.reload();
+                },
+                onError: (errors) => {
+                    console.error('Errores:', errors);
+                    alert(`❌ No se pudo ${accion} el usuario. Por favor, inténtelo de nuevo.`);
+                },
+                onFinish: () => {
+                    setLoading(false);
+                }
             });
-
-            // Actualizar el estado local
-            cargarUsuarios();
         } catch (err) {
             console.error('Error al cambiar estado del usuario:', err);
-            alert('No se pudo cambiar el estado del usuario. Por favor, inténtelo de nuevo.');
+            alert('❌ Error inesperado al cambiar el estado del usuario. Por favor, inténtelo de nuevo.');
+            setLoading(false);
         }
     };
 
     // Función para eliminar un usuario
-    const eliminarUsuario = async (id) => {
-        if (!confirm('¿Está seguro de que desea eliminar este usuario? Esta acción no se puede deshacer.')) {
+    const eliminarUsuario = async (id, usuario) => {
+        // Verificar si el usuario puede ser eliminado
+        if (!usuario.can_delete) {
+            alert(`❌ Este usuario no puede ser eliminado.\n\nRazón: Puede tener actividad comercial registrada (cotizaciones, reservas, etc.).\n\n💡 Tip: Puede desactivar el usuario en lugar de eliminarlo.`);
+            return;
+        }
+
+        // Confirmación con información adicional
+        const confirmMessage = `⚠️ ¿Está seguro de que desea eliminar este usuario?\n\n👤 Usuario: ${usuario.name}\n📧 Email: ${usuario.email}\n🏷️ Rol: ${getRoleDisplay(usuario.role)}\n\n❗ Esta acción NO se puede deshacer.`;
+
+        if (!confirm(confirmMessage)) {
             return;
         }
 
         try {
-            await axios.delete(`/api/v1/admin/usuarios/${id}`);
+            setLoading(true);
+            router.delete(`/admin/usuarios/${id}`, {
+                preserveState: false,
+                onSuccess: () => {
+                    alert('✅ Usuario eliminado correctamente');
+                    router.reload();
+                },
+                onError: (errors) => {
+                    console.error('Errores:', errors);
+                    let mensaje = '❌ No se pudo eliminar el usuario.';
 
-            // Actualizar el estado local
-            cargarUsuarios();
+                    if (errors.message) {
+                        mensaje += `\n\nRazón: ${errors.message}`;
+                    }
+
+                    if (errors.reason) {
+                        mensaje += `\n\nDetalle: ${errors.reason}`;
+                    }
+
+                    mensaje += '\n\n💡 Verifique que el usuario no tenga actividad comercial registrada.';
+
+                    alert(mensaje);
+                },
+                onFinish: () => {
+                    setLoading(false);
+                }
+            });
         } catch (err) {
             console.error('Error al eliminar usuario:', err);
-            alert('No se pudo eliminar el usuario. Por favor, inténtelo de nuevo.');
+            alert('❌ Error inesperado al eliminar el usuario. Por favor, inténtelo de nuevo.');
+            setLoading(false);
         }
     };
 
-    // Los usuarios filtrados se calculan en tiempo real
-    const usuariosFiltrados = filtrarUsuarios();
+    // Función para formatear fecha
+    const formatearFecha = (fechaString) => {
+        try {
+            return new Date(fechaString).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+        } catch {
+            return fechaString;
+        }
+    };
+
+    // Función para obtener el color del rol
+    const getRoleColor = (role) => {
+        switch (role) {
+            case 'administrador':
+                return 'bg-purple-100 text-purple-800';
+            case 'asesor':
+                return 'bg-blue-100 text-blue-800';
+            case 'cliente':
+                return 'bg-green-100 text-green-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    // Función para obtener el display del rol
+    const getRoleDisplay = (role) => {
+        switch (role) {
+            case 'administrador':
+                return 'Administrador';
+            case 'asesor':
+                return 'Asesor';
+            case 'cliente':
+                return 'Cliente';
+            default:
+                return role;
+        }
+    };
 
     return (
         <AdminLayout
@@ -148,18 +210,25 @@ export default function GestionUsuarios({ auth }) {
                         </Link>
                     </div>
 
+                    {/* Mostrar error si existe */}
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                            {error}
+                        </div>
+                    )}
+
                     {/* Filtros */}
                     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
-                                <label htmlFor="busqueda" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
                                     Buscar
                                 </label>
                                 <input
                                     type="text"
-                                    id="busqueda"
-                                    name="busqueda"
-                                    value={filtros.busqueda}
+                                    id="search"
+                                    name="search"
+                                    value={filtros.search}
                                     onChange={handleFiltroChange}
                                     placeholder="Nombre o correo electrónico"
                                     className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
@@ -167,11 +236,11 @@ export default function GestionUsuarios({ auth }) {
                             </div>
 
                             <div>
-                                <label htmlFor="rol" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
                                     Rol
                                 </label>
                                 <select
-                                    id="rol"
+                                    id="role"
                                     name="role"
                                     value={filtros.role}
                                     onChange={handleFiltroChange}
@@ -210,17 +279,6 @@ export default function GestionUsuarios({ auth }) {
                                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
                                 <p className="text-gray-600">Cargando usuarios...</p>
                             </div>
-                        ) : error ? (
-                            <div className="py-10 text-center">
-                                <div className="text-red-500 mb-2">❌</div>
-                                <p className="text-gray-600">{error}</p>
-                                <button
-                                    onClick={cargarUsuarios}
-                                    className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                                >
-                                    Reintentar
-                                </button>
-                            </div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
@@ -247,15 +305,15 @@ export default function GestionUsuarios({ auth }) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {usuariosFiltrados.length > 0 ? (
-                                            usuariosFiltrados.map((usuario) => (
+                                        {listaUsuarios.length > 0 ? (
+                                            listaUsuarios.map((usuario) => (
                                                 <tr key={usuario.id}>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
                                                             <div className="flex-shrink-0 h-10 w-10">
                                                                 <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
                                                                     <span className="font-medium text-indigo-800">
-                                                                        {usuario.name.charAt(0)}
+                                                                        {usuario.name?.charAt(0) || 'U'}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -270,40 +328,63 @@ export default function GestionUsuarios({ auth }) {
                                                         <div className="text-sm text-gray-900">{usuario.email}</div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                            ${usuario.role === 'Administrador' ? 'bg-purple-100 text-purple-800' :
-                                                              usuario.role === 'Asesor' ? 'bg-blue-100 text-blue-800' :
-                                                              'bg-green-100 text-green-800'}`}>
-                                                            {usuario.role}
+                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleColor(usuario.role)}`}>
+                                                            {getRoleDisplay(usuario.role)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                            ${usuario.status === 'activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                            {usuario.status === 'activo' ? 'Activo' : 'Inactivo'}
+                                                            ${usuario.estado === 'activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                            {usuario.estado === 'activo' ? 'Activo' : 'Inactivo'}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {new Date(usuario.created_at).toLocaleDateString()}
+                                                        {formatearFecha(usuario.created_at)}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                         <div className="flex space-x-2 justify-end">
                                                             <Link
                                                                 href={`/admin/usuarios/${usuario.id}/editar`}
-                                                                className="text-indigo-600 hover:text-indigo-900"
+                                                                className="text-indigo-600 hover:text-indigo-900 inline-flex items-center"
                                                             >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
                                                                 Editar
                                                             </Link>
                                                             <button
                                                                 onClick={() => toggleEstadoUsuario(usuario.id, usuario.estado)}
-                                                                className={`${usuario.estado === 'activo' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}`}
+                                                                className={`inline-flex items-center ${usuario.estado === 'activo' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}`}
                                                             >
+                                                                {usuario.estado === 'activo' ? (
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                                                                    </svg>
+                                                                ) : (
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
+                                                                )}
                                                                 {usuario.estado === 'activo' ? 'Desactivar' : 'Activar'}
                                                             </button>
                                                             <button
-                                                                onClick={() => eliminarUsuario(usuario.id)}
-                                                                className="text-gray-600 hover:text-gray-900"
+                                                                onClick={() => eliminarUsuario(usuario.id, usuario)}
+                                                                disabled={!usuario.can_delete}
+                                                                className={`${usuario.can_delete
+                                                                    ? 'text-red-600 hover:text-red-900 cursor-pointer'
+                                                                    : 'text-gray-400 cursor-not-allowed opacity-50'
+                                                                }`}
+                                                                title={!usuario.can_delete ? 'Este usuario no puede ser eliminado (tiene actividad comercial)' : 'Eliminar usuario'}
                                                             >
+                                                                {usuario.can_delete ? (
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                    </svg>
+                                                                ) : (
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                                                                    </svg>
+                                                                )}
                                                                 Eliminar
                                                             </button>
                                                         </div>
@@ -313,7 +394,7 @@ export default function GestionUsuarios({ auth }) {
                                         ) : (
                                             <tr>
                                                 <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                                                    No se encontraron usuarios que coincidan con los filtros.
+                                                    No se encontraron usuarios.
                                                 </td>
                                             </tr>
                                         )}
@@ -324,14 +405,14 @@ export default function GestionUsuarios({ auth }) {
                     </div>
 
                     {/* Paginación */}
-                    {!loading && !error && usuarios.length > 0 && (
+                    {paginacion.total > 0 && (
                         <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4 rounded-lg shadow-md">
                             <div className="flex-1 flex justify-between sm:hidden">
                                 <button
-                                    onClick={() => cambiarPagina(paginacion.currentPage - 1)}
-                                    disabled={paginacion.currentPage === 1}
+                                    onClick={() => cambiarPagina(paginacion.current_page - 1)}
+                                    disabled={paginacion.current_page === 1}
                                     className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                                        paginacion.currentPage === 1
+                                        paginacion.current_page === 1
                                             ? 'text-gray-400 bg-gray-100'
                                             : 'text-gray-700 bg-white hover:bg-gray-50'
                                     }`}
@@ -339,10 +420,10 @@ export default function GestionUsuarios({ auth }) {
                                     Anterior
                                 </button>
                                 <button
-                                    onClick={() => cambiarPagina(paginacion.currentPage + 1)}
-                                    disabled={paginacion.currentPage === paginacion.lastPage}
+                                    onClick={() => cambiarPagina(paginacion.current_page + 1)}
+                                    disabled={paginacion.current_page === paginacion.last_page}
                                     className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                                        paginacion.currentPage === paginacion.lastPage
+                                        paginacion.current_page === paginacion.last_page
                                             ? 'text-gray-400 bg-gray-100'
                                             : 'text-gray-700 bg-white hover:bg-gray-50'
                                     }`}
@@ -353,18 +434,18 @@ export default function GestionUsuarios({ auth }) {
                             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                 <div>
                                     <p className="text-sm text-gray-700">
-                                        Mostrando <span className="font-medium">{(paginacion.currentPage - 1) * paginacion.perPage + 1}</span> a <span className="font-medium">
-                                            {Math.min(paginacion.currentPage * paginacion.perPage, paginacion.total)}
+                                        Mostrando <span className="font-medium">{(paginacion.current_page - 1) * paginacion.per_page + 1}</span> a <span className="font-medium">
+                                            {Math.min(paginacion.current_page * paginacion.per_page, paginacion.total)}
                                         </span> de <span className="font-medium">{paginacion.total}</span> resultados
                                     </p>
                                 </div>
                                 <div>
                                     <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                                         <button
-                                            onClick={() => cambiarPagina(paginacion.currentPage - 1)}
-                                            disabled={paginacion.currentPage === 1}
+                                            onClick={() => cambiarPagina(paginacion.current_page - 1)}
+                                            disabled={paginacion.current_page === 1}
                                             className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 ${
-                                                paginacion.currentPage === 1
+                                                paginacion.current_page === 1
                                                     ? 'text-gray-400 bg-gray-100'
                                                     : 'bg-white text-gray-500 hover:bg-gray-50'
                                             }`}
@@ -376,11 +457,11 @@ export default function GestionUsuarios({ auth }) {
                                         </button>
 
                                         {/* Mostrar las páginas */}
-                                        {Array.from({ length: paginacion.lastPage }, (_, i) => i + 1)
+                                        {Array.from({ length: paginacion.last_page }, (_, i) => i + 1)
                                             .filter(page =>
                                                 page === 1 ||
-                                                page === paginacion.lastPage ||
-                                                (page >= paginacion.currentPage - 1 && page <= paginacion.currentPage + 1)
+                                                page === paginacion.last_page ||
+                                                (page >= paginacion.current_page - 1 && page <= paginacion.current_page + 1)
                                             )
                                             .map((page, i, array) => {
                                                 // Agregar elipsis si hay saltos
@@ -397,7 +478,7 @@ export default function GestionUsuarios({ auth }) {
                                                         <button
                                                             onClick={() => cambiarPagina(page)}
                                                             className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
-                                                                page === paginacion.currentPage
+                                                                page === paginacion.current_page
                                                                     ? 'bg-indigo-50 text-indigo-600'
                                                                     : 'bg-white text-gray-700 hover:bg-gray-50'
                                                             }`}
@@ -415,10 +496,10 @@ export default function GestionUsuarios({ auth }) {
                                         }
 
                                         <button
-                                            onClick={() => cambiarPagina(paginacion.currentPage + 1)}
-                                            disabled={paginacion.currentPage === paginacion.lastPage}
+                                            onClick={() => cambiarPagina(paginacion.current_page + 1)}
+                                            disabled={paginacion.current_page === paginacion.last_page}
                                             className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 ${
-                                                paginacion.currentPage === paginacion.lastPage
+                                                paginacion.current_page === paginacion.last_page
                                                     ? 'text-gray-400 bg-gray-100'
                                                     : 'bg-white text-gray-500 hover:bg-gray-50'
                                             }`}

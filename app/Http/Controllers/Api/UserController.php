@@ -56,6 +56,7 @@ class UserController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
                 'telefono' => $user->telefono,
+                'estado' => $user->estado ?? 'activo', // Agregar campo estado
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
                 'role_display' => $user->getRoleDisplayAttribute(),
@@ -375,5 +376,48 @@ class UserController extends Controller
         }
 
         return 'Usuario protegido por políticas de seguridad.';
+    }
+
+    /**
+     * Cambiar el estado de un usuario
+     */
+    public function cambiarEstado(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('administrador')) {
+            return response()->json([
+                'message' => 'No autorizado',
+            ], 403);
+        }
+
+        if ($user->getAttribute('id') == $id) {
+            return response()->json([
+                'message' => 'No puedes cambiar tu propio estado',
+            ], 400);
+        }
+
+        $targetUser = User::findOrFail($id);
+
+        $request->validate([
+            'estado' => 'required|in:activo,inactivo',
+        ]);
+
+        try {
+            $targetUser->update([
+                'estado' => $request->input('estado')
+            ]);
+
+            return response()->json([
+                'message' => 'Estado del usuario actualizado exitosamente',
+                'data' => $targetUser->fresh()
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al cambiar el estado del usuario',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

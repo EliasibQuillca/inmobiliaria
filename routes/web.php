@@ -87,90 +87,72 @@ Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->
     })->name('dashboard');
 
     // === GESTIÓN DE USUARIOS ===
-    Route::get('/usuarios', function () {
-        return Inertia::render('Admin/Usuarios');
-    })->name('usuarios');
+    Route::get('/usuarios', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('usuarios');
 
-    Route::get('/usuarios/crear', function () {
-        return Inertia::render('Admin/CrearUsuario');
-    })->name('usuarios.crear');
+    Route::get('/usuarios/crear', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('usuarios.crear');
+    Route::post('/usuarios', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('usuarios.store');
 
-    Route::get('/usuarios/create', function () {
-        return Inertia::render('Admin/CrearUsuario');
-    })->name('usuarios.create');
+    Route::get('/usuarios/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('usuarios.create');
 
-    Route::get('/usuarios/{id}/editar', function ($id) {
-        return Inertia::render('Admin/EditarUsuario', [
-            'usuarioId' => $id
-        ]);
-    })->name('usuarios.editar');
+    Route::get('/usuarios/{id}/editar', [\App\Http\Controllers\Admin\UserController::class, 'edit'])->name('usuarios.editar');
+    Route::put('/usuarios/{id}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('usuarios.update');
+
+    // Rutas para operaciones CRUD
+    Route::patch('/usuarios/{id}/estado', [\App\Http\Controllers\Admin\UserController::class, 'cambiarEstado'])->name('usuarios.cambiar-estado');
+    Route::delete('/usuarios/{id}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('usuarios.eliminar');
 
     // === GESTIÓN DE DEPARTAMENTOS ===
-    Route::get('/departamentos', function () {
-        return Inertia::render('Admin/Departamentos');
-    })->name('departamentos');
+    Route::get('/departamentos', [\App\Http\Controllers\Admin\DepartamentoController::class, 'index'])->name('departamentos');
 
-    Route::get('/departamentos/crear', function () {
-        return Inertia::render('Admin/CrearDepartamento');
-    })->name('departamentos.crear');
+    Route::get('/departamentos/crear', [\App\Http\Controllers\Admin\DepartamentoController::class, 'create'])->name('departamentos.crear');
+    Route::post('/departamentos', [\App\Http\Controllers\Admin\DepartamentoController::class, 'store'])->name('departamentos.store');
 
-    Route::get('/departamentos/{id}', function ($id) {
-        return Inertia::render('Admin/VerDepartamento', [
-            'departamentoId' => $id
-        ]);
-    })->name('departamentos.ver');
+    Route::get('/departamentos/{id}', [\App\Http\Controllers\Admin\DepartamentoController::class, 'show'])->name('departamentos.ver');
 
-    Route::get('/departamentos/{id}/editar', function ($id) {
-        return Inertia::render('Admin/EditarDepartamento', [
-            'departamentoId' => $id
-        ]);
-    })->name('departamentos.editar');
+    Route::get('/departamentos/{id}/editar', [\App\Http\Controllers\Admin\DepartamentoController::class, 'edit'])->name('departamentos.editar');
+    Route::put('/departamentos/{id}', [\App\Http\Controllers\Admin\DepartamentoController::class, 'update'])->name('departamentos.update');
+
+    // Rutas para operaciones específicas
+    Route::patch('/departamentos/{id}/estado', [\App\Http\Controllers\Admin\DepartamentoController::class, 'cambiarEstado'])->name('departamentos.cambiar-estado');
+    Route::patch('/departamentos/{id}/destacado', [\App\Http\Controllers\Admin\DepartamentoController::class, 'toggleDestacado'])->name('departamentos.toggle-destacado');
+    Route::delete('/departamentos/{id}', [\App\Http\Controllers\Admin\DepartamentoController::class, 'destroy'])->name('departamentos.eliminar');
+
+    // Ruta para exportar
+    Route::get('/departamentos/exportar', [\App\Http\Controllers\Admin\DepartamentoController::class, 'exportar'])->name('departamentos.exportar');
+
+    // Rutas para gestión de imágenes
+    Route::post('/departamentos/{id}/imagenes', [\App\Http\Controllers\Admin\DepartamentoController::class, 'subirImagenes'])->name('departamentos.subir-imagenes');
+    Route::delete('/departamentos/{id}/imagenes/{imagenId}', [\App\Http\Controllers\Admin\DepartamentoController::class, 'eliminarImagen'])->name('departamentos.eliminar-imagen');
 
     // === GESTIÓN DE PROPIEDADES ===
+    // Redireccionar /propiedades a /departamentos para mantener consistencia
     Route::get('/propiedades', function () {
-        return Inertia::render('Admin/Propiedades');
+        return redirect()->route('admin.departamentos');
     })->name('propiedades');
 
     Route::get('/propiedades/crear', function () {
-        return Inertia::render('Admin/CrearPropiedad');
+        return redirect()->route('admin.departamentos.crear');
     })->name('propiedades.crear');
 
     Route::get('/propiedades/create', function () {
-        return Inertia::render('Admin/CrearPropiedad');
+        return redirect()->route('admin.departamentos.crear');
     })->name('propiedades.create');
 
     Route::get('/propiedades/{id}', function ($id) {
-        return Inertia::render('Admin/VerPropiedad', [
-            'propiedadId' => $id
-        ]);
+        return redirect()->route('admin.departamentos.ver', $id);
     })->name('propiedades.ver');
 
     Route::get('/propiedades/{id}/editar', function ($id) {
-        return Inertia::render('Admin/EditarPropiedad', [
-            'propiedadId' => $id
-        ]);
+        return redirect()->route('admin.departamentos.editar', $id);
     })->name('propiedades.editar');
 
     // === GESTIÓN DE VENTAS ===
-    Route::get('/ventas', function () {
-        return Inertia::render('Admin/Ventas');
-    })->name('ventas');
-
-    Route::get('/ventas/crear', function () {
-        return Inertia::render('Admin/CrearVenta');
-    })->name('ventas.crear');
-
-    Route::get('/ventas/{id}', function ($id) {
-        return Inertia::render('Admin/VerVenta', [
-            'ventaId' => $id
-        ]);
-    })->name('ventas.ver');
-
-    Route::get('/ventas/{id}/editar', function ($id) {
-        return Inertia::render('Admin/EditarVenta', [
-            'ventaId' => $id
-        ]);
-    })->name('ventas.editar');
+    Route::get('/ventas', [\App\Http\Controllers\Admin\VentaController::class, 'index'])->name('ventas');
+    Route::get('/ventas/crear', [\App\Http\Controllers\Admin\VentaController::class, 'create'])->name('ventas.crear');
+    Route::post('/ventas', [\App\Http\Controllers\Admin\VentaController::class, 'store'])->name('ventas.store');
+    Route::get('/ventas/{id}', [\App\Http\Controllers\Admin\VentaController::class, 'show'])->name('ventas.ver');
+    Route::get('/ventas/{id}/edit', [\App\Http\Controllers\Admin\VentaController::class, 'edit'])->name('ventas.editar');
+    Route::put('/ventas/{id}', [\App\Http\Controllers\Admin\VentaController::class, 'update'])->name('ventas.update');
 
     // === REPORTES ===
     Route::get('/reportes', function () {
@@ -224,9 +206,10 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('
     })->name('clientes');
 
     // === GESTIÓN DE PROPIEDADES ===
-    Route::get('/propiedades', function () {
-        return Inertia::render('Asesor/Propiedades');
-    })->name('propiedades');
+    // TODO: Crear vista específica para asesores o redirigir apropiadamente
+    // Route::get('/propiedades', function () {
+    //     return Inertia::render('Asesor/Propiedades');
+    // })->name('propiedades');
 
     // === SOLICITUDES DE CONTACTO ===
     Route::get('/solicitudes', function () {

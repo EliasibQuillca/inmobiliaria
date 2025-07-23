@@ -1,78 +1,72 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 
-export default function Ventas({ auth }) {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('todas');
-    const [dateFilter, setDateFilter] = useState('mes');
+export default function Ventas({ auth, ventas, estadisticas, filtros }) {
+    const [searchTerm, setSearchTerm] = useState(filtros?.busqueda || '');
+    const [statusFilter, setStatusFilter] = useState(filtros?.estado || '');
+    const [dateFrom, setDateFrom] = useState(filtros?.fecha_desde || '');
+    const [dateTo, setDateTo] = useState(filtros?.fecha_hasta || '');
 
-    // Mock data - replace with real data from backend
-    const ventas = [
-        {
-            id: 1,
-            numeroVenta: 'V-2024-001',
-            cliente: 'María González',
-            asesor: 'Juan Pérez',
-            propiedad: 'Departamento en Miraflores',
-            precio: 350000,
-            comision: 17500,
-            estado: 'completada',
-            fechaVenta: '2024-01-15',
-            fechaEntrega: '2024-02-15'
-        },
-        {
-            id: 2,
-            numeroVenta: 'V-2024-002',
-            cliente: 'Carlos Mendoza',
-            asesor: 'Ana López',
-            propiedad: 'Casa en San Isidro',
-            precio: 450000,
-            comision: 22500,
-            estado: 'en_proceso',
-            fechaVenta: '2024-01-20',
-            fechaEntrega: '2024-03-01'
-        },
-        {
-            id: 3,
-            numeroVenta: 'V-2024-003',
-            cliente: 'Luis Rodríguez',
-            asesor: 'Pedro Sánchez',
-            propiedad: 'Oficina en San Borja',
-            precio: 280000,
-            comision: 14000,
-            estado: 'pendiente',
-            fechaVenta: '2024-02-01',
-            fechaEntrega: '2024-03-15'
-        }
-    ];
+    // Datos reales desde el backend
+    const listaVentas = ventas?.data || [];
+    const paginacion = ventas?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 };
+    const stats = estadisticas || { total_ventas: 0, numero_ventas: 0, venta_promedio: 0, ventas_mes_actual: 0 };
 
-    const filteredVentas = ventas.filter(venta => {
-        const matchesSearch = venta.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            venta.asesor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            venta.propiedad.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            venta.numeroVenta.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'todas' || venta.estado === statusFilter;
-        return matchesSearch && matchesStatus;
-    });
+    // Manejar filtros
+    const handleFiltroChange = (filtro, valor) => {
+        const nuevosFiltros = {
+            ...filtros,
+            [filtro]: valor,
+            page: 1, // Resetear página
+        };
 
-    const getStatusColor = (status) => {
-        switch (status) {
+        router.get('/admin/ventas', nuevosFiltros, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    // Formatear precio
+    const formatearPrecio = (precio) => {
+        return new Intl.NumberFormat('es-PE', {
+            style: 'currency',
+            currency: 'PEN'
+        }).format(precio);
+    };
+
+    // Formatear fecha
+    const formatearFecha = (fecha) => {
+        return new Date(fecha).toLocaleDateString('es-PE');
+    };
+
+    // Obtener color del estado
+    const getEstadoColor = (estado) => {
+        switch (estado) {
             case 'completada':
                 return 'bg-green-100 text-green-800';
             case 'en_proceso':
                 return 'bg-yellow-100 text-yellow-800';
             case 'pendiente':
-                return 'bg-blue-100 text-blue-800';
-            case 'cancelada':
                 return 'bg-red-100 text-red-800';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
     };
 
-    const totalVentas = filteredVentas.reduce((total, venta) => total + venta.precio, 0);
-    const totalComisiones = filteredVentas.reduce((total, venta) => total + venta.comision, 0);
+    // Cambiar página
+    const cambiarPagina = (nuevaPagina) => {
+        if (nuevaPagina > 0 && nuevaPagina <= paginacion.last_page) {
+            const nuevosFiltros = {
+                ...filtros,
+                page: nuevaPagina,
+            };
+            router.get('/admin/ventas', nuevosFiltros, {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }
+    };
 
     return (
         <AdminLayout
@@ -100,7 +94,7 @@ export default function Ventas({ auth }) {
                                 </div>
                                 <div className="ml-4">
                                     <dt className="text-sm font-medium text-gray-500">Total Ventas</dt>
-                                    <dd className="text-2xl font-semibold text-gray-900">${totalVentas.toLocaleString()}</dd>
+                                    <dd className="text-2xl font-semibold text-gray-900">{formatearPrecio(stats.total_ventas)}</dd>
                                 </div>
                             </div>
                         </div>
@@ -116,7 +110,7 @@ export default function Ventas({ auth }) {
                                 </div>
                                 <div className="ml-4">
                                     <dt className="text-sm font-medium text-gray-500">Número de Ventas</dt>
-                                    <dd className="text-2xl font-semibold text-gray-900">{filteredVentas.length}</dd>
+                                    <dd className="text-2xl font-semibold text-gray-900">{stats.numero_ventas}</dd>
                                 </div>
                             </div>
                         </div>
@@ -131,8 +125,8 @@ export default function Ventas({ auth }) {
                                     </div>
                                 </div>
                                 <div className="ml-4">
-                                    <dt className="text-sm font-medium text-gray-500">Total Comisiones</dt>
-                                    <dd className="text-2xl font-semibold text-gray-900">${totalComisiones.toLocaleString()}</dd>
+                                    <dt className="text-sm font-medium text-gray-500">Venta Promedio</dt>
+                                    <dd className="text-2xl font-semibold text-gray-900">{formatearPrecio(stats.venta_promedio)}</dd>
                                 </div>
                             </div>
                         </div>
@@ -162,31 +156,51 @@ export default function Ventas({ auth }) {
                                         type="text"
                                         placeholder="Buscar ventas..."
                                         value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onChange={(e) => {
+                                            setSearchTerm(e.target.value);
+                                            clearTimeout(window.searchTimeout);
+                                            window.searchTimeout = setTimeout(() => {
+                                                handleFiltroChange('busqueda', e.target.value);
+                                            }, 500);
+                                        }}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                                 <select
                                     value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    onChange={(e) => {
+                                        setStatusFilter(e.target.value);
+                                        handleFiltroChange('estado', e.target.value);
+                                    }}
                                     className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
-                                    <option value="todas">Todos los estados</option>
-                                    <option value="completada">Completada</option>
-                                    <option value="en_proceso">En Proceso</option>
+                                    <option value="">Todos los estados</option>
+                                    <option value="confirmada">Confirmada</option>
                                     <option value="pendiente">Pendiente</option>
                                     <option value="cancelada">Cancelada</option>
                                 </select>
-                                <select
-                                    value={dateFilter}
-                                    onChange={(e) => setDateFilter(e.target.value)}
-                                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="mes">Este mes</option>
-                                    <option value="trimestre">Este trimestre</option>
-                                    <option value="año">Este año</option>
-                                    <option value="todos">Todos</option>
-                                </select>
+                                <div className="flex space-x-2">
+                                    <input
+                                        type="date"
+                                        value={dateFrom}
+                                        onChange={(e) => {
+                                            setDateFrom(e.target.value);
+                                            handleFiltroChange('fecha_desde', e.target.value);
+                                        }}
+                                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Desde"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={dateTo}
+                                        onChange={(e) => {
+                                            setDateTo(e.target.value);
+                                            handleFiltroChange('fecha_hasta', e.target.value);
+                                        }}
+                                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Hasta"
+                                    />
+                                </div>
                             </div>
 
                             {/* Sales table */}
@@ -218,39 +232,36 @@ export default function Ventas({ auth }) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {filteredVentas.map((venta) => (
+                                        {listaVentas.map((venta) => (
                                             <tr key={venta.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div>
                                                         <div className="text-sm font-medium text-gray-900">
-                                                            {venta.numeroVenta}
+                                                            Venta #{venta.id}
                                                         </div>
                                                         <div className="text-sm text-gray-500">
-                                                            {venta.propiedad}
+                                                            {venta.reserva?.cotizacion?.departamento?.titulo || 'Propiedad no disponible'}
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {venta.cliente}
+                                                    {venta.reserva?.cotizacion?.cliente?.nombre || 'Cliente no disponible'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {venta.asesor}
+                                                    {venta.reserva?.cotizacion?.asesor?.usuario?.name || 'Asesor no disponible'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        ${venta.precio.toLocaleString()}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        Comisión: ${venta.comision.toLocaleString()}
+                                                        {formatearPrecio(venta.monto_final)}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(venta.estado)}`}>
-                                                        {venta.estado.replace('_', ' ')}
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getEstadoColor(venta.reserva?.estado || 'pendiente')}`}>
+                                                        {venta.reserva?.estado || 'Pendiente'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {new Date(venta.fechaVenta).toLocaleDateString()}
+                                                    {formatearFecha(venta.fecha_venta)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <div className="flex space-x-2">
@@ -261,7 +272,7 @@ export default function Ventas({ auth }) {
                                                             Ver
                                                         </Link>
                                                         <Link
-                                                            href={`/admin/ventas/${venta.id}/editar`}
+                                                            href={`/admin/ventas/${venta.id}/edit`}
                                                             className="text-green-600 hover:text-green-900"
                                                         >
                                                             Editar
@@ -273,9 +284,74 @@ export default function Ventas({ auth }) {
                                     </tbody>
                                 </table>
 
-                                {filteredVentas.length === 0 && (
+                                {listaVentas.length === 0 && (
                                     <div className="text-center py-8">
                                         <p className="text-gray-500">No se encontraron ventas.</p>
+                                    </div>
+                                )}
+
+                                {/* Paginación */}
+                                {paginacion.last_page > 1 && (
+                                    <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                                        <div className="flex-1 flex justify-between sm:hidden">
+                                            <button
+                                                onClick={() => cambiarPagina(paginacion.current_page - 1)}
+                                                disabled={paginacion.current_page <= 1}
+                                                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                                            >
+                                                Anterior
+                                            </button>
+                                            <button
+                                                onClick={() => cambiarPagina(paginacion.current_page + 1)}
+                                                disabled={paginacion.current_page >= paginacion.last_page}
+                                                className="relative ml-3 inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                                            >
+                                                Siguiente
+                                            </button>
+                                        </div>
+                                        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                            <div>
+                                                <p className="text-sm text-gray-700">
+                                                    Mostrando <span className="font-medium">{((paginacion.current_page - 1) * paginacion.per_page) + 1}</span> a{' '}
+                                                    <span className="font-medium">{Math.min(paginacion.current_page * paginacion.per_page, paginacion.total)}</span> de{' '}
+                                                    <span className="font-medium">{paginacion.total}</span> resultados
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                                    <button
+                                                        onClick={() => cambiarPagina(paginacion.current_page - 1)}
+                                                        disabled={paginacion.current_page <= 1}
+                                                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                                                    >
+                                                        Anterior
+                                                    </button>
+                                                    {[...Array(Math.min(5, paginacion.last_page))].map((_, i) => {
+                                                        const pageNum = i + 1;
+                                                        return (
+                                                            <button
+                                                                key={pageNum}
+                                                                onClick={() => cambiarPagina(pageNum)}
+                                                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                                                    pageNum === paginacion.current_page
+                                                                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                                                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                                                }`}
+                                                            >
+                                                                {pageNum}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                    <button
+                                                        onClick={() => cambiarPagina(paginacion.current_page + 1)}
+                                                        disabled={paginacion.current_page >= paginacion.last_page}
+                                                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                                                    >
+                                                        Siguiente
+                                                    </button>
+                                                </nav>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>

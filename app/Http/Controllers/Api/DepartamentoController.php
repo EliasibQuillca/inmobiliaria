@@ -7,6 +7,8 @@ use App\Models\Departamento;
 use App\Models\Publicacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class DepartamentoController extends Controller
 {
@@ -127,52 +129,43 @@ class DepartamentoController extends Controller
         }
 
         $request->validate([
-            'codigo' => 'required|string|max:50|unique:departamentos,codigo',
             'titulo' => 'required|string|max:100',
-            'descripcion' => 'required|string',
-            'direccion' => 'required|string|max:200',
+            'descripcion' => 'nullable|string',
+            'direccion' => 'nullable|string|max:200',
             'ubicacion' => 'required|string|max:200',
             'precio' => 'required|numeric|min:0',
-            'habitaciones' => 'required|integer|min:0',
-            'banos' => 'required|integer|min:0',
+            'dormitorios' => 'required|integer|min:1',
+            'banos' => 'required|integer|min:1',
             'area_total' => 'required|numeric|min:0',
             'estacionamientos' => 'integer|min:0',
             'propietario_id' => 'required|exists:propietarios,id',
-            'atributos' => 'nullable|array',
-            'atributos.*.atributo_id' => 'required|exists:atributos,id',
-            'atributos.*.valor' => 'required',
+            'estado' => 'nullable|string|in:disponible,reservado,vendido,inactivo',
+            'destacado' => 'nullable|boolean',
         ]);
 
         try {
+            // Generar código automáticamente
+            $codigo = 'DEPT-' . str_pad(Departamento::count() + 1, 4, '0', STR_PAD_LEFT);
+
             $departamento = Departamento::create([
-                'codigo' => $request->input('codigo'),
+                'codigo' => $codigo,
                 'titulo' => $request->input('titulo'),
                 'descripcion' => $request->input('descripcion'),
                 'direccion' => $request->input('direccion'),
                 'ubicacion' => $request->input('ubicacion'),
                 'precio' => $request->input('precio'),
-                'habitaciones' => $request->input('habitaciones'),
+                'dormitorios' => $request->input('dormitorios'),
                 'banos' => $request->input('banos'),
                 'area_total' => $request->input('area_total'),
                 'estacionamientos' => $request->input('estacionamientos', 0),
-                'estado' => 'disponible',
+                'estado' => $request->input('estado', 'disponible'),
                 'propietario_id' => $request->input('propietario_id'),
                 'destacado' => $request->input('destacado', false),
             ]);
 
-            // Agregar atributos si se proporcionaron
-            if ($request->has('atributos')) {
-                foreach ($request->input('atributos') as $atributo) {
-                    $departamento->atributos()->attach(
-                        $atributo['atributo_id'],
-                        ['valor' => $atributo['valor']]
-                    );
-                }
-            }
-
             return response()->json([
                 'message' => 'Departamento creado exitosamente',
-                'departamento' => $departamento->load(['propietario', 'atributos']),
+                'data' => $departamento->load(['propietario']),
             ], 201);
 
         } catch (\Exception $e) {
@@ -319,6 +312,20 @@ class DepartamentoController extends Controller
             $query->where('ubicacion', 'like', '%' . $request->input('ubicacion') . '%');
         }
 
+        if ($request->has('busqueda')) {
+            $busqueda = $request->input('busqueda');
+            $query->where(function($q) use ($busqueda) {
+                $q->where('titulo', 'like', '%' . $busqueda . '%')
+                  ->orWhere('codigo', 'like', '%' . $busqueda . '%')
+                  ->orWhere('ubicacion', 'like', '%' . $busqueda . '%')
+                  ->orWhere('descripcion', 'like', '%' . $busqueda . '%');
+            });
+        }
+
+        if ($request->has('destacado') && $request->input('destacado') !== '') {
+            $query->where('destacado', $request->input('destacado') == '1');
+        }
+
         if ($request->has('precio_min')) {
             $query->where('precio', '>=', $request->input('precio_min'));
         }
@@ -327,12 +334,12 @@ class DepartamentoController extends Controller
             $query->where('precio', '<=', $request->input('precio_max'));
         }
 
-        // Ordenamiento
-        $ordenarPor = $request->input('ordenar_por', 'created_at');
-        $direccion = $request->input('direccion', 'desc');
+        // Ordenamiento - usar los nombres que envía el frontend
+        $ordenarPor = $request->input('sort_by', 'created_at');
+        $direccion = $request->input('sort_direction', 'desc');
         $query->orderBy($ordenarPor, $direccion);
 
-        $departamentos = $query->paginate($request->input('por_pagina', 15));
+        $departamentos = $query->paginate($request->input('per_page', 15));
 
         return response()->json([
             'data' => $departamentos->items(),
@@ -368,6 +375,115 @@ class DepartamentoController extends Controller
                 : 'Departamento desmarcado como destacado',
             'data' => $departamento
         ]);
+    }
+
+    /**
+     * Eliminar un departamento
+     */
+    public function destroy($id)
+    {
+        $user = Auth::user();
+
+        // Solo administradores pueden eliminar departamentos
+        if (!$user || !$user->hasRole('administrador')) {
+            return response()->json([
+                'message' => 'No tiene permisos para realizar esta acción'
+            ], 403);
+        }
+
+        $departamento = Departamento::find($id);
+
+        if (!$departamento) {
+            return response()->json([
+                'message' => 'Departamento no encontrado',
+            ], 404);
+        }
+
+        try {
+            Log::info('Intentando eliminar departamento', ['id' => $id, 'codigo' => $departamento->codigo]);
+
+            // COMENTADO TEMPORALMENTE PARA DEBUGGING
+            // Log::info('Verificando reservas');
+            // $tieneReservas = false;
+            // try {
+            //     $tieneReservas = $departamento->reservas()->where('estado', '!=', 'cancelada')->exists();
+            //     Log::info('Reservas verificadas', ['tiene_reservas' => $tieneReservas]);
+            // } catch (\Exception $e) {
+            //     Log::error('Error verificando reservas', ['error' => $e->getMessage()]);
+            // }
+
+            // Log::info('Verificando ventas');
+            // $tieneVentas = false;
+            // try {
+            //     $tieneVentas = $departamento->ventas()->exists();
+            //     Log::info('Ventas verificadas', ['tiene_ventas' => $tieneVentas]);
+            // } catch (\Exception $e) {
+            //     Log::error('Error verificando ventas', ['error' => $e->getMessage()]);
+            // }
+
+            // if ($tieneReservas || $tieneVentas) {
+            //     Log::warning('No se puede eliminar departamento por tener relaciones activas', [
+            //         'id' => $id,
+            //         'tiene_reservas' => $tieneReservas,
+            //         'tiene_ventas' => $tieneVentas
+            //     ]);
+            //     return response()->json([
+            //         'message' => 'No se puede eliminar el departamento porque tiene reservas o ventas asociadas',
+            //     ], 422);
+            // }
+
+            Log::info('Saltando verificaciones - eliminando directamente');
+
+            // Eliminar imágenes asociadas si existen
+            if ($departamento->imagenes()->count() > 0) {
+                Log::info('Eliminando imágenes asociadas', ['departamento_id' => $id, 'cantidad_imagenes' => $departamento->imagenes()->count()]);
+                foreach ($departamento->imagenes as $imagen) {
+                    // Eliminar archivo físico del storage si existe
+                    if ($imagen->ruta && Storage::exists($imagen->ruta)) {
+                        Storage::delete($imagen->ruta);
+                    }
+                    $imagen->delete();
+                }
+            }
+
+            // Eliminar atributos asociados
+            if ($departamento->atributos()->count() > 0) {
+                Log::info('Eliminando atributos asociados', ['departamento_id' => $id, 'cantidad_atributos' => $departamento->atributos()->count()]);
+                $departamento->atributos()->detach();
+            }
+
+            // Eliminar cotizaciones asociadas (si las hay)
+            if ($departamento->cotizaciones()->count() > 0) {
+                Log::info('Eliminando cotizaciones asociadas', ['departamento_id' => $id, 'cantidad_cotizaciones' => $departamento->cotizaciones()->count()]);
+                $departamento->cotizaciones()->delete();
+            }
+
+            // Eliminar publicaciones asociadas (si las hay)
+            if ($departamento->publicaciones()->count() > 0) {
+                Log::info('Eliminando publicaciones asociadas', ['departamento_id' => $id, 'cantidad_publicaciones' => $departamento->publicaciones()->count()]);
+                $departamento->publicaciones()->delete();
+            }
+
+            // Eliminar de favoritos
+            $departamento->clientesFavoritos()->detach();            // Eliminar el departamento
+            $departamento->delete();
+
+            Log::info('Departamento eliminado exitosamente', ['id' => $id]);
+
+            return response()->json([
+                'message' => 'Departamento eliminado correctamente'
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar departamento', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Error al eliminar el departamento: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

@@ -27,6 +27,12 @@ class Departamento extends Model
         'disponible',
         'propietario_id',
         'destacado',
+        'imagen_principal',
+        'imagen_galeria_1',
+        'imagen_galeria_2',
+        'imagen_galeria_3',
+        'imagen_galeria_4',
+        'imagen_galeria_5',
     ];
 
     protected $casts = [
@@ -55,6 +61,16 @@ class Departamento extends Model
     public function cotizaciones()
     {
         return $this->hasMany(Cotizacion::class, 'departamento_id');
+    }
+
+    public function reservas()
+    {
+        return $this->hasMany(Reserva::class, 'departamento_id');
+    }
+
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class, 'departamento_id');
     }
 
     public function atributos()

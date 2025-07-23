@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import axios from 'axios';
 
-export default function FormularioUsuario({ auth, userId = null, modo = 'crear' }) {
+export default function FormularioUsuario({ auth, usuario = null, userId = null, modo = 'crear' }) {
     const esEdicion = modo === 'editar';
     const titulo = esEdicion ? 'Editar Usuario' : 'Crear Nuevo Usuario';
 
     const [error, setError] = useState(null);
-    const [cargando, setCargando] = useState(esEdicion);
+    const [cargando, setCargando] = useState(esEdicion && !usuario);
     const [enviando, setEnviando] = useState(false);
     const [mostrarPassword, setMostrarPassword] = useState(false);
 
@@ -28,36 +27,65 @@ export default function FormularioUsuario({ auth, userId = null, modo = 'crear' 
 
     // Cargar datos del usuario si estamos en modo edición
     useEffect(() => {
-        if (esEdicion && userId) {
-            const cargarUsuario = async () => {
-                try {
-                    setCargando(true);
-                    const response = await axios.get(`/api/v1/admin/usuarios/${userId}`);
-                    const usuario = response.data.data;
+        if (esEdicion) {
+            if (usuario) {
+                // Si ya tenemos el objeto usuario, usarlo directamente
+                setFormData({
+                    name: usuario.name || '',
+                    email: usuario.email || '',
+                    password: '',
+                    confirmPassword: '',
+                    role: usuario.role || 'cliente',
+                    telefono: usuario.telefono || '',
+                    documento_identidad: usuario.cliente?.documento_identidad || '',
+                    direccion: usuario.cliente?.direccion || '',
+                    codigo_asesor: usuario.asesor?.codigo || '',
+                    comision: usuario.asesor?.comision || 0,
+                });
+                setCargando(false);
+            } else if (userId) {
+                // Si solo tenemos el ID, hacer la llamada a la API
+                const cargarUsuario = async () => {
+                    try {
+                        setCargando(true);
+                        const response = await fetch(`/api/v1/admin/usuarios/${userId}`, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                            }
+                        });
 
-                    setFormData({
-                        name: usuario.name || '',
-                        email: usuario.email || '',
-                        password: '',
-                        confirmPassword: '',
-                        role: usuario.role || 'cliente',
-                        telefono: usuario.telefono || '',
-                        documento_identidad: usuario.cliente?.documento_identidad || '',
-                        direccion: usuario.cliente?.direccion || '',
-                        codigo_asesor: usuario.asesor?.codigo || '',
-                        comision: usuario.asesor?.comision || 0,
-                    });
-                } catch (err) {
-                    console.error('Error al cargar usuario:', err);
-                    setError('No se pudo cargar la información del usuario');
-                } finally {
-                    setCargando(false);
-                }
-            };
+                        if (!response.ok) {
+                            throw new Error('Error al cargar usuario');
+                        }
 
-            cargarUsuario();
+                        const data = await response.json();
+                        const usuarioData = data.data;
+
+                        setFormData({
+                            name: usuarioData.name || '',
+                            email: usuarioData.email || '',
+                            password: '',
+                            confirmPassword: '',
+                            role: usuarioData.role || 'cliente',
+                            telefono: usuarioData.telefono || '',
+                            documento_identidad: usuarioData.cliente?.documento_identidad || '',
+                            direccion: usuarioData.cliente?.direccion || '',
+                            codigo_asesor: usuarioData.asesor?.codigo || '',
+                            comision: usuarioData.asesor?.comision || 0,
+                        });
+                    } catch (err) {
+                        console.error('Error al cargar usuario:', err);
+                        setError('No se pudo cargar la información del usuario');
+                    } finally {
+                        setCargando(false);
+                    }
+                };
+
+                cargarUsuario();
+            }
         }
-    }, [esEdicion, userId]);
+    }, [esEdicion, usuario, userId]);
 
     // Manejar cambios en el formulario
     const handleChange = (e) => {
@@ -138,16 +166,36 @@ export default function FormularioUsuario({ auth, userId = null, modo = 'crear' 
             }
 
             if (esEdicion) {
-                await axios.put(`/api/v1/admin/usuarios/${userId}`, datos);
-                window.location.href = '/admin/usuarios';
+                const idUsuario = usuario?.id || userId;
+                router.put(`/admin/usuarios/${idUsuario}`, datos, {
+                    onSuccess: () => {
+                        // Redirect will be handled by the controller
+                    },
+                    onError: (errors) => {
+                        console.error('Errores:', errors);
+                        setError(errors.message || 'Error al actualizar usuario. Por favor, inténtelo de nuevo.');
+                    },
+                    onFinish: () => {
+                        setEnviando(false);
+                    }
+                });
             } else {
-                await axios.post('/api/v1/admin/usuarios', datos);
-                window.location.href = '/admin/usuarios';
+                router.post('/admin/usuarios', datos, {
+                    onSuccess: () => {
+                        // Redirect will be handled by the controller
+                    },
+                    onError: (errors) => {
+                        console.error('Errores:', errors);
+                        setError(errors.message || 'Error al crear usuario. Por favor, inténtelo de nuevo.');
+                    },
+                    onFinish: () => {
+                        setEnviando(false);
+                    }
+                });
             }
         } catch (err) {
             console.error('Error al guardar usuario:', err);
-            setError(err.response?.data?.message || 'Error al guardar usuario. Por favor, inténtelo de nuevo.');
-        } finally {
+            setError('Error inesperado. Por favor, inténtelo de nuevo.');
             setEnviando(false);
         }
     };
