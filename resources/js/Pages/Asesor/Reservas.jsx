@@ -1,317 +1,336 @@
-import { Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
-import Layout from '@/components/layout/Layout';
+import React, { useState } from 'react';
+import { Head, router, Link } from '@inertiajs/react';
+import AsesorLayout from '../../Layouts/AsesorLayout';
 
-export default function AsesorReservas({ auth }) {
-    // Estado para el filtro
+export default function Reservas({ auth, reservas = [] }) {
     const [filtro, setFiltro] = useState('todas');
+    const [reservaSeleccionada, setReservaSeleccionada] = useState(null);
+    const [mostrarModal, setMostrarModal] = useState(false);
 
-    // Datos simulados de reservas
-    const [reservas, setReservas] = useState([
-        {
-            id: 1,
-            cliente: 'María López',
-            propiedad: 'Departamento Lima 305',
-            montoReserva: 5000,
-            fechaCreacion: '2025-07-15',
-            fechaVencimiento: '2025-08-15',
-            estado: 'vigente',
-            cotizacionId: 3
-        },
-        {
-            id: 2,
-            cliente: 'Carlos Mendoza',
-            propiedad: 'Departamento San Sebastián 201',
-            montoReserva: 3500,
-            fechaCreacion: '2025-07-10',
-            fechaVencimiento: '2025-08-10',
-            estado: 'confirmada',
-            cotizacionId: 7
-        },
-        {
-            id: 3,
-            cliente: 'Julia Paredes',
-            propiedad: 'Departamento Magisterio 405',
-            montoReserva: 7500,
-            fechaCreacion: '2025-06-25',
-            fechaVencimiento: '2025-07-25',
-            estado: 'vencida',
-            cotizacionId: 12
-        },
-        {
-            id: 4,
-            cliente: 'Roberto Guzmán',
-            propiedad: 'Departamento Universidad 102',
-            montoReserva: 2500,
-            fechaCreacion: '2025-07-05',
-            fechaVencimiento: '2025-08-05',
-            estado: 'cancelada',
-            cotizacionId: 15
-        },
-        {
-            id: 5,
-            cliente: 'Ana Ballón',
-            propiedad: 'Departamento Wanchaq 501',
-            montoReserva: 5000,
-            fechaCreacion: '2025-07-20',
-            fechaVencimiento: '2025-08-20',
-            estado: 'vigente',
-            cotizacionId: 18
+    const filtrarReservas = () => {
+        switch (filtro) {
+            case 'activas':
+                return reservas.filter(r => r.estado === 'activa');
+            case 'confirmadas':
+                return reservas.filter(r => r.estado === 'confirmada');
+            case 'vencidas':
+                return reservas.filter(r => r.estado === 'vencida');
+            case 'canceladas':
+                return reservas.filter(r => r.estado === 'cancelada');
+            default:
+                return reservas;
         }
-    ]);
+    };
 
-    // Filtrar reservas según el estado seleccionado
-    const reservasFiltradas = filtro === 'todas'
-        ? reservas
-        : reservas.filter(r => r.estado === filtro);
+    const verDetalle = (reserva) => {
+        setReservaSeleccionada(reserva);
+        setMostrarModal(true);
+    };
 
-    // Función para formatear moneda
-    const formatMoney = (amount) => {
-        return new Intl.NumberFormat('es-PE', {
-            style: 'currency',
-            currency: 'PEN',
-            minimumFractionDigits: 0
-        }).format(amount);
+    const crearVenta = (reserva) => {
+        router.get(`/asesor/ventas/crear?reserva_id=${reserva.id}`);
+    };
+
+    const confirmarReserva = (id) => {
+        router.patch(`/asesor/reservas/${id}`, {
+            estado: 'confirmada'
+        });
+    };
+
+    const getEstadoColor = (estado) => {
+        switch (estado) {
+            case 'activa':
+                return 'bg-blue-100 text-blue-800';
+            case 'confirmada':
+                return 'bg-green-100 text-green-800';
+            case 'vencida':
+                return 'bg-red-100 text-red-800';
+            case 'cancelada':
+                return 'bg-gray-100 text-gray-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const diasRestantes = (fechaVencimiento) => {
+        const hoy = new Date();
+        const vencimiento = new Date(fechaVencimiento);
+        const diferencia = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
+        return diferencia;
     };
 
     return (
-        <Layout auth={auth}>
-            <Head title="Gestión de Reservas - Asesor" />
+        <AsesorLayout user={auth.user}>
+            <Head title="Reservas" />
 
-            <div className="py-12 bg-gray-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Reservas</h2>
-                            <p className="mt-1 text-sm text-gray-600">
-                                Gestione las reservas de propiedades realizadas por los clientes
-                            </p>
-                        </div>
-                        <div className="flex space-x-4">
-                            <Link
-                                href="/asesor/reservas/crear"
-                                className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                                </svg>
-                                Nueva Reserva
-                            </Link>
-                            <Link
-                                href="/asesor/dashboard"
-                                className="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium rounded-md"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                                </svg>
-                                Volver al Dashboard
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* Filtros */}
-                    <div className="bg-white shadow rounded-lg p-4 mb-6">
-                        <div className="flex flex-wrap items-center gap-4">
-                            <div className="font-medium text-gray-700">Filtrar por estado:</div>
-                            <div className="flex flex-wrap gap-2">
-                                <button
-                                    onClick={() => setFiltro('todas')}
-                                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        filtro === 'todas'
-                                            ? 'bg-indigo-600 text-white'
-                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                    }`}
-                                >
-                                    Todas
-                                </button>
-                                <button
-                                    onClick={() => setFiltro('vigente')}
-                                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        filtro === 'vigente'
-                                            ? 'bg-yellow-500 text-white'
-                                            : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                                    }`}
-                                >
-                                    Vigentes
-                                </button>
-                                <button
-                                    onClick={() => setFiltro('confirmada')}
-                                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        filtro === 'confirmada'
-                                            ? 'bg-green-500 text-white'
-                                            : 'bg-green-100 text-green-700 hover:bg-green-200'
-                                    }`}
-                                >
-                                    Confirmadas
-                                </button>
-                                <button
-                                    onClick={() => setFiltro('vencida')}
-                                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        filtro === 'vencida'
-                                            ? 'bg-gray-500 text-white'
-                                            : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-                                    }`}
-                                >
-                                    Vencidas
-                                </button>
-                                <button
-                                    onClick={() => setFiltro('cancelada')}
-                                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        filtro === 'cancelada'
-                                            ? 'bg-red-500 text-white'
-                                            : 'bg-red-100 text-red-700 hover:bg-red-200'
-                                    }`}
-                                >
-                                    Canceladas
-                                </button>
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    {/* Header */}
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-2xl font-bold text-gray-900">
+                                        Reservas
+                                    </h1>
+                                    <p className="text-gray-600 mt-1">
+                                        Gestiona las reservas de departamentos de tus clientes
+                                    </p>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => setFiltro('todas')}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                                                filtro === 'todas'
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                            }`}
+                                        >
+                                            Todas
+                                        </button>
+                                        <button
+                                            onClick={() => setFiltro('activas')}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                                                filtro === 'activas'
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                            }`}
+                                        >
+                                            Activas
+                                        </button>
+                                        <button
+                                            onClick={() => setFiltro('confirmadas')}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                                                filtro === 'confirmadas'
+                                                    ? 'bg-green-600 text-white'
+                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                            }`}
+                                        >
+                                            Confirmadas
+                                        </button>
+                                    </div>
+                                    <Link
+                                        href="/asesor/reservas/crear"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                                    >
+                                        Nueva Reserva
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Tabla de Reservas */}
-                    <div className="bg-white overflow-hidden shadow-md rounded-lg">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Cliente
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Propiedad
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Monto de Reserva
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Fecha
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Estado
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Acciones
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {reservasFiltradas.map((reserva) => (
-                                        <tr key={reserva.id}>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{reserva.cliente}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{reserva.propiedad}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900 font-medium">{formatMoney(reserva.montoReserva)}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">Creada: {reserva.fechaCreacion}</div>
-                                                <div className="text-xs text-gray-500">
-                                                    Vence: {reserva.fechaVencimiento}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                    reserva.estado === 'vigente'
-                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                        : reserva.estado === 'confirmada'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : reserva.estado === 'vencida'
-                                                        ? 'bg-gray-100 text-gray-800'
-                                                        : 'bg-red-100 text-red-800'
-                                                }`}>
-                                                    {reserva.estado === 'vigente'
-                                                        ? 'Vigente'
-                                                        : reserva.estado === 'confirmada'
-                                                        ? 'Confirmada'
-                                                        : reserva.estado === 'vencida'
-                                                        ? 'Vencida'
-                                                        : 'Cancelada'
-                                                    }
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex justify-end space-x-3">
-                                                    <Link
-                                                        href={`/asesor/reservas/${reserva.id}`}
-                                                        className="text-indigo-600 hover:text-indigo-900"
-                                                    >
-                                                        <span className="sr-only">Ver reserva</span>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                                                        </svg>
-                                                    </Link>
-                                                    <Link
-                                                        href={`/asesor/cotizaciones/${reserva.cotizacionId}`}
-                                                        className="text-blue-600 hover:text-blue-900"
-                                                    >
-                                                        <span className="sr-only">Ver cotización</span>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                                                        </svg>
-                                                    </Link>
-                                                    {(reserva.estado === 'vigente' || reserva.estado === 'confirmada') && (
-                                                        <Link
-                                                            href={`/asesor/ventas/crear/${reserva.id}`}
-                                                            className="text-green-600 hover:text-green-900"
-                                                        >
-                                                            <span className="sr-only">Registrar venta</span>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                                <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h8V3a1 1 0 112 0v1h1a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V6a2 2 0 012-2h1V3a1 1 0 011-1zm11 14a1 1 0 01-1 1H5a1 1 0 01-1-1V7h12v9z" clipRule="evenodd" />
-                                                            </svg>
-                                                        </Link>
-                                                    )}
-                                                    {reserva.estado === 'vigente' && (
-                                                        <button
-                                                            className="text-red-600 hover:text-red-900"
-                                                        >
-                                                            <span className="sr-only">Cancelar reserva</span>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                                            </svg>
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            {reservasFiltradas.length === 0 && (
-                                <div className="px-6 py-4 text-center text-gray-500">
-                                    No hay reservas que coincidan con el filtro seleccionado
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    {/* Lista de reservas */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filtrarReservas().map((reserva) => (
+                            <div key={reserva.id} className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                                <div className="p-6">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900">
+                                                Reserva #{reserva.id}
+                                            </h3>
+                                            <p className="text-sm text-gray-600">
+                                                {reserva.cliente?.nombre}
+                                            </p>
+                                        </div>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEstadoColor(reserva.estado)}`}>
+                                            {reserva.estado}
+                                        </span>
+                                    </div>
 
-                    {/* Paginación simulada */}
-                    <div className="mt-6 flex justify-between items-center">
-                        <div className="text-sm text-gray-700">
-                            Mostrando <span className="font-medium">5</span> de <span className="font-medium">8</span> reservas
-                        </div>
-                        <div className="flex justify-center">
-                            <nav className="inline-flex rounded-md shadow">
-                                <button className="py-2 px-4 rounded-l-md bg-white text-gray-500 border border-gray-300">
-                                    Anterior
-                                </button>
-                                <button className="py-2 px-4 bg-indigo-600 text-white border-t border-b border-indigo-600">
-                                    1
-                                </button>
-                                <button className="py-2 px-4 bg-white text-gray-700 border-t border-b border-gray-300">
-                                    2
-                                </button>
-                                <button className="py-2 px-4 rounded-r-md bg-white text-gray-700 border border-gray-300">
-                                    Siguiente
-                                </button>
-                            </nav>
-                        </div>
+                                    <div className="space-y-2 mb-4">
+                                        <p className="text-sm text-gray-600">
+                                            <span className="font-medium">Departamento:</span> {reserva.departamento?.nombre}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            <span className="font-medium">Monto Reserva:</span> ${reserva.monto_reserva?.toLocaleString()}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            <span className="font-medium">Precio Total:</span> ${reserva.precio_total?.toLocaleString()}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            <span className="font-medium">Fecha Reserva:</span> {new Date(reserva.created_at).toLocaleDateString()}
+                                        </p>
+                                        {reserva.fecha_vencimiento && (
+                                            <div>
+                                                <p className="text-sm text-gray-600">
+                                                    <span className="font-medium">Vence:</span> {new Date(reserva.fecha_vencimiento).toLocaleDateString()}
+                                                </p>
+                                                {reserva.estado === 'activa' && (
+                                                    <p className={`text-sm ${diasRestantes(reserva.fecha_vencimiento) <= 7 ? 'text-red-600' : 'text-gray-600'}`}>
+                                                        <span className="font-medium">Días restantes:</span> {diasRestantes(reserva.fecha_vencimiento)}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => verDetalle(reserva)}
+                                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium"
+                                        >
+                                            Ver Detalle
+                                        </button>
+                                        {reserva.estado === 'activa' && (
+                                            <button
+                                                onClick={() => confirmarReserva(reserva.id)}
+                                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
+                                            >
+                                                Confirmar
+                                            </button>
+                                        )}
+                                        {reserva.estado === 'confirmada' && (
+                                            <button
+                                                onClick={() => crearVenta(reserva)}
+                                                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
+                                            >
+                                                Crear Venta
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {filtrarReservas().length === 0 && (
+                            <div className="col-span-full bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                                <div className="p-12 text-center">
+                                    <p className="text-gray-500 text-lg">
+                                        No hay reservas {filtro !== 'todas' ? filtro : ''} en este momento
+                                    </p>
+                                    <Link
+                                        href="/asesor/reservas/crear"
+                                        className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
+                                    >
+                                        Crear Primera Reserva
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
-        </Layout>
+
+            {/* Modal de detalle */}
+            {mostrarModal && reservaSeleccionada && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                        <div className="mt-3">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-medium text-gray-900">
+                                    Detalle de Reserva #{reservaSeleccionada.id}
+                                </h3>
+                                <button
+                                    onClick={() => setMostrarModal(false)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 className="font-medium text-gray-900 mb-3">Información del Cliente</h4>
+                                    <div className="space-y-2">
+                                        <p className="text-sm">
+                                            <span className="font-medium">Nombre:</span> {reservaSeleccionada.cliente?.nombre}
+                                        </p>
+                                        <p className="text-sm">
+                                            <span className="font-medium">Email:</span> {reservaSeleccionada.cliente?.email}
+                                        </p>
+                                        <p className="text-sm">
+                                            <span className="font-medium">Teléfono:</span> {reservaSeleccionada.cliente?.telefono}
+                                        </p>
+                                        <p className="text-sm">
+                                            <span className="font-medium">CI:</span> {reservaSeleccionada.cliente?.ci}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="font-medium text-gray-900 mb-3">Información del Departamento</h4>
+                                    <div className="space-y-2">
+                                        <p className="text-sm">
+                                            <span className="font-medium">Nombre:</span> {reservaSeleccionada.departamento?.nombre}
+                                        </p>
+                                        <p className="text-sm">
+                                            <span className="font-medium">Ubicación:</span> {reservaSeleccionada.departamento?.ubicacion}
+                                        </p>
+                                        <p className="text-sm">
+                                            <span className="font-medium">Dormitorios:</span> {reservaSeleccionada.departamento?.dormitorios}
+                                        </p>
+                                        <p className="text-sm">
+                                            <span className="font-medium">Baños:</span> {reservaSeleccionada.departamento?.banos}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-6">
+                                <h4 className="font-medium text-gray-900 mb-3">Detalles de la Reserva</h4>
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-sm text-gray-600">Monto de Reserva</p>
+                                            <p className="text-lg font-semibold">${reservaSeleccionada.monto_reserva?.toLocaleString()}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-600">Precio Total</p>
+                                            <p className="text-lg font-semibold">${reservaSeleccionada.precio_total?.toLocaleString()}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-600">Saldo Pendiente</p>
+                                            <p className="text-lg font-semibold text-red-600">
+                                                ${(reservaSeleccionada.precio_total - reservaSeleccionada.monto_reserva)?.toLocaleString()}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-600">Estado</p>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEstadoColor(reservaSeleccionada.estado)}`}>
+                                                {reservaSeleccionada.estado}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {reservaSeleccionada.observaciones && (
+                                <div className="mt-6">
+                                    <h4 className="font-medium text-gray-900 mb-2">Observaciones</h4>
+                                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                                        {reservaSeleccionada.observaciones}
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={() => setMostrarModal(false)}
+                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                                >
+                                    Cerrar
+                                </button>
+                                {reservaSeleccionada.estado === 'confirmada' && (
+                                    <button
+                                        onClick={() => {
+                                            setMostrarModal(false);
+                                            crearVenta(reservaSeleccionada);
+                                        }}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                    >
+                                        Crear Venta
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </AsesorLayout>
     );
 }

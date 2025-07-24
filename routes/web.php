@@ -76,6 +76,99 @@ Route::get('/dashboard', function () {
 
 /*
 |--------------------------------------------------------------------------
+| RUTAS PARA CLIENTE
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->group(function () {
+    // === DASHBOARD Y PERFIL ===
+    Route::get('/dashboard', [App\Http\Controllers\Cliente\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'perfil'])->name('perfil');
+    Route::patch('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'actualizarPerfil'])->name('perfil.update');
+
+    // === FAVORITOS Y ASESORES ===
+    Route::get('/favoritos', [App\Http\Controllers\Cliente\DashboardController::class, 'favoritos'])->name('favoritos');
+    Route::get('/asesores', [App\Http\Controllers\Cliente\DashboardController::class, 'asesores'])->name('asesores');
+
+    // === DEPARTAMENTOS Y CATÁLOGO ===
+    Route::get('/catalogo', [App\Http\Controllers\Cliente\DepartamentoController::class, 'index'])->name('catalogo');
+    Route::get('/departamentos/buscar', [App\Http\Controllers\Cliente\DepartamentoController::class, 'search'])->name('departamentos.search');
+    Route::get('/departamentos/{id}', [App\Http\Controllers\Cliente\DepartamentoController::class, 'show'])->name('departamentos.show');
+    Route::post('/departamentos/{id}/favorito', [App\Http\Controllers\Cliente\DepartamentoController::class, 'agregarFavorito'])->name('departamentos.favorito.agregar');
+    Route::delete('/departamentos/{id}/favorito', [App\Http\Controllers\Cliente\DepartamentoController::class, 'eliminarFavorito'])->name('departamentos.favorito.eliminar');
+
+    // === SOLICITUDES ===
+    Route::get('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('solicitudes.index');
+    Route::get('/solicitudes/crear', [App\Http\Controllers\Cliente\SolicitudController::class, 'create'])->name('solicitudes.create');
+    Route::post('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'store'])->name('solicitudes.store');
+    Route::get('/solicitudes/{id}', [App\Http\Controllers\Cliente\SolicitudController::class, 'show'])->name('solicitudes.show');
+    Route::patch('/solicitudes/{id}', [App\Http\Controllers\Cliente\SolicitudController::class, 'update'])->name('solicitudes.update');
+    Route::post('/solicitudes/{id}/comentarios', [App\Http\Controllers\Cliente\SolicitudController::class, 'addComment'])->name('solicitudes.comentarios.store');
+});
+
+/*
+|--------------------------------------------------------------------------
+| RUTAS PARA ASESOR
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
+    // Dashboard del asesor
+    Route::get('/dashboard', [\App\Http\Controllers\Asesor\DashboardController::class, 'index'])->name('dashboard');
+
+    // === PERFIL Y CONFIGURACIÓN ===
+    Route::get('/perfil', [\App\Http\Controllers\Asesor\PerfilController::class, 'index'])->name('perfil');
+    Route::patch('/perfil', [\App\Http\Controllers\Asesor\PerfilController::class, 'update'])->name('perfil.update');
+    Route::patch('/perfil/password', [\App\Http\Controllers\Asesor\PerfilController::class, 'updatePassword'])->name('perfil.password.update');
+
+    Route::get('/configuracion', [\App\Http\Controllers\Asesor\ConfiguracionController::class, 'index'])->name('configuracion');
+    Route::patch('/configuracion/notificaciones', [\App\Http\Controllers\Asesor\ConfiguracionController::class, 'updateNotificaciones'])->name('configuracion.notificaciones');
+    Route::patch('/configuracion/horarios', [\App\Http\Controllers\Asesor\ConfiguracionController::class, 'updateHorarios'])->name('configuracion.horarios');
+    Route::patch('/configuracion/comisiones', [\App\Http\Controllers\Asesor\ConfiguracionController::class, 'updateComisiones'])->name('configuracion.comisiones');
+
+    // === GESTIÓN DE CLIENTES ===
+    Route::resource('clientes', \App\Http\Controllers\Asesor\ClienteController::class);
+
+    // === SOLICITUDES DE CONTACTO ===
+    Route::get('/solicitudes', [\App\Http\Controllers\Asesor\SolicitudController::class, 'index'])->name('solicitudes');
+    Route::post('/solicitudes/contacto', [\App\Http\Controllers\Asesor\SolicitudController::class, 'registrarContacto'])->name('solicitudes.contacto');
+    Route::patch('/solicitudes/{cliente}/seguimiento', [\App\Http\Controllers\Asesor\SolicitudController::class, 'actualizarSeguimiento'])->name('solicitudes.seguimiento');
+    Route::get('/solicitudes/{cliente}/historial', [\App\Http\Controllers\Asesor\SolicitudController::class, 'historialCliente'])->name('solicitudes.historial');
+    Route::post('/solicitudes/{cliente}/cita', [\App\Http\Controllers\Asesor\SolicitudController::class, 'agendarCita'])->name('solicitudes.cita');
+    Route::get('/solicitudes/buscar-departamentos', [\App\Http\Controllers\Asesor\SolicitudController::class, 'buscarDepartamentos'])->name('solicitudes.buscar');
+
+    // === COTIZACIONES ===
+    Route::get('/cotizaciones', [\App\Http\Controllers\Asesor\CotizacionController::class, 'index'])->name('cotizaciones');
+    Route::get('/cotizaciones/create', [\App\Http\Controllers\Asesor\CotizacionController::class, 'create'])->name('cotizaciones.create');
+    Route::post('/cotizaciones', [\App\Http\Controllers\Asesor\CotizacionController::class, 'store'])->name('cotizaciones.store');
+    Route::patch('/cotizaciones/{cotizacion}/estado', [\App\Http\Controllers\Asesor\CotizacionController::class, 'updateEstado'])->name('cotizaciones.estado');
+    Route::get('/cotizaciones/{cotizacion}/edit', [\App\Http\Controllers\Asesor\CotizacionController::class, 'edit'])->name('cotizaciones.edit');
+    Route::patch('/cotizaciones/{cotizacion}', [\App\Http\Controllers\Asesor\CotizacionController::class, 'update'])->name('cotizaciones.update');
+
+    // === RESERVAS ===
+    Route::get('/reservas', [\App\Http\Controllers\Asesor\ReservaController::class, 'index'])->name('reservas');
+    Route::post('/reservas', [\App\Http\Controllers\Asesor\ReservaController::class, 'store'])->name('reservas.store');
+    Route::patch('/reservas/{reserva}/confirmar', [\App\Http\Controllers\Asesor\ReservaController::class, 'confirmar'])->name('reservas.confirmar');
+    Route::patch('/reservas/{reserva}/cancelar', [\App\Http\Controllers\Asesor\ReservaController::class, 'cancelar'])->name('reservas.cancelar');
+    Route::patch('/reservas/{reserva}', [\App\Http\Controllers\Asesor\ReservaController::class, 'update'])->name('reservas.update');
+
+    // === VENTAS ===
+    Route::get('/ventas', [\App\Http\Controllers\Asesor\VentaController::class, 'index'])->name('ventas');
+    Route::get('/ventas/create', [\App\Http\Controllers\Asesor\VentaController::class, 'create'])->name('ventas.create');
+    Route::post('/ventas', [\App\Http\Controllers\Asesor\VentaController::class, 'store'])->name('ventas.store');
+    Route::get('/ventas/{venta}', [\App\Http\Controllers\Asesor\VentaController::class, 'show'])->name('ventas.show');
+    Route::get('/ventas/{venta}/edit', [\App\Http\Controllers\Asesor\VentaController::class, 'edit'])->name('ventas.edit');
+    Route::patch('/ventas/{venta}', [\App\Http\Controllers\Asesor\VentaController::class, 'update'])->name('ventas.update');
+    Route::patch('/ventas/{venta}/documentos', [\App\Http\Controllers\Asesor\VentaController::class, 'actualizarDocumentos'])->name('ventas.documentos');
+
+    // === COMISIONES ===
+    Route::get('/comisiones', function () {
+        return Inertia::render('Asesor/Comisiones');
+    })->name('comisiones');
+});
+
+/*
+|--------------------------------------------------------------------------
 | RUTAS PARA ADMINISTRADOR
 |--------------------------------------------------------------------------
 */
@@ -181,158 +274,30 @@ Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->
 
 /*
 |--------------------------------------------------------------------------
-| RUTAS PARA ASESOR
+| RUTAS API PARA CLIENTE
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
-    // Dashboard del asesor
-    Route::get('/dashboard', function () {
-        return Inertia::render('Asesor/Dashboard');
-    })->name('dashboard');
-
-    // === PERFIL Y CONFIGURACIÓN ===
-    Route::get('/perfil', function () {
-        return Inertia::render('Asesor/Perfil');
-    })->name('perfil');
-
-    Route::get('/configuracion', function () {
-        return Inertia::render('Asesor/Configuracion');
-    })->name('configuracion');
-
-    // === GESTIÓN DE CLIENTES ===
-    Route::get('/clientes', function () {
-        return Inertia::render('Asesor/Clientes');
-    })->name('clientes');
-
-    // === GESTIÓN DE PROPIEDADES ===
-    // TODO: Crear vista específica para asesores o redirigir apropiadamente
-    // Route::get('/propiedades', function () {
-    //     return Inertia::render('Asesor/Propiedades');
-    // })->name('propiedades');
-
-    // === SOLICITUDES DE CONTACTO ===
-    Route::get('/solicitudes', function () {
-        return Inertia::render('Asesor/Solicitudes');
-    })->name('solicitudes');
-
-    Route::get('/solicitudes/{id}', function ($id) {
-        return Inertia::render('Asesor/Solicitudes/Detalle', [
-            'solicitudId' => $id
-        ]);
-    })->name('solicitudes.detalle');
-
-    // === COTIZACIONES ===
-    Route::get('/cotizaciones', function () {
-        return Inertia::render('Asesor/Cotizaciones');
-    })->name('cotizaciones');
-
-    Route::get('/cotizaciones/crear', function () {
-        return Inertia::render('Asesor/Cotizaciones/Crear');
-    })->name('cotizaciones.crear');
-
-    Route::get('/cotizaciones/crear/{solicitudId}', function ($solicitudId) {
-        return Inertia::render('Asesor/Cotizaciones/Crear', [
-            'solicitudId' => $solicitudId
-        ]);
-    })->name('cotizaciones.crear.desde.solicitud');
-
-    Route::get('/cotizaciones/{id}', function ($id) {
-        return Inertia::render('Asesor/Cotizaciones/Detalle', [
-            'cotizacionId' => $id
-        ]);
-    })->name('cotizaciones.detalle');
-
-    Route::get('/cotizaciones/editar/{id}', function ($id) {
-        return Inertia::render('Asesor/Cotizaciones/Editar', [
-            'cotizacionId' => $id
-        ]);
-    })->name('cotizaciones.editar');
-
-    // === RESERVAS ===
-    Route::get('/reservas', function () {
-        return Inertia::render('Asesor/Reservas');
-    })->name('reservas');
-
-    Route::get('/reservas/crear', function () {
-        return Inertia::render('Asesor/CrearReserva');
-    })->name('reservas.crear');
-
-    Route::get('/reservas/crear/{cotizacionId}', function ($cotizacionId) {
-        return Inertia::render('Asesor/CrearReserva', [
-            'cotizacionId' => $cotizacionId
-        ]);
-    })->name('reservas.crear.desde.cotizacion');
-
-    Route::get('/reservas/{id}', function ($id) {
-        return Inertia::render('Asesor/DetalleReserva', [
-            'reservaId' => $id
-        ]);
-    })->name('reservas.detalle');
-
-    // === VENTAS ===
-    Route::get('/ventas', function () {
-        return Inertia::render('Asesor/Ventas');
-    })->name('ventas');
-
-    Route::get('/ventas/crear', function () {
-        return Inertia::render('Asesor/Ventas/Crear');
-    })->name('ventas.crear');
-
-    Route::get('/ventas/crear/{reservaId}', function ($reservaId) {
-        return Inertia::render('Asesor/Ventas/Crear', [
-            'reservaId' => $reservaId
-        ]);
-    })->name('ventas.crear.desde.reserva');
-
-    Route::get('/ventas/{id}', function ($id) {
-        return Inertia::render('Asesor/Ventas/Detalle', [
-            'ventaId' => $id
-        ]);
-    })->name('ventas.detalle');
-
-    Route::get('/ventas/documentos/{id}', function ($id) {
-        return Inertia::render('Asesor/Ventas/Documentos', [
-            'ventaId' => $id
-        ]);
-    })->name('ventas.documentos');
-
-    // === COMISIONES ===
-    Route::get('/comisiones', function () {
-        return Inertia::render('Asesor/Comisiones');
-    })->name('comisiones');
+Route::middleware(['auth', 'verified', 'role:cliente'])->prefix('cliente/api')->name('cliente.api.')->group(function () {
+    // API para búsquedas y favoritos
+    Route::prefix('departamentos')->name('departamentos.')->group(function () {
+        Route::get('/buscar', [App\Http\Controllers\Cliente\DepartamentoController::class, 'search'])->name('search');
+        Route::get('/favoritos', [App\Http\Controllers\Cliente\DepartamentoController::class, 'getFavoritos'])->name('favoritos');
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| RUTAS PARA CLIENTE
+| RUTAS API PARA ASESOR
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->group(function () {
-    // === DASHBOARD Y PERFIL ===
-    Route::get('/dashboard', [App\Http\Controllers\Cliente\DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'perfil'])->name('perfil');
-    Route::patch('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'actualizarPerfil'])->name('perfil.update');
-
-    // === FAVORITOS Y ASESORES ===
-    Route::get('/favoritos', [App\Http\Controllers\Cliente\DashboardController::class, 'favoritos'])->name('favoritos');
-    Route::get('/asesores', [App\Http\Controllers\Cliente\DashboardController::class, 'asesores'])->name('asesores');
-
-    // === DEPARTAMENTOS Y CATÁLOGO ===
-    Route::get('/catalogo', [App\Http\Controllers\Cliente\DepartamentoController::class, 'index'])->name('catalogo');
-    Route::get('/departamentos/buscar', [App\Http\Controllers\Cliente\DepartamentoController::class, 'search'])->name('departamentos.search');
-    Route::get('/departamentos/{id}', [App\Http\Controllers\Cliente\DepartamentoController::class, 'show'])->name('departamentos.show');
-    Route::post('/departamentos/{id}/favorito', [App\Http\Controllers\Cliente\DepartamentoController::class, 'agregarFavorito'])->name('departamentos.favorito.agregar');
-    Route::delete('/departamentos/{id}/favorito', [App\Http\Controllers\Cliente\DepartamentoController::class, 'eliminarFavorito'])->name('departamentos.favorito.eliminar');
-
-    // === SOLICITUDES ===
-    Route::get('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('solicitudes.index');
-    Route::get('/solicitudes/crear', [App\Http\Controllers\Cliente\SolicitudController::class, 'create'])->name('solicitudes.create');
-    Route::post('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'store'])->name('solicitudes.store');
-    Route::get('/solicitudes/{id}', [App\Http\Controllers\Cliente\SolicitudController::class, 'show'])->name('solicitudes.show');
-    Route::patch('/solicitudes/{id}', [App\Http\Controllers\Cliente\SolicitudController::class, 'update'])->name('solicitudes.update');
-    Route::post('/solicitudes/{id}/comentarios', [App\Http\Controllers\Cliente\SolicitudController::class, 'addComment'])->name('solicitudes.comentarios.store');
+Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor/api')->name('asesor.api.')->group(function () {
+    // API para búsquedas y estadísticas
+    Route::prefix('estadisticas')->name('estadisticas.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Asesor\DashboardController::class, 'getEstadisticas'])->name('dashboard');
+        Route::get('/comisiones', [\App\Http\Controllers\Asesor\ConfiguracionController::class, 'getComisiones'])->name('comisiones');
+    });
 });
 
 /*

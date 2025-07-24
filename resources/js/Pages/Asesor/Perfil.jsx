@@ -1,70 +1,290 @@
-import React from 'react';
-import AsesorLayout from '@/Layouts/AsesorLayout';
-import { Head } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import AsesorLayout from '../../Layouts/AsesorLayout';
 
-export default function Perfil() {
-    return (
-        <AsesorLayout
-            header={
-                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Mi Perfil
-                </h2>
+export default function Perfil({ auth }) {
+    const { data, setData, put, processing, errors } = useForm({
+        nombre: auth.user.name || '',
+        email: auth.user.email || '',
+        telefono: auth.user.telefono || '',
+        ci: auth.user.ci || '',
+        direccion: auth.user.direccion || '',
+        fecha_nacimiento: auth.user.fecha_nacimiento || '',
+        especialidad: auth.user.especialidad || '',
+        experiencia: auth.user.experiencia || '',
+        descripcion: auth.user.descripcion || ''
+    });
+
+    const [editMode, setEditMode] = useState(false);
+
+    const submit = (e) => {
+        e.preventDefault();
+        put(route('asesor.perfil.update'), {
+            onSuccess: () => {
+                setEditMode(false);
             }
-        >
-            <Head title="Perfil - Asesor" />
+        });
+    };
+
+    return (
+        <AsesorLayout user={auth.user}>
+            <Head title="Mi Perfil" />
 
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            <h3 className="text-lg font-medium mb-4">Información del Asesor</h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Nombre Completo</label>
-                                    <input
-                                        type="text"
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                        defaultValue="Asesor de Prueba"
-                                    />
+                                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                                        Mi Perfil Profesional
+                                    </h1>
+                                    <p className="text-gray-600">
+                                        Gestiona tu información personal y profesional
+                                    </p>
                                 </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                                    <input
-                                        type="email"
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                        defaultValue="asesor@inmobiliaria.com"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Teléfono</label>
-                                    <input
-                                        type="tel"
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                        defaultValue="+51 987 654 321"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Especialidad</label>
-                                    <select className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500">
-                                        <option>Departamentos</option>
-                                        <option>Casas</option>
-                                        <option>Oficinas</option>
-                                        <option>Locales Comerciales</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 flex justify-end">
-                                <button className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                    Guardar Cambios
+                                <button
+                                    onClick={() => setEditMode(!editMode)}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium ${editMode
+                                            ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                                        }`}
+                                >
+                                    {editMode ? 'Cancelar' : 'Editar Perfil'}
                                 </button>
                             </div>
                         </div>
                     </div>
+
+                    <form onSubmit={submit}>
+                        <div className="space-y-6">
+                            {/* Información Personal */}
+                            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                                <div className="p-6">
+                                    <h3 className="text-lg font-medium text-gray-900 mb-6">Información Personal</h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Nombre Completo
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.nombre}
+                                                onChange={(e) => setData('nombre', e.target.value)}
+                                                disabled={!editMode}
+                                                className={`w-full px-3 py-2 border rounded-md ${editMode
+                                                        ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                        : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                            />
+                                            {errors.nombre && <p className="mt-1 text-sm text-red-600">{errors.nombre}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Email
+                                            </label>
+                                            <input
+                                                type="email"
+                                                value={data.email}
+                                                onChange={(e) => setData('email', e.target.value)}
+                                                disabled={!editMode}
+                                                className={`w-full px-3 py-2 border rounded-md ${editMode
+                                                        ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                        : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                            />
+                                            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Teléfono
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.telefono}
+                                                onChange={(e) => setData('telefono', e.target.value)}
+                                                disabled={!editMode}
+                                                className={`w-full px-3 py-2 border rounded-md ${editMode
+                                                        ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                        : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                            />
+                                            {errors.telefono && <p className="mt-1 text-sm text-red-600">{errors.telefono}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Carnet de Identidad
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.ci}
+                                                onChange={(e) => setData('ci', e.target.value)}
+                                                disabled={!editMode}
+                                                className={`w-full px-3 py-2 border rounded-md ${editMode
+                                                        ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                        : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                            />
+                                            {errors.ci && <p className="mt-1 text-sm text-red-600">{errors.ci}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Fecha de Nacimiento
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={data.fecha_nacimiento}
+                                                onChange={(e) => setData('fecha_nacimiento', e.target.value)}
+                                                disabled={!editMode}
+                                                className={`w-full px-3 py-2 border rounded-md ${editMode
+                                                        ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                        : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                            />
+                                            {errors.fecha_nacimiento && <p className="mt-1 text-sm text-red-600">{errors.fecha_nacimiento}</p>}
+                                        </div>
+
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Dirección
+                                            </label>
+                                            <textarea
+                                                value={data.direccion}
+                                                onChange={(e) => setData('direccion', e.target.value)}
+                                                disabled={!editMode}
+                                                rows={3}
+                                                className={`w-full px-3 py-2 border rounded-md ${editMode
+                                                        ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                        : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                            />
+                                            {errors.direccion && <p className="mt-1 text-sm text-red-600">{errors.direccion}</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Información Profesional */}
+                            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                                <div className="p-6">
+                                    <h3 className="text-lg font-medium text-gray-900 mb-6">Información Profesional</h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Especialidad
+                                            </label>
+                                            <select
+                                                value={data.especialidad}
+                                                onChange={(e) => setData('especialidad', e.target.value)}
+                                                disabled={!editMode}
+                                                className={`w-full px-3 py-2 border rounded-md ${editMode
+                                                        ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                        : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                            >
+                                                <option value="">Seleccionar</option>
+                                                <option value="departamentos">Departamentos</option>
+                                                <option value="casas">Casas</option>
+                                                <option value="oficinas">Oficinas</option>
+                                                <option value="terrenos">Terrenos</option>
+                                                <option value="comercial">Propiedades Comerciales</option>
+                                            </select>
+                                            {errors.especialidad && <p className="mt-1 text-sm text-red-600">{errors.especialidad}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Años de Experiencia
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={data.experiencia}
+                                                onChange={(e) => setData('experiencia', e.target.value)}
+                                                disabled={!editMode}
+                                                min="0"
+                                                max="50"
+                                                className={`w-full px-3 py-2 border rounded-md ${editMode
+                                                        ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                        : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                            />
+                                            {errors.experiencia && <p className="mt-1 text-sm text-red-600">{errors.experiencia}</p>}
+                                        </div>
+
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Descripción Profesional
+                                            </label>
+                                            <textarea
+                                                value={data.descripcion}
+                                                onChange={(e) => setData('descripcion', e.target.value)}
+                                                disabled={!editMode}
+                                                rows={4}
+                                                placeholder="Describe tu experiencia, logros y enfoque profesional..."
+                                                className={`w-full px-3 py-2 border rounded-md ${editMode
+                                                        ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                        : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                            />
+                                            {errors.descripcion && <p className="mt-1 text-sm text-red-600">{errors.descripcion}</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Estadísticas */}
+                            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                                <div className="p-6">
+                                    <h3 className="text-lg font-medium text-gray-900 mb-6">Estadísticas de Rendimiento</h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                        <div className="text-center">
+                                            <div className="text-3xl font-bold text-blue-600">24</div>
+                                            <div className="text-sm text-gray-600">Ventas Totales</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-3xl font-bold text-green-600">12</div>
+                                            <div className="text-sm text-gray-600">Este Mes</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-3xl font-bold text-yellow-600">8</div>
+                                            <div className="text-sm text-gray-600">Reservas Activas</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-3xl font-bold text-purple-600">95%</div>
+                                            <div className="text-sm text-gray-600">Satisfacción</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Botones de acción */}
+                            {editMode && (
+                                <div className="flex justify-end space-x-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditMode(false)}
+                                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                        {processing ? 'Guardando...' : 'Guardar Cambios'}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </form>
                 </div>
             </div>
         </AsesorLayout>
