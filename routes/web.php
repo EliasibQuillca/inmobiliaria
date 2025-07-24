@@ -240,12 +240,19 @@ Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->
     })->name('propiedades.editar');
 
     // === GESTIÓN DE VENTAS ===
+    // Ruta de prueba
+    Route::get('/ventas-test', function () {
+        return Inertia::render('Admin/VentasTest');
+    })->name('ventas.test');
+
     Route::get('/ventas', [\App\Http\Controllers\Admin\VentaController::class, 'index'])->name('ventas');
     Route::get('/ventas/crear', [\App\Http\Controllers\Admin\VentaController::class, 'create'])->name('ventas.crear');
     Route::post('/ventas', [\App\Http\Controllers\Admin\VentaController::class, 'store'])->name('ventas.store');
     Route::get('/ventas/{id}', [\App\Http\Controllers\Admin\VentaController::class, 'show'])->name('ventas.ver');
     Route::get('/ventas/{id}/edit', [\App\Http\Controllers\Admin\VentaController::class, 'edit'])->name('ventas.editar');
     Route::put('/ventas/{id}', [\App\Http\Controllers\Admin\VentaController::class, 'update'])->name('ventas.update');
+    Route::post('/ventas/reporte', [\App\Http\Controllers\Admin\VentaController::class, 'generarReporte'])->name('ventas.reporte');
+    Route::delete('/ventas/{id}/cancelar', [\App\Http\Controllers\Admin\VentaController::class, 'cancelar'])->name('ventas.cancelar');
 
     // === REPORTES ===
     Route::get('/reportes', function () {

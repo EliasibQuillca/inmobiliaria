@@ -8,10 +8,21 @@ export default function Ventas({ auth, ventas, estadisticas, filtros }) {
     const [dateFrom, setDateFrom] = useState(filtros?.fecha_desde || '');
     const [dateTo, setDateTo] = useState(filtros?.fecha_hasta || '');
 
-    // Datos reales desde el backend
+    // Datos reales desde el backend con validación de estructura
     const listaVentas = ventas?.data || [];
-    const paginacion = ventas?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 };
-    const stats = estadisticas || { total_ventas: 0, numero_ventas: 0, venta_promedio: 0, ventas_mes_actual: 0 };
+    const paginacion = ventas?.meta || ventas?.links ? {
+        current_page: ventas.current_page || 1,
+        last_page: ventas.last_page || 1,
+        per_page: ventas.per_page || 15,
+        total: ventas.total || 0
+    } : { current_page: 1, last_page: 1, per_page: 15, total: 0 };
+
+    const stats = estadisticas || {
+        total_ventas: 0,
+        numero_ventas: 0,
+        venta_promedio: 0,
+        ventas_mes_actual: 0
+    };
 
     // Manejar filtros
     const handleFiltroChange = (filtro, valor) => {
