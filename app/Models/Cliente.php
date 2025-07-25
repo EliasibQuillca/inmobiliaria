@@ -29,6 +29,11 @@ class Cliente extends Model
         'tipo_cita',
         'ubicacion_cita',
         'notas_cita',
+        'tipo_propiedad',
+        'habitaciones_deseadas',
+        'presupuesto_min',
+        'presupuesto_max',
+        'zona_preferida',
     ];
 
     protected $casts = [

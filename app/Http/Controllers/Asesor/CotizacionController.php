@@ -32,14 +32,48 @@ class CotizacionController extends Controller
     /**
      * Mostrar formulario para crear cotización
      */
-    public function create()
+    public function create(Request $request)
     {
-        $clientes = Cliente::with('usuario')->get();
-        $departamentos = Departamento::where('estado', 'disponible')->get();
+        $asesor = Auth::user()->asesor;
+
+        // Si viene un cliente_id específico, obtenerlo con sus preferencias
+        $clienteSeleccionado = null;
+        if ($request->has('cliente_id')) {
+            $clienteSeleccionado = Cliente::where('asesor_id', $asesor->id)
+                ->where('id', $request->cliente_id)
+                ->first();
+        }
+
+        // Obtener solo clientes del asesor actual
+        $clientes = Cliente::where('asesor_id', $asesor->id)
+            ->orderBy('nombre')
+            ->get();
+
+        // Obtener departamentos disponibles, filtrar por preferencias si hay cliente seleccionado
+        $departamentosQuery = Departamento::where('estado', 'disponible');
+
+        if ($clienteSeleccionado) {
+            // Filtrar por preferencias del cliente
+            if ($clienteSeleccionado->tipo_propiedad) {
+                $departamentosQuery->where('tipo_propiedad', $clienteSeleccionado->tipo_propiedad);
+            }
+            if ($clienteSeleccionado->habitaciones_deseadas) {
+                $departamentosQuery->where('habitaciones', $clienteSeleccionado->habitaciones_deseadas);
+            }
+            if ($clienteSeleccionado->presupuesto_min && $clienteSeleccionado->presupuesto_max) {
+                $departamentosQuery->whereBetween('precio', [
+                    $clienteSeleccionado->presupuesto_min,
+                    $clienteSeleccionado->presupuesto_max
+                ]);
+            }
+        }
+
+        $departamentos = $departamentosQuery->with('imagenes')->get();
 
         return Inertia::render('Asesor/Cotizaciones/Crear', [
             'clientes' => $clientes,
-            'departamentos' => $departamentos
+            'departamentos' => $departamentos,
+            'clienteSeleccionado' => $clienteSeleccionado,
         ]);
     }
 

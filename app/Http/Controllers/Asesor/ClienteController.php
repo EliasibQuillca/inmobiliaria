@@ -19,14 +19,11 @@ class ClienteController extends Controller
     {
         $asesor = Auth::user()->asesor;
 
-        // Obtener clientes que tienen cotizaciones con este asesor
-        $clientes = Cliente::with(['usuario', 'cotizaciones' => function($query) use ($asesor) {
-            $query->where('asesor_id', $asesor->id);
-        }])
-        ->whereHas('cotizaciones', function($query) use ($asesor) {
-            $query->where('asesor_id', $asesor->id);
-        })
-        ->get();
+        // Obtener clientes que pertenecen a este asesor
+        $clientes = Cliente::with(['usuario', 'cotizaciones'])
+            ->where('asesor_id', $asesor->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return Inertia::render('Asesor/Clientes', [
             'clientes' => $clientes
@@ -34,37 +31,70 @@ class ClienteController extends Controller
     }
 
     /**
+     * Mostrar formulario para crear nuevo cliente
+     */
+    public function create()
+    {
+        return Inertia::render('Asesor/Clientes/Crear');
+    }
+
+    /**
      * Crear un nuevo cliente (cuando llama por WhatsApp/teléfono)
      */
     public function store(Request $request)
     {
+        $asesor = Auth::user()->asesor;
+
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'telefono' => 'required|string|max:20',
-            'ci' => 'required|string|max:20|unique:clientes,dni',
+            'dni' => 'required|string|max:20|unique:clientes,dni',
+            'telefono' => 'required|string|max:20|unique:clientes,telefono',
+            'email' => 'nullable|email|unique:users,email',
             'direccion' => 'nullable|string|max:500',
+            'medio_contacto' => 'required|in:whatsapp,telefono,presencial,email,referido',
+            'notas_contacto' => 'nullable|string|max:1000',
+            'tipo_propiedad' => 'required|in:apartamento,casa,penthouse,estudio,duplex',
+            'habitaciones_deseadas' => 'nullable|integer|min:1|max:10',
+            'presupuesto_min' => 'nullable|numeric|min:0',
+            'presupuesto_max' => 'nullable|numeric|min:0|gte:presupuesto_min',
+            'zona_preferida' => 'nullable|string|max:255',
         ]);
 
-        // Crear usuario
-        $usuario = User::create([
-            'name' => $validated['nombre'],
-            'email' => $validated['email'],
-            'password' => Hash::make('123456'), // Password temporal
-            'role' => 'cliente',
-            'telefono' => $validated['telefono'],
-            'estado' => 'activo',
-        ]);
+        // Crear usuario solo si proporcionó email
+        $usuario = null;
+        if ($validated['email']) {
+            $usuario = User::create([
+                'name' => $validated['nombre'],
+                'email' => $validated['email'],
+                'password' => Hash::make('123456'), // Password temporal
+                'role' => 'cliente',
+                'telefono' => $validated['telefono'],
+                'estado' => 'activo',
+            ]);
+        }
 
         // Crear cliente
         $cliente = Cliente::create([
-            'usuario_id' => $usuario->id,
-            'dni' => $validated['ci'],
+            'usuario_id' => $usuario ? $usuario->id : null,
+            'asesor_id' => $asesor->id,
+            'dni' => $validated['dni'],
+            'nombre' => $validated['nombre'],
+            'telefono' => $validated['telefono'],
+            'email' => $validated['email'],
             'direccion' => $validated['direccion'],
+            'medio_contacto' => $validated['medio_contacto'],
+            'notas_contacto' => $validated['notas_contacto'],
+            'estado' => 'contactado',
+            'tipo_propiedad' => $validated['tipo_propiedad'],
+            'habitaciones_deseadas' => $validated['habitaciones_deseadas'],
+            'presupuesto_min' => $validated['presupuesto_min'],
+            'presupuesto_max' => $validated['presupuesto_max'],
+            'zona_preferida' => $validated['zona_preferida'],
             'fecha_registro' => now(),
         ]);
 
-        return redirect()->back()->with('success', 'Cliente registrado exitosamente');
+        return redirect()->route('asesor.clientes.index')
+            ->with('success', 'Cliente registrado exitosamente. Ahora puedes crear una cotización para ' . $cliente->nombre);
     }
 
     /**
@@ -72,7 +102,10 @@ class ClienteController extends Controller
      */
     public function show($id)
     {
-        $cliente = Cliente::with(['usuario', 'cotizaciones', 'reservas'])
+        $asesor = Auth::user()->asesor;
+
+        $cliente = Cliente::with(['usuario', 'cotizaciones.departamento', 'reservas.venta'])
+            ->where('asesor_id', $asesor->id)
             ->findOrFail($id);
 
         return Inertia::render('Asesor/Clientes/Detalle', [

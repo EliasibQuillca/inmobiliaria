@@ -3,7 +3,28 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+
+/*
+|--------------------------------------------------------------------------
+| RUTAS DE PRUEBA TEMPORAL
+|--------------------------------------------------------------------------
+*/
+Route::get('/test-login', function () {
+    return view('test-login');
+})->name('test.login.form');
+
+Route::post('/test-login', function () {
+    $credentials = request()->only('email', 'password');
+
+    if (Auth::attempt($credentials)) {
+        request()->session()->regenerate();
+        return redirect()->back()->with('success', 'Login exitoso!');
+    }
+
+    return redirect()->back()->with('error', 'Credenciales incorrectas');
+})->name('test.login');
 
 /*
 |--------------------------------------------------------------------------
@@ -144,6 +165,10 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('
     Route::patch('/cotizaciones/{cotizacion}/estado', [\App\Http\Controllers\Asesor\CotizacionController::class, 'updateEstado'])->name('cotizaciones.estado');
     Route::get('/cotizaciones/{cotizacion}/edit', [\App\Http\Controllers\Asesor\CotizacionController::class, 'edit'])->name('cotizaciones.edit');
     Route::patch('/cotizaciones/{cotizacion}', [\App\Http\Controllers\Asesor\CotizacionController::class, 'update'])->name('cotizaciones.update');
+
+    // === PROPIEDADES (DEPARTAMENTOS) ===
+    Route::get('/propiedades', [\App\Http\Controllers\Asesor\PropiedadController::class, 'index'])->name('propiedades');
+    Route::get('/propiedades/{departamento}', [\App\Http\Controllers\Asesor\PropiedadController::class, 'show'])->name('propiedades.show');
 
     // === RESERVAS ===
     Route::get('/reservas', [\App\Http\Controllers\Asesor\ReservaController::class, 'index'])->name('reservas');
