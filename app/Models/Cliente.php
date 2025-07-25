@@ -13,19 +13,38 @@ class Cliente extends Model
 
     protected $fillable = [
         'usuario_id',
+        'asesor_id',
         'dni',
         'direccion',
         'fecha_registro',
+        'nombre',
+        'telefono',
+        'email',
+        'departamento_interes',
+        'notas_contacto',
+        'medio_contacto',
+        'estado',
+        'notas_seguimiento',
+        'fecha_cita',
+        'tipo_cita',
+        'ubicacion_cita',
+        'notas_cita',
     ];
 
     protected $casts = [
         'fecha_registro' => 'date',
+        'fecha_cita' => 'datetime',
     ];
 
     // Relaciones
     public function usuario()
     {
         return $this->belongsTo(User::class, 'usuario_id');
+    }
+
+    public function asesor()
+    {
+        return $this->belongsTo(Asesor::class, 'asesor_id');
     }
 
     public function favoritos()

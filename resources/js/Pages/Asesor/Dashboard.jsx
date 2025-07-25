@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AsesorLayout from '../../Layouts/AsesorLayout';
 
-export default function Dashboard({ auth, stats = {} }) {
+export default function Dashboard({ auth, estadisticas = {}, clientesRecientes = [], cotizacionesRecientes = [] }) {
     const menuItems = [
         {
             title: 'Solicitudes de Contacto',
@@ -10,7 +10,7 @@ export default function Dashboard({ auth, stats = {} }) {
             icon: '📧',
             href: '/asesor/solicitudes',
             color: 'bg-blue-500',
-            count: stats.solicitudes_pendientes || 0
+            count: estadisticas.solicitudes_pendientes || 0
         },
         {
             title: 'Cotizaciones',
@@ -18,7 +18,7 @@ export default function Dashboard({ auth, stats = {} }) {
             icon: '💰',
             href: '/asesor/cotizaciones',
             color: 'bg-green-500',
-            count: stats.cotizaciones_activas || 0
+            count: estadisticas.cotizaciones_activas || 0
         },
         {
             title: 'Reservas',
@@ -26,7 +26,7 @@ export default function Dashboard({ auth, stats = {} }) {
             icon: '📋',
             href: '/asesor/reservas',
             color: 'bg-yellow-500',
-            count: stats.reservas_pendientes || 0
+            count: estadisticas.reservas_pendientes || 0
         },
         {
             title: 'Ventas',
@@ -34,7 +34,7 @@ export default function Dashboard({ auth, stats = {} }) {
             icon: '🏡',
             href: '/asesor/ventas',
             color: 'bg-purple-500',
-            count: stats.ventas_mes || 0
+            count: estadisticas.ventas_mes || 0
         },
         {
             title: 'Clientes',
@@ -42,7 +42,7 @@ export default function Dashboard({ auth, stats = {} }) {
             icon: '👥',
             href: '/asesor/clientes',
             color: 'bg-indigo-500',
-            count: stats.clientes_activos || 0
+            count: estadisticas.clientes_activos || 0
         }
     ];
 
@@ -80,7 +80,7 @@ export default function Dashboard({ auth, stats = {} }) {
                                                 Solicitudes Pendientes
                                             </dt>
                                             <dd className="text-lg font-medium text-gray-900">
-                                                {stats.solicitudes_pendientes || 0}
+                                                {estadisticas.solicitudes_pendientes || 0}
                                             </dd>
                                         </dl>
                                     </div>
@@ -102,7 +102,7 @@ export default function Dashboard({ auth, stats = {} }) {
                                                 Cotizaciones Activas
                                             </dt>
                                             <dd className="text-lg font-medium text-gray-900">
-                                                {stats.cotizaciones_activas || 0}
+                                                {estadisticas.cotizaciones_activas || 0}
                                             </dd>
                                         </dl>
                                     </div>
@@ -124,7 +124,7 @@ export default function Dashboard({ auth, stats = {} }) {
                                                 Reservas Activas
                                             </dt>
                                             <dd className="text-lg font-medium text-gray-900">
-                                                {stats.reservas_activas || 0}
+                                                {estadisticas.reservas_activas || 0}
                                             </dd>
                                         </dl>
                                     </div>
@@ -146,7 +146,7 @@ export default function Dashboard({ auth, stats = {} }) {
                                                 Ventas Este Mes
                                             </dt>
                                             <dd className="text-lg font-medium text-gray-900">
-                                                {stats.ventas_mes || 0}
+                                                {estadisticas.ventas_mes || 0}
                                             </dd>
                                         </dl>
                                     </div>

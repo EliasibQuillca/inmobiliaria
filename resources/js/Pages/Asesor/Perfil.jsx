@@ -2,17 +2,17 @@ import React, { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AsesorLayout from '../../Layouts/AsesorLayout';
 
-export default function Perfil({ auth }) {
+export default function Perfil({ auth, asesor, estadisticas }) {
     const { data, setData, put, processing, errors } = useForm({
-        nombre: auth.user.name || '',
+        nombre: asesor?.nombre || auth.user.name || '',
         email: auth.user.email || '',
-        telefono: auth.user.telefono || '',
-        ci: auth.user.ci || '',
-        direccion: auth.user.direccion || '',
-        fecha_nacimiento: auth.user.fecha_nacimiento || '',
-        especialidad: auth.user.especialidad || '',
-        experiencia: auth.user.experiencia || '',
-        descripcion: auth.user.descripcion || ''
+        telefono: asesor?.telefono || auth.user.telefono || '',
+        ci: asesor?.documento || '',
+        direccion: asesor?.direccion || '',
+        fecha_nacimiento: asesor?.fecha_nacimiento || '',
+        especialidad: asesor?.especialidad || '',
+        experiencia: asesor?.experiencia || 0,
+        descripcion: asesor?.biografia || ''
     });
 
     const [editMode, setEditMode] = useState(false);
@@ -243,24 +243,63 @@ export default function Perfil({ auth }) {
                                 <div className="p-6">
                                     <h3 className="text-lg font-medium text-gray-900 mb-6">Estadísticas de Rendimiento</h3>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                                         <div className="text-center">
-                                            <div className="text-3xl font-bold text-blue-600">24</div>
+                                            <div className="text-3xl font-bold text-blue-600">
+                                                {estadisticas?.ventas_totales || 0}
+                                            </div>
                                             <div className="text-sm text-gray-600">Ventas Totales</div>
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-3xl font-bold text-green-600">12</div>
+                                            <div className="text-3xl font-bold text-green-600">
+                                                {estadisticas?.ventas_este_mes || 0}
+                                            </div>
                                             <div className="text-sm text-gray-600">Este Mes</div>
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-3xl font-bold text-yellow-600">8</div>
+                                            <div className="text-3xl font-bold text-yellow-600">
+                                                {estadisticas?.reservas_activas || 0}
+                                            </div>
                                             <div className="text-sm text-gray-600">Reservas Activas</div>
                                         </div>
                                         <div className="text-center">
-                                            <div className="text-3xl font-bold text-purple-600">95%</div>
-                                            <div className="text-sm text-gray-600">Satisfacción</div>
+                                            <div className="text-3xl font-bold text-purple-600">
+                                                {estadisticas?.clientes_activos || 0}
+                                            </div>
+                                            <div className="text-sm text-gray-600">Clientes</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-3xl font-bold text-indigo-600">
+                                                {estadisticas?.antiguedad_anos || 0}
+                                            </div>
+                                            <div className="text-sm text-gray-600">Años Experiencia</div>
                                         </div>
                                     </div>
+
+                                    {/* Información adicional */}
+                                    {asesor && (
+                                        <div className="mt-6 pt-6 border-t border-gray-200">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                                                <div>
+                                                    <strong>Fecha de contrato:</strong> {' '}
+                                                    {asesor.fecha_contrato ? new Date(asesor.fecha_contrato).toLocaleDateString() : 'No registrada'}
+                                                </div>
+                                                <div>
+                                                    <strong>Comisión:</strong> {asesor.comision_porcentaje || 5}%
+                                                </div>
+                                                <div>
+                                                    <strong>Estado:</strong> {' '}
+                                                    <span className={`px-2 py-1 rounded-full text-xs ${
+                                                        asesor.estado === 'activo'
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : 'bg-red-100 text-red-800'
+                                                    }`}>
+                                                        {asesor.estado || 'Activo'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

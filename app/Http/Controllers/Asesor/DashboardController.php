@@ -19,6 +19,11 @@ class DashboardController extends Controller
     {
         $asesor = Auth::user()->asesor;
 
+        if (!$asesor) {
+            return redirect()->route('asesor.perfil')
+                ->with('error', 'Debes completar tu perfil de asesor primero');
+        }
+
         // Estadísticas principales
         $totalClientes = Cliente::where('asesor_id', $asesor->id)->count();
 
@@ -29,7 +34,7 @@ class DashboardController extends Controller
             ->count();
 
         $reservasActivas = Reserva::where('asesor_id', $asesor->id)
-            ->where('estado', 'confirmada')
+            ->whereIn('estado', ['pendiente', 'confirmada'])
             ->count();
 
         $ventasDelMes = Venta::whereHas('reserva', function($query) use ($asesor) {
@@ -37,6 +42,11 @@ class DashboardController extends Controller
             })
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
+            ->count();
+
+        // Solicitudes pendientes (clientes sin cotizaciones)
+        $solicitudesPendientes = Cliente::where('asesor_id', $asesor->id)
+            ->whereDoesntHave('cotizaciones')
             ->count();
 
         // Actividades recientes
@@ -59,6 +69,11 @@ class DashboardController extends Controller
                 'cotizacionesPendientes' => $cotizacionesPendientes,
                 'reservasActivas' => $reservasActivas,
                 'ventasDelMes' => $ventasDelMes,
+                'solicitudes_pendientes' => $solicitudesPendientes,
+                'cotizaciones_activas' => $cotizacionesPendientes,
+                'reservas_pendientes' => $reservasActivas,
+                'ventas_mes' => $ventasDelMes,
+                'clientes_activos' => $totalClientes,
             ],
             'clientesRecientes' => $clientesRecientes,
             'cotizacionesRecientes' => $cotizacionesRecientes,
