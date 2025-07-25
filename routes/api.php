@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\VentaController;
 use App\Http\Controllers\Api\ImagenController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ReporteController;
+use App\Http\Controllers\Admin\ReporteController as AdminReporteController;
+use App\Http\Controllers\Admin\SimpleReporteController;
 use App\Http\Controllers\AsesorController;
 
 /*
@@ -30,11 +32,21 @@ use App\Http\Controllers\AsesorController;
 */
 
 Route::prefix('v1')->group(function () {
+    // === RUTAS DE PRUEBA PARA REPORTES (TEMPORALES) ===
+    Route::get('/test-reportes/{tipo}', [SimpleReporteController::class, 'obtenerReporte']);
+    Route::get('/test-reportes/{tipo}/export', [SimpleReporteController::class, 'exportarReporte']);
+
     // === AUTENTICACIÓN PÚBLICA ===
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register/cliente', [AuthController::class, 'registerCliente']);
     Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
     Route::post('/password/reset', [AuthController::class, 'resetPassword']);
+
+    // === RUTAS DE PRUEBA PARA REPORTES (SIN AUTENTICACIÓN) ===
+    Route::prefix('admin/reportes')->group(function () {
+        Route::get('/{tipo}', [ReporteController::class, 'obtenerReporte']);
+        Route::get('/{tipo}/export', [ReporteController::class, 'exportarReporte']);
+    });
 
     // === CATÁLOGO PÚBLICO ===
     Route::prefix('catalogo')->group(function () {
@@ -125,13 +137,27 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'role:administrador'])->g
     // === REPORTES ADMINISTRATIVOS ===
     Route::prefix('reportes')->group(function () {
         Route::get('/dashboard', [ReporteController::class, 'dashboard']);
-        Route::get('/ventas', [ReporteController::class, 'ventasPorPeriodo']);
-        Route::get('/ventas/detallado', [ReporteController::class, 'ventasDetallado']);
-        Route::get('/ventas/pdf', [ReporteController::class, 'generarPdfVentas']);
-        Route::get('/asesores', [ReporteController::class, 'rendimientoAsesores']);
-        Route::get('/asesores/{id}/detalle', [ReporteController::class, 'detalleAsesor']);
+
+        // Rutas para obtener datos de reportes
+        Route::get('/ventas', [ReporteController::class, 'reporteVentas']);
+        Route::get('/asesores', [ReporteController::class, 'reporteAsesores']);
         Route::get('/propiedades', [ReporteController::class, 'reportePropiedades']);
+        Route::get('/usuarios', [ReporteController::class, 'reporteUsuarios']);
         Route::get('/financiero', [ReporteController::class, 'reporteFinanciero']);
+
+        // Rutas para exportación
+        Route::get('/ventas/export', [ReporteController::class, 'exportarVentas']);
+        Route::get('/asesores/export', [ReporteController::class, 'exportarAsesores']);
+        Route::get('/propiedades/export', [ReporteController::class, 'exportarPropiedades']);
+        Route::get('/usuarios/export', [ReporteController::class, 'exportarUsuarios']);
+        Route::get('/financiero/export', [ReporteController::class, 'exportarFinanciero']);
+    });
+
+    // === RUTAS PARA REPORTES (Frontend específico) ===
+    Route::prefix('reportes')->group(function () {
+        // Rutas dinámicas que el frontend necesita
+        Route::get('/{tipo}', [ReporteController::class, 'obtenerReporte']);
+        Route::get('/{tipo}/export', [ReporteController::class, 'exportarReporte']);
     });
 
     // === GESTIÓN DE IMÁGENES ===

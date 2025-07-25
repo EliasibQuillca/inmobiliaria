@@ -11,7 +11,7 @@ export default function DepartamentosDestacados() {
         const cargarDepartamentosDestacados = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('/api/v1/departamentos/destacados?limit=6');
+                const response = await axios.get('/api/v1/catalogo/departamentos/destacados?limit=6');
                 if (response.data && response.data.data) {
                     setDepartamentos(response.data.data);
                 }

@@ -255,9 +255,7 @@ Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->
     Route::delete('/ventas/{id}/cancelar', [\App\Http\Controllers\Admin\VentaController::class, 'cancelar'])->name('ventas.cancelar');
 
     // === REPORTES ===
-    Route::get('/reportes', function () {
-        return Inertia::render('Admin/Reportes');
-    })->name('reportes');
+    Route::get('/reportes', [\App\Http\Controllers\Admin\ReporteController::class, 'index'])->name('reportes');
 
     Route::get('/reportes/generar', function () {
         return Inertia::render('Admin/GenerarReporte');
@@ -332,6 +330,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Ruta de prueba para PDF
+Route::get('/test-pdf', function () {
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reportes.test', ['tipo' => 'testing']);
+    return $pdf->download('test.pdf');
+});
+
+// Ruta de prueba para exportación de reportes
+Route::get('/test-export/{tipo}', function ($tipo) {
+    $controller = new \App\Http\Controllers\Admin\ReporteController();
+    $request = request();
+    $request->merge(['formato' => 'pdf']);
+    return $controller->exportarReporte($request, $tipo);
 });
 
 require __DIR__.'/auth.php';
