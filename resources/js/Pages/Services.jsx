@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import Layout from '@/components/layout/Layout';
+import PublicLayout from '@/Layouts/PublicLayout';
 import { useState } from 'react';
 
 export default function Services({ auth }) {
@@ -86,7 +86,7 @@ export default function Services({ auth }) {
     ];
 
     return (
-        <Layout auth={auth}>
+        <PublicLayout auth={auth}>
             <Head title="Servicios - Inmobiliaria Cusco" />
             <div className="bg-white">
                 {/* Hero de Servicios */}
@@ -260,6 +260,6 @@ export default function Services({ auth }) {
                     </div>
                 </footer>
             </div>
-        </Layout>
+        </PublicLayout>
     );
 }

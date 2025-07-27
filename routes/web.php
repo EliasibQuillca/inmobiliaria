@@ -32,15 +32,16 @@ Route::post('/test-login', function () {
 |--------------------------------------------------------------------------
 */
 
-// Página de inicio
+// Página de inicio - redirige al catálogo público
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return redirect()->route('catalogo.index');
 });
+
+// Catálogo público de propiedades
+Route::get('/catalogo', [App\Http\Controllers\Public\CatalogoController::class, 'index'])->name('catalogo.index');
+Route::get('/catalogo/{departamento}', [App\Http\Controllers\Public\CatalogoController::class, 'show'])->name('catalogo.show');
+Route::post('/catalogo/contacto', [App\Http\Controllers\Public\CatalogoController::class, 'solicitudContacto'])->name('catalogo.contacto');
+Route::post('/catalogo/registro-rapido', [App\Http\Controllers\Public\CatalogoController::class, 'registroRapido'])->name('catalogo.registro');
 
 // Páginas informativas
 Route::get('/about', function () {
@@ -63,10 +64,6 @@ Route::get('/contact', function () {
         'canRegister' => Route::has('register'),
     ]);
 });
-
-// Catálogo de propiedades (público)
-Route::get('/catalogo', [\App\Http\Controllers\CatalogoController::class, 'index']);
-Route::get('/catalogo/{id}', [\App\Http\Controllers\CatalogoController::class, 'show']);
 
 // Mantener la ruta properties por compatibilidad (redirige a catalogo)
 Route::get('/properties', function () {
@@ -102,29 +99,30 @@ Route::get('/dashboard', function () {
 */
 
 Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->group(function () {
-    // === DASHBOARD Y PERFIL ===
+    // === DASHBOARD SIMPLIFICADO ===
     Route::get('/dashboard', [App\Http\Controllers\Cliente\DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'perfil'])->name('perfil');
-    Route::patch('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'actualizarPerfil'])->name('perfil.update');
 
-    // === FAVORITOS Y ASESORES ===
-    Route::get('/favoritos', [App\Http\Controllers\Cliente\DashboardController::class, 'favoritos'])->name('favoritos');
-    Route::get('/asesores', [App\Http\Controllers\Cliente\DashboardController::class, 'asesores'])->name('asesores');
-
-    // === DEPARTAMENTOS Y CATÁLOGO ===
-    Route::get('/catalogo', [App\Http\Controllers\Cliente\DepartamentoController::class, 'index'])->name('catalogo');
-    Route::get('/departamentos/buscar', [App\Http\Controllers\Cliente\DepartamentoController::class, 'search'])->name('departamentos.search');
-    Route::get('/departamentos/{id}', [App\Http\Controllers\Cliente\DepartamentoController::class, 'show'])->name('departamentos.show');
-    Route::post('/departamentos/{id}/favorito', [App\Http\Controllers\Cliente\DepartamentoController::class, 'agregarFavorito'])->name('departamentos.favorito.agregar');
-    Route::delete('/departamentos/{id}/favorito', [App\Http\Controllers\Cliente\DepartamentoController::class, 'eliminarFavorito'])->name('departamentos.favorito.eliminar');
+    // === FAVORITOS ===
+    Route::get('/favoritos', [App\Http\Controllers\Cliente\DepartamentoController::class, 'favoritos'])->name('favoritos');
 
     // === SOLICITUDES ===
-    Route::get('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('solicitudes.index');
+    Route::get('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('solicitudes');
     Route::get('/solicitudes/crear', [App\Http\Controllers\Cliente\SolicitudController::class, 'create'])->name('solicitudes.create');
     Route::post('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'store'])->name('solicitudes.store');
-    Route::get('/solicitudes/{id}', [App\Http\Controllers\Cliente\SolicitudController::class, 'show'])->name('solicitudes.show');
-    Route::patch('/solicitudes/{id}', [App\Http\Controllers\Cliente\SolicitudController::class, 'update'])->name('solicitudes.update');
-    Route::post('/solicitudes/{id}/comentarios', [App\Http\Controllers\Cliente\SolicitudController::class, 'addComment'])->name('solicitudes.comentarios.store');
+
+    // === ASESORES ===
+    Route::get('/asesores', [App\Http\Controllers\Cliente\DashboardController::class, 'asesores'])->name('asesores');
+
+    // === PERFIL ===
+    Route::get('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'perfil'])->name('perfil');
+    Route::patch('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'actualizarPerfil'])->name('perfil.update');
+    Route::patch('/perfil/password', [App\Http\Controllers\Cliente\DashboardController::class, 'cambiarPassword'])->name('perfil.password');
+    Route::patch('/perfil/preferencias', [App\Http\Controllers\Cliente\DashboardController::class, 'actualizarPreferencias'])->name('perfil.preferencias');
+
+    // === CATÁLOGO - REDIRIGE AL PÚBLICO ===
+    Route::get('/catalogo', function () {
+        return redirect()->route('catalogo.index');
+    })->name('catalogo');
 });
 
 /*

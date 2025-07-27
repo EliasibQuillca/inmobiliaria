@@ -45,7 +45,12 @@ class DashboardController extends Controller
         // En una implementación real, obtendríamos los datos del cliente
         // $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
 
-        return Inertia::render('Cliente/Perfil');
+        return Inertia::render('Cliente/Perfil', [
+            'flash' => [
+                'success' => session('success'),
+                'error' => session('error')
+            ]
+        ]);
     }
 
     /**
@@ -109,5 +114,63 @@ class DashboardController extends Controller
         // })->distinct()->get();
 
         return Inertia::render('Cliente/Asesores');
+    }
+
+    /**
+     * Cambiar la contraseña del cliente.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function cambiarPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // En una implementación real, verificaríamos y actualizaríamos la contraseña
+        // $user = User::findOrFail(Auth::id());
+        //
+        // if (!Hash::check($validated['current_password'], $user->password)) {
+        //     return back()->withErrors(['current_password' => 'La contraseña actual es incorrecta.']);
+        // }
+        //
+        // $user->password = Hash::make($validated['password']);
+        // $user->save();
+
+        return redirect()->route('cliente.perfil')
+            ->with('success', 'Contraseña actualizada exitosamente.');
+    }
+
+    /**
+     * Actualizar las preferencias del cliente.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function actualizarPreferencias(Request $request)
+    {
+        $validated = $request->validate([
+            'tipo_propiedad' => 'required|string|in:departamento,casa,oficina,local_comercial,terreno',
+            'rango_precio_min' => 'nullable|numeric|min:0',
+            'rango_precio_max' => 'nullable|numeric|min:0',
+            'ubicaciones_preferidas' => 'nullable|array',
+            'habitaciones_min' => 'required|integer|min:1|max:10',
+            'banos_min' => 'required|integer|min:1|max:10',
+            'area_min' => 'nullable|numeric|min:0',
+            'caracteristicas_especiales' => 'nullable|array',
+            'notificaciones_email' => 'boolean',
+            'notificaciones_sms' => 'boolean',
+            'frecuencia_notificaciones' => 'required|string|in:inmediata,diaria,semanal,mensual',
+        ]);
+
+        // En una implementación real, actualizaríamos las preferencias del cliente
+        // $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
+        // $cliente->preferencias = $validated;
+        // $cliente->save();
+
+        return redirect()->route('cliente.perfil')
+            ->with('success', 'Preferencias actualizadas exitosamente.');
     }
 }

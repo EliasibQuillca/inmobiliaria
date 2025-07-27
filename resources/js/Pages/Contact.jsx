@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import Layout from '@/components/layout/Layout';
+import PublicLayout from '@/Layouts/PublicLayout';
 
 export default function Contact({ auth }) {
     const [formData, setFormData] = useState({
@@ -55,7 +55,7 @@ export default function Contact({ auth }) {
     };
 
     return (
-        <Layout auth={auth}>
+        <PublicLayout auth={auth}>
             <Head title="Contáctanos" />
             <div className="bg-white min-h-screen">
 
@@ -395,6 +395,6 @@ export default function Contact({ auth }) {
                     </div>
                 </footer>
             </div>
-        </Layout>
+        </PublicLayout>
     );
 }

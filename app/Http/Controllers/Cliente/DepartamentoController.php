@@ -12,30 +12,24 @@ class DepartamentoController extends Controller
     /**
      * Mostrar el catálogo de departamentos.
      *
-     * @return \Inertia\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function index()
     {
-        // En una implementación real, obtendríamos todos los departamentos
-        // disponibles con paginación
-
-        return Inertia::render('Cliente/Catalogo');
+        // Redirigir al catálogo público
+        return redirect()->route('catalogo.index');
     }
 
     /**
      * Mostrar los detalles de un departamento específico.
      *
      * @param  int  $id
-     * @return \Inertia\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function show($id)
     {
-        // En una implementación real, buscaríamos el departamento por ID
-        // $departamento = Departamento::with(['atributos', 'imagenes'])->findOrFail($id);
-
-        return Inertia::render('Cliente/DetalleDepartamento', [
-            'departamentoId' => $id,
-        ]);
+        // Redirigir al detalle público del departamento
+        return redirect()->route('catalogo.show', $id);
     }
 
     /**
@@ -111,5 +105,57 @@ class DepartamentoController extends Controller
         // $cliente->favoritos()->detach($id);
 
         return redirect()->back()->with('success', 'Departamento eliminado de favoritos.');
+    }
+
+    /**
+     * Mostrar la página de favoritos del cliente.
+     *
+     * @return \Inertia\Response
+     */
+    public function favoritos()
+    {
+        // Datos de prueba para favoritos
+        $favoritos = [
+            [
+                'id' => 1,
+                'titulo' => 'Departamento Magisterio 202',
+                'ubicacion' => 'Calle Magisterio 123, Sector A',
+                'precio' => 150000,
+                'habitaciones' => 3,
+                'banos' => 2,
+                'area_total' => 120,
+                'estado' => 'disponible',
+                'imagen_principal' => null,
+                'fecha_guardado' => '2025-07-20'
+            ],
+            [
+                'id' => 2,
+                'titulo' => 'Departamento Lima 305',
+                'ubicacion' => 'Av. Lima 305, Sector B',
+                'precio' => 180000,
+                'habitaciones' => 3,
+                'banos' => 2,
+                'area_total' => 140,
+                'estado' => 'disponible',
+                'imagen_principal' => null,
+                'fecha_guardado' => '2025-07-18'
+            ],
+            [
+                'id' => 3,
+                'titulo' => 'Departamento San Juan 401',
+                'ubicacion' => 'Av. San Juan 401, Sector C',
+                'precio' => 200000,
+                'habitaciones' => 4,
+                'banos' => 3,
+                'area_total' => 160,
+                'estado' => 'disponible',
+                'imagen_principal' => null,
+                'fecha_guardado' => '2025-07-15'
+            ]
+        ];
+
+        return Inertia::render('Cliente/Favoritos', [
+            'favoritos' => $favoritos
+        ]);
     }
 }

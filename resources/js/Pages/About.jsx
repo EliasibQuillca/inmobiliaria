@@ -1,10 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
-import Layout from '@/components/layout/Layout';
+import PublicLayout from '@/Layouts/PublicLayout';
 
 export default function About({ auth }) {
     return (
-        <Layout auth={auth}>
-            <Head title="Nosotros - Inmobiliaria Cusco" />
+        <PublicLayout auth={auth}>
+            <Head title="Nosotros - Inmobiliaria" />
             <div className="min-h-screen bg-white">
                 {/* Hero de Nosotros */}
                 <div className="relative mb-16 mt-8">
@@ -300,6 +300,6 @@ export default function About({ auth }) {
                     </div>
                 </section>
             </div>
-        </Layout>
+        </PublicLayout>
     );
 }
