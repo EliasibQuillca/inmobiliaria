@@ -19,27 +19,18 @@ class PropiedadController extends Controller
         $asesor = Auth::user()->asesor;
 
         // Construcción de la consulta base
-        $query = Departamento::with(['imagenes'])
+        $query = Departamento::with(['imagenes', 'propietario'])
             ->select([
-                'id', 'codigo', 'tipo_propiedad', 'habitaciones', 'banos',
-                'area_construida', 'precio', 'estado', 'descripcion',
-                'direccion', 'piso', 'numero', 'vista', 'amoblado'
+                'id', 'codigo', 'direccion', 'precio', 'estado', 'propietario_id',
+                'created_at', 'updated_at'
             ]);
 
-        // Filtros
+        // Filtros básicos - solo usando columnas que existen
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         } else {
             // Por defecto mostrar solo disponibles
             $query->where('estado', 'disponible');
-        }
-
-        if ($request->filled('tipo_propiedad')) {
-            $query->where('tipo_propiedad', $request->tipo_propiedad);
-        }
-
-        if ($request->filled('habitaciones')) {
-            $query->where('habitaciones', $request->habitaciones);
         }
 
         if ($request->filled('precio_min')) {
@@ -54,7 +45,6 @@ class PropiedadController extends Controller
             $busqueda = $request->busqueda;
             $query->where(function($q) use ($busqueda) {
                 $q->where('codigo', 'like', "%{$busqueda}%")
-                  ->orWhere('descripcion', 'like', "%{$busqueda}%")
                   ->orWhere('direccion', 'like', "%{$busqueda}%");
             });
         }
@@ -80,15 +70,8 @@ class PropiedadController extends Controller
         return Inertia::render('Asesor/Propiedades', [
             'propiedades' => $propiedades,
             'estadisticas' => $estadisticas,
-            'filtros' => $request->only(['estado', 'tipo_propiedad', 'habitaciones', 'precio_min', 'precio_max', 'busqueda']),
+            'filtros' => $request->only(['estado', 'precio_min', 'precio_max', 'busqueda']),
             'cotizacionesAsesor' => $cotizacionesAsesor,
-            'tiposPropiedad' => [
-                'apartamento' => 'Apartamento',
-                'casa' => 'Casa',
-                'penthouse' => 'Penthouse',
-                'estudio' => 'Estudio',
-                'duplex' => 'Dúplex'
-            ]
         ]);
     }
 
@@ -99,8 +82,8 @@ class PropiedadController extends Controller
     {
         $asesor = Auth::user()->asesor;
 
-        // Cargar la propiedad con todas sus relaciones
-        $departamento->load(['imagenes', 'atributos']);
+        // Cargar la propiedad con todas sus relaciones disponibles
+        $departamento->load(['imagenes']);
 
         // Verificar si el asesor ha cotizado esta propiedad
         $haCotizado = Cotizacion::where('asesor_id', $asesor->id)
@@ -114,11 +97,9 @@ class PropiedadController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Obtener propiedades similares
+        // Obtener propiedades similares basadas en precio
         $propiedadesSimilares = Departamento::with('imagenes')
             ->where('id', '!=', $departamento->id)
-            ->where('tipo_propiedad', $departamento->tipo_propiedad)
-            ->where('habitaciones', $departamento->habitaciones)
             ->where('estado', 'disponible')
             ->whereBetween('precio', [
                 $departamento->precio * 0.8,
@@ -142,13 +123,13 @@ class PropiedadController extends Controller
     {
         $query = Departamento::query()
             ->where('estado', 'disponible')
-            ->select('id', 'codigo', 'tipo_propiedad', 'habitaciones', 'precio');
+            ->select('id', 'codigo', 'direccion', 'precio');
 
         if ($request->filled('q')) {
             $q = $request->q;
             $query->where(function($query) use ($q) {
                 $query->where('codigo', 'like', "%{$q}%")
-                      ->orWhere('tipo_propiedad', 'like', "%{$q}%");
+                      ->orWhere('direccion', 'like', "%{$q}%");
             });
         }
 

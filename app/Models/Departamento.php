@@ -65,12 +65,34 @@ class Departamento extends Model
 
     public function reservas()
     {
-        return $this->hasMany(Reserva::class, 'departamento_id');
+        // Las reservas están relacionadas a través de cotizaciones
+        return $this->hasManyThrough(
+            Reserva::class,    // Modelo final
+            Cotizacion::class, // Modelo intermedio
+            'departamento_id', // Foreign key en cotizaciones
+            'cotizacion_id',   // Foreign key en reservas
+            'id',              // Local key en departamentos
+            'id'               // Local key en cotizaciones
+        );
     }
 
     public function ventas()
     {
-        return $this->hasMany(Venta::class, 'departamento_id');
+        // RELACIÓN TEMPORAL DESHABILITADA - NECESITA CORRECCIÓN DE ESTRUCTURA
+        // Las ventas están relacionadas a través de: Departamento -> Cotizaciones -> Reservas -> Ventas
+        // Por ahora retornamos una colección vacía para evitar errores SQL
+        return collect();
+        
+        /* TODO: Implementar correctamente cuando se defina la estructura final
+        return $this->hasManyThrough(
+            Venta::class,      
+            Reserva::class,    
+            'cotizacion_id',   
+            'reserva_id',      
+            'id',              
+            'id'               
+        );
+        */
     }
 
     public function atributos()

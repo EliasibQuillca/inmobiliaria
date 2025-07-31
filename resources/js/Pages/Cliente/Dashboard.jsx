@@ -101,7 +101,7 @@ export default function ClienteDashboard({ auth }) {
                                 </p>
                             </div>
                             <Link
-                                href="/public"
+                                href="/catalogo"
                                 className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm"
                             >
                                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,7 +242,7 @@ export default function ClienteDashboard({ auth }) {
                         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                             {/* Explorar Departamentos */}
                             <Link
-                                href="/public"
+                                href="/catalogo"
                                 className="group flex items-center p-5 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-200 transform hover:scale-105"
                             >
                                 <div className="flex-shrink-0 bg-blue-600 rounded-md p-3 group-hover:bg-blue-700 transition-colors duration-200">

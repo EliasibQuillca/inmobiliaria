@@ -104,6 +104,7 @@ Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->gr
 
     // === FAVORITOS ===
     Route::get('/favoritos', [App\Http\Controllers\Cliente\DepartamentoController::class, 'favoritos'])->name('favoritos');
+    Route::post('/favoritos/toggle', [App\Http\Controllers\Cliente\DepartamentoController::class, 'toggleFavorito'])->name('favoritos.toggle');
 
     // === SOLICITUDES ===
     Route::get('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('solicitudes');

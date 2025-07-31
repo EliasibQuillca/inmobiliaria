@@ -22,6 +22,9 @@ class Cotizacion extends Model
         'estado',
         'notas',
         'condiciones',
+        'tipo_solicitud',
+        'mensaje_solicitud',
+        'telefono_contacto',
     ];
 
     protected $casts = [

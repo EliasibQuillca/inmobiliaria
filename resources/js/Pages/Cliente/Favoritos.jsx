@@ -1,8 +1,32 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
 export default function ClienteFavoritos({ auth, favoritos }) {
+    const [favoritosLocales, setFavoritosLocales] = useState(favoritos);
+
+    // Función para quitar de favoritos
+    const quitarFavorito = async (departamentoId) => {
+        try {
+            await router.post(route('cliente.favoritos.toggle'), {
+                departamento_id: departamentoId
+            }, {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Actualizar estado local
+                    setFavoritosLocales(prevFavoritos => 
+                        prevFavoritos.filter(fav => fav.id !== departamentoId)
+                    );
+                },
+                onError: (errors) => {
+                    console.error('Error al quitar favorito:', errors);
+                }
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
     // Formato de moneda
     const formatPrecio = (precio) => {
         return new Intl.NumberFormat('es-PE', {
@@ -43,7 +67,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                             </div>
                             <div className="flex space-x-3">
                                 <Link
-                                    href="/cliente/dashboard"
+                                    href={route('cliente.dashboard')}
                                     className="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm"
                                 >
                                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +76,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                     Mi Panel
                                 </Link>
                                 <Link
-                                    href="/catalogo"
+                                    href={route('catalogo.index')}
                                     className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm"
                                 >
                                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +103,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                             Total Favoritos
                                         </p>
                                         <p className="text-2xl font-bold text-gray-900">
-                                            {favoritos.length}
+                                            {favoritosLocales.length}
                                         </p>
                                     </div>
                                 </div>
@@ -99,7 +123,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                             Precio Promedio
                                         </p>
                                         <p className="text-2xl font-bold text-gray-900">
-                                            {favoritos.length > 0 ? formatPrecio(favoritos.reduce((sum, fav) => sum + fav.precio, 0) / favoritos.length) : 'S/ 0'}
+                                            {favoritosLocales.length > 0 ? formatPrecio(favoritosLocales.reduce((sum, fav) => sum + fav.precio, 0) / favoritosLocales.length) : 'S/ 0'}
                                         </p>
                                     </div>
                                 </div>
@@ -119,7 +143,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                             Área Promedio
                                         </p>
                                         <p className="text-2xl font-bold text-gray-900">
-                                            {favoritos.length > 0 ? Math.round(favoritos.reduce((sum, fav) => sum + fav.area_total, 0) / favoritos.length) : '0'}m²
+                                            {favoritosLocales.length > 0 ? Math.round(favoritosLocales.reduce((sum, fav) => sum + fav.area_total, 0) / favoritosLocales.length) : '0'}m²
                                         </p>
                                     </div>
                                 </div>
@@ -128,9 +152,9 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                     </div>
 
                     {/* Favoritos Grid */}
-                    {favoritos.length > 0 ? (
+                    {favoritosLocales.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                            {favoritos.map((favorito) => (
+                            {favoritosLocales.map((favorito) => (
                                 <div key={favorito.id} className="group bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
                                     {/* Imagen */}
                                     <div className="relative aspect-w-16 aspect-h-9 bg-gray-200">
@@ -155,7 +179,11 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                         </div>
                                         {/* Botón de eliminar favorito */}
                                         <div className="absolute top-4 right-4">
-                                            <button className="bg-white rounded-full p-2 shadow-md hover:bg-red-50 hover:text-red-600 transition-colors duration-200">
+                                            <button 
+                                                onClick={() => quitarFavorito(favorito.id)}
+                                                className="bg-white rounded-full p-2 shadow-md hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+                                                title="Quitar de favoritos"
+                                            >
                                                 <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
                                                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                                 </svg>
@@ -214,13 +242,13 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                         {/* Botones de acción */}
                                         <div className="flex space-x-3">
                                             <Link
-                                                href={`/catalogo/${favorito.id}`}
+                                                href={route('catalogo.show', favorito.id)}
                                                 className="flex-1 bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
                                             >
                                                 Ver Detalles
                                             </Link>
                                             <Link
-                                                href={`/cliente/solicitudes/crear?departamento=${favorito.id}`}
+                                                href={route('cliente.solicitudes.create') + '?departamento=' + favorito.id}
                                                 className="flex-1 bg-green-600 text-white text-center py-3 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium"
                                             >
                                                 Solicitar Info
@@ -246,7 +274,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                 Explora nuestro catálogo de departamentos y guarda tus favoritos para encontrarlos fácilmente después.
                             </p>
                             <Link
-                                href="/catalogo"
+                                href={route('catalogo.index')}
                                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
                             >
                                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

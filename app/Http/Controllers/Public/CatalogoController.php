@@ -19,24 +19,15 @@ class CatalogoController extends Controller
      */
     public function index(Request $request)
     {
-        // Construcción de la consulta base
-        $query = Departamento::with(['imagenes', 'asesor.usuario'])
+        // Construcción de la consulta base - usando solo las columnas que existen
+        $query = Departamento::with(['imagenes'])
             ->where('estado', 'disponible')
             ->select([
-                'id', 'codigo', 'tipo_propiedad', 'habitaciones', 'banos',
-                'area_construida', 'precio', 'descripcion', 'direccion',
-                'piso', 'numero', 'vista', 'amoblado', 'asesor_id'
+                'id', 'codigo', 'direccion', 'precio', 'estado', 
+                'propietario_id', 'created_at', 'updated_at'
             ]);
 
-        // Filtros
-        if ($request->filled('tipo_propiedad')) {
-            $query->where('tipo_propiedad', $request->tipo_propiedad);
-        }
-
-        if ($request->filled('habitaciones')) {
-            $query->where('habitaciones', $request->habitaciones);
-        }
-
+                // Filtros básicos - solo usando columnas que existen
         if ($request->filled('precio_min')) {
             $query->where('precio', '>=', $request->precio_min);
         }
@@ -49,12 +40,11 @@ class CatalogoController extends Controller
             $busqueda = $request->busqueda;
             $query->where(function($q) use ($busqueda) {
                 $q->where('codigo', 'like', "%{$busqueda}%")
-                  ->orWhere('descripcion', 'like', "%{$busqueda}%")
                   ->orWhere('direccion', 'like', "%{$busqueda}%");
             });
         }
 
-        // Ordenamiento
+        // Ordenamiento básico
         $ordenamiento = $request->get('orden', 'recientes');
         switch ($ordenamiento) {
             case 'precio_asc':
@@ -63,14 +53,23 @@ class CatalogoController extends Controller
             case 'precio_desc':
                 $query->orderBy('precio', 'desc');
                 break;
-            case 'habitaciones':
-                $query->orderBy('habitaciones', 'desc');
-                break;
             default:
                 $query->orderBy('created_at', 'desc');
         }
 
         $departamentos = $query->paginate(12);
+
+        // Para clientes autenticados, agregar información de favoritos
+        if (Auth::check() && Auth::user()->role === 'cliente') {
+            $cliente = Auth::user()->cliente;
+            if ($cliente) {
+                $favoritosIds = $cliente->favoritos()->pluck('departamento_id')->toArray();
+                
+                foreach ($departamentos as $departamento) {
+                    $departamento->es_favorito = in_array($departamento->id, $favoritosIds);
+                }
+            }
+        }
 
         // Obtener estadísticas generales
         $estadisticas = [
@@ -82,14 +81,7 @@ class CatalogoController extends Controller
         return Inertia::render('Public/Catalogo', [
             'departamentos' => $departamentos,
             'estadisticas' => $estadisticas,
-            'filtros' => $request->only(['tipo_propiedad', 'habitaciones', 'precio_min', 'precio_max', 'busqueda', 'orden']),
-            'tiposPropiedad' => [
-                'apartamento' => 'Apartamento',
-                'casa' => 'Casa',
-                'penthouse' => 'Penthouse',
-                'estudio' => 'Estudio',
-                'duplex' => 'Dúplex'
-            ]
+            'filtros' => $request->only(['precio_min', 'precio_max', 'busqueda', 'orden']),
         ]);
     }
 
@@ -106,11 +98,10 @@ class CatalogoController extends Controller
         // Cargar relaciones necesarias
         $departamento->load(['imagenes', 'atributos', 'asesor.usuario']);
 
-        // Obtener departamentos similares
+        // Obtener departamentos similares basados solo en precio
         $departamentosSimilares = Departamento::with('imagenes')
             ->where('id', '!=', $departamento->id)
             ->where('estado', 'disponible')
-            ->where('tipo_propiedad', $departamento->tipo_propiedad)
             ->whereBetween('precio', [
                 $departamento->precio * 0.8,
                 $departamento->precio * 1.2

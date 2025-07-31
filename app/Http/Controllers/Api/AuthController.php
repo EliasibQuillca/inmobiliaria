@@ -25,7 +25,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->clave_hash)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales son incorrectas.'],
             ]);
@@ -41,10 +41,10 @@ class AuthController extends Controller
             'token' => $token,
             'user' => [
                 'id' => $user->id,
-                'nombre' => $user->nombre,
+                'name' => $user->name,
                 'email' => $user->email,
-                'telefono' => $user->telefono,
-                'rol' => $user->rol,
+                'role' => $user->role,
+                'created_at' => $user->created_at,
             ],
         ]);
     }
@@ -132,22 +132,22 @@ class AuthController extends Controller
         
         $userData = [
             'id' => $user->id,
-            'nombre' => $user->nombre,
+            'name' => $user->name,
             'email' => $user->email,
-            'telefono' => $user->telefono,
-            'rol' => $user->rol,
+            'role' => $user->role,
         ];
 
         // Agregar información específica según el rol
-        if ($user->esCliente() && $user->cliente) {
+        if ($user->role === 'cliente' && $user->cliente) {
             $userData['cliente'] = [
                 'dni' => $user->cliente->dni,
                 'direccion' => $user->cliente->direccion,
-                'fecha_registro' => $user->cliente->fecha_registro,
+                'telefono' => $user->cliente->telefono,
             ];
-        } elseif ($user->esAsesor() && $user->asesor) {
+        } elseif ($user->role === 'asesor' && $user->asesor) {
             $userData['asesor'] = [
                 'fecha_contrato' => $user->asesor->fecha_contrato,
+                'especialidad' => $user->asesor->especialidad,
             ];
         }
 

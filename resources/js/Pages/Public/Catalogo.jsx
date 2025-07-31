@@ -3,19 +3,19 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
 
 export default function Catalogo({
-    departamentos,
-    estadisticas,
-    filtros,
-    tiposPropiedad,
+    departamentos = { data: [], links: [] },
+    estadisticas = {},
+    filtros = {},
+    tiposPropiedad = {},
     auth
 }) {
     const [filtrosLocales, setFiltrosLocales] = useState({
-        tipo_propiedad: filtros.tipo_propiedad || '',
-        habitaciones: filtros.habitaciones || '',
-        precio_min: filtros.precio_min || '',
-        precio_max: filtros.precio_max || '',
-        busqueda: filtros.busqueda || '',
-        orden: filtros.orden || 'recientes',
+        tipo_propiedad: (filtros && filtros.tipo_propiedad) || '',
+        habitaciones: (filtros && filtros.habitaciones) || '',
+        precio_min: (filtros && filtros.precio_min) || '',
+        precio_max: (filtros && filtros.precio_max) || '',
+        busqueda: (filtros && filtros.busqueda) || '',
+        orden: (filtros && filtros.orden) || 'recientes',
     });
 
     const [mostrarModalContacto, setMostrarModalContacto] = useState(false);
@@ -58,6 +58,34 @@ export default function Catalogo({
         }).format(amount);
     };
 
+    const toggleFavorito = async (departamentoId) => {
+        if (!auth.user || auth.user.role !== 'cliente') {
+            return;
+        }
+
+        try {
+            await router.post(route('cliente.favoritos.toggle'), {
+                departamento_id: departamentoId
+            }, {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Actualizar el estado local del departamento
+                    const departamentosActualizados = departamentos.data.map(dept => {
+                        if (dept.id === departamentoId) {
+                            return { ...dept, es_favorito: !dept.es_favorito };
+                        }
+                        return dept;
+                    });
+                    // No podemos actualizar directamente el estado porque viene de props
+                    // La actualización se manejará con preserveState
+                }
+            });
+        } catch (error) {
+            console.error('Error al actualizar favorito:', error);
+        }
+    };
+
     const abrirModalContacto = (departamento) => {
         setDepartamentoSeleccionado(departamento);
         setData(prev => ({
@@ -97,21 +125,62 @@ export default function Catalogo({
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                                 <div className="bg-blue-700 bg-opacity-50 rounded-lg p-4">
-                                    <div className="text-3xl font-bold">{estadisticas.total_disponibles}</div>
+                                    <div className="text-3xl font-bold">{estadisticas.total_disponibles || 0}</div>
                                     <div className="text-blue-100">Propiedades Disponibles</div>
                                 </div>
                                 <div className="bg-blue-700 bg-opacity-50 rounded-lg p-4">
-                                    <div className="text-3xl font-bold">{formatCurrency(estadisticas.precio_min)}</div>
+                                    <div className="text-3xl font-bold">{estadisticas.precio_min ? formatCurrency(estadisticas.precio_min) : 'N/A'}</div>
                                     <div className="text-blue-100">Desde</div>
                                 </div>
                                 <div className="bg-blue-700 bg-opacity-50 rounded-lg p-4">
-                                    <div className="text-3xl font-bold">{formatCurrency(estadisticas.precio_max)}</div>
+                                    <div className="text-3xl font-bold">{estadisticas.precio_max ? formatCurrency(estadisticas.precio_max) : 'N/A'}</div>
                                     <div className="text-blue-100">Hasta</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                {/* Banner especial para clientes autenticados */}
+                {auth.user && auth.user.role === 'cliente' && (
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        <div className="bg-gradient-to-r from-green-500 to-blue-600 rounded-lg shadow-lg p-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                    <div className="bg-white bg-opacity-20 rounded-full p-3">
+                                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </div>
+                                    <div className="text-white">
+                                        <h3 className="text-lg font-semibold">¡Hola, {auth.user.name}!</h3>
+                                        <p className="text-green-100">Gestiona tus favoritos, solicitudes y más desde tu panel personal</p>
+                                    </div>
+                                </div>
+                                <div className="flex space-x-3">
+                                    <Link
+                                        href={route('cliente.dashboard')}
+                                        className="bg-white text-green-600 px-4 py-2 rounded-md font-semibold hover:bg-gray-100 transition-colors duration-200 flex items-center"
+                                    >
+                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                        </svg>
+                                        Mi Panel
+                                    </Link>
+                                    <Link
+                                        href={route('cliente.favoritos')}
+                                        className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-md font-semibold hover:bg-opacity-30 transition-colors duration-200 flex items-center"
+                                    >
+                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                        Favoritos
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     {/* Filtros */}
@@ -126,7 +195,7 @@ export default function Catalogo({
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="">Todos los tipos</option>
-                                    {Object.entries(tiposPropiedad).map(([key, label]) => (
+                                    {Object.entries(tiposPropiedad || {}).map(([key, label]) => (
                                         <option key={key} value={key}>{label}</option>
                                     ))}
                                 </select>
@@ -288,6 +357,25 @@ export default function Catalogo({
                                         >
                                             Ver Detalles
                                         </Link>
+                                        
+                                        {/* Botón de favoritos para clientes autenticados */}
+                                        {auth.user && auth.user.role === 'cliente' && (
+                                            <button
+                                                onClick={() => toggleFavorito(departamento.id)}
+                                                className="px-3 py-2 rounded-lg text-sm font-medium border transition-colors"
+                                                title={departamento.es_favorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                                            >
+                                                <svg 
+                                                    className={`w-4 h-4 ${departamento.es_favorito ? 'text-red-500 fill-current' : 'text-gray-400'}`} 
+                                                    fill={departamento.es_favorito ? 'currentColor' : 'none'} 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                        
                                         <button
                                             onClick={() => abrirModalContacto(departamento)}
                                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
@@ -334,12 +422,38 @@ export default function Catalogo({
                             <p className="text-gray-500 mb-6">
                                 Intenta ajustar los filtros para ver más resultados.
                             </p>
-                            <button
-                                onClick={limpiarFiltros}
-                                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
-                            >
-                                Limpiar Filtros
-                            </button>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                                <button
+                                    onClick={limpiarFiltros}
+                                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+                                >
+                                    Limpiar Filtros
+                                </button>
+                                
+                                {/* Opciones adicionales para clientes autenticados */}
+                                {auth.user && auth.user.role === 'cliente' && (
+                                    <>
+                                        <Link
+                                            href={route('cliente.solicitudes')}
+                                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100"
+                                        >
+                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                            Crear Solicitud
+                                        </Link>
+                                        <Link
+                                            href={route('cliente.asesores')}
+                                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-green-600 bg-green-50 border border-green-200 rounded-md hover:bg-green-100"
+                                        >
+                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                            Ver Asesores
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
