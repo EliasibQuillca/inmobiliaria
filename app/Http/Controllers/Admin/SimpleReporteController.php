@@ -3,8 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Venta;
+use App\Models\Asesor;
+use App\Models\Departamento;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class SimpleReporteController extends Controller
@@ -17,112 +22,163 @@ class SimpleReporteController extends Controller
 
             switch ($tipo) {
                 case 'ventas':
+                    // Consultar datos reales de ventas
+                    $totalVentas = Venta::whereBetween('created_at', [$fechaInicio, $fechaFin])->sum('monto_final') ?? 0;
+                    $numeroVentas = Venta::whereBetween('created_at', [$fechaInicio, $fechaFin])->count();
+                    $ventaPromedio = $numeroVentas > 0 ? $totalVentas / $numeroVentas : 0;
+
+                    // Ventas por asesor (datos reales)
+                    $ventasPorAsesor = DB::table('ventas')
+                        ->join('reservas', 'ventas.reserva_id', '=', 'reservas.id')
+                        ->join('cotizaciones', 'reservas.cotizacion_id', '=', 'cotizaciones.id')
+                        ->join('asesores', 'cotizaciones.asesor_id', '=', 'asesores.id')
+                        ->join('users', 'asesores.usuario_id', '=', 'users.id')
+                        ->whereBetween('ventas.created_at', [$fechaInicio, $fechaFin])
+                        ->select(
+                            'users.name as nombre',
+                            DB::raw('COUNT(ventas.id) as ventas'),
+                            DB::raw('SUM(ventas.monto_final) as total'),
+                            DB::raw('SUM(ventas.monto_final * 0.05) as comision')
+                        )
+                        ->groupBy('asesores.id', 'users.name')
+                        ->get()
+                        ->map(function ($item) {
+                            return [
+                                'nombre' => $item->nombre,
+                                'ventas' => (int) $item->ventas,
+                                'total' => (float) $item->total,
+                                'comision' => (float) $item->comision
+                            ];
+                        })->toArray();
+
                     return response()->json([
                         'resumen' => [
-                            'total_ventas' => 920000,
-                            'numero_ventas' => 6,
-                            'venta_promedio' => 153333,
+                            'total_ventas' => (float) $totalVentas,
+                            'numero_ventas' => $numeroVentas,
+                            'venta_promedio' => round($ventaPromedio, 2),
                             'periodo' => Carbon::parse($fechaInicio)->format('d/m/Y') . ' - ' . Carbon::parse($fechaFin)->format('d/m/Y')
                         ],
-                        'ventas_por_asesor' => [
-                            ['nombre' => 'Juan Pérez', 'ventas' => 3, 'total' => 450000, 'comision' => 22500],
-                            ['nombre' => 'María García', 'ventas' => 2, 'total' => 320000, 'comision' => 16000],
-                            ['nombre' => 'Carlos López', 'ventas' => 1, 'total' => 150000, 'comision' => 7500]
-                        ],
-                        'ventas_por_mes' => [
-                            ['mes' => 'Jun 2025', 'ventas' => 2],
-                            ['mes' => 'Jul 2025', 'ventas' => 4]
-                        ],
-                        'ventas_detalle' => [
-                            [
-                                'id' => 1,
-                                'fecha' => '2025-07-24',
-                                'cliente' => 'Ana Martínez',
-                                'asesor' => 'Juan Pérez',
-                                'departamento' => 'Departamento Premium Vista Mar',
-                                'precio' => 150000,
-                                'comision' => 7500,
-                                'estado' => 'completada'
-                            ]
-                        ]
+                        'ventas_por_asesor' => $ventasPorAsesor,
+                        'ventas_por_mes' => [],
+                        'ventas_detalle' => []
                     ]);
 
                 case 'asesores':
+                    // Datos reales de asesores
+                    $totalAsesores = Asesor::count();
+                    $asesoresActivos = Asesor::whereHas('usuario', function($q) {
+                        $q->where('estado', 'activo');
+                    })->count();
+
+                    $mejorAsesor = DB::table('ventas')
+                        ->join('reservas', 'ventas.reserva_id', '=', 'reservas.id')
+                        ->join('cotizaciones', 'reservas.cotizacion_id', '=', 'cotizaciones.id')
+                        ->join('asesores', 'cotizaciones.asesor_id', '=', 'asesores.id')
+                        ->join('users', 'asesores.usuario_id', '=', 'users.id')
+                        ->select('users.name as nombre', DB::raw('SUM(ventas.monto_final) as total_vendido'))
+                        ->groupBy('asesores.id', 'users.name')
+                        ->orderBy('total_vendido', 'desc')
+                        ->first();
+
+                    $asesores = DB::table('asesores')
+                        ->join('users', 'asesores.usuario_id', '=', 'users.id')
+                        ->leftJoin('cotizaciones', 'asesores.id', '=', 'cotizaciones.asesor_id')
+                        ->leftJoin('reservas', 'cotizaciones.id', '=', 'reservas.cotizacion_id')
+                        ->leftJoin('ventas', 'reservas.id', '=', 'ventas.reserva_id')
+                        ->select(
+                            'users.name as nombre',
+                            'users.email',
+                            DB::raw('COUNT(DISTINCT ventas.id) as ventas'),
+                            DB::raw('COALESCE(SUM(ventas.monto_final), 0) as total_vendido'),
+                            DB::raw('COALESCE(SUM(ventas.monto_final * 0.05), 0) as comisiones')
+                        )
+                        ->groupBy('asesores.id', 'users.name', 'users.email')
+                        ->get()
+                        ->map(function ($item) {
+                            return [
+                                'nombre' => $item->nombre,
+                                'email' => $item->email,
+                                'ventas' => (int) $item->ventas,
+                                'total_vendido' => (float) $item->total_vendido,
+                                'comisiones' => (float) $item->comisiones
+                            ];
+                        })->toArray();
+
                     return response()->json([
                         'resumen' => [
-                            'total_asesores' => 3,
-                            'asesores_activos' => 3,
-                            'mejor_asesor' => ['nombre' => 'Juan Pérez']
+                            'total_asesores' => $totalAsesores,
+                            'asesores_activos' => $asesoresActivos,
+                            'mejor_asesor' => $mejorAsesor ? ['nombre' => $mejorAsesor->nombre] : ['nombre' => 'N/A']
                         ],
-                        'asesores' => [
-                            [
-                                'nombre' => 'Juan Pérez',
-                                'email' => 'juan@inmobiliaria.com',
-                                'ventas' => 3,
-                                'total_vendido' => 450000,
-                                'comisiones' => 22500
-                            ],
-                            [
-                                'nombre' => 'María García',
-                                'email' => 'maria@inmobiliaria.com',
-                                'ventas' => 2,
-                                'total_vendido' => 320000,
-                                'comisiones' => 16000
-                            ]
-                        ]
+                        'asesores' => $asesores
                     ]);
 
                 case 'propiedades':
+                    // Estadísticas reales de propiedades
+                    $totalPropiedades = Departamento::count();
+                    $disponibles = Departamento::where('estado', 'disponible')->count();
+                    $vendidas = Departamento::where('estado', 'vendido')->count();
+                    $reservadas = Departamento::where('estado', 'reservado')->count();
+
+                    // Rangos de precios reales
+                    $rangos = [
+                        'menos_200k' => Departamento::where('precio', '<', 200000)->count(),
+                        '200k_400k' => Departamento::whereBetween('precio', [200000, 400000])->count(),
+                        '400k_600k' => Departamento::whereBetween('precio', [400000, 600000])->count(),
+                        'mas_600k' => Departamento::where('precio', '>', 600000)->count()
+                    ];
+
                     return response()->json([
                         'estadisticas' => [
-                            'total_propiedades' => 15,
-                            'disponibles' => 8,
-                            'vendidas' => 5,
-                            'reservadas' => 2
+                            'total_propiedades' => $totalPropiedades,
+                            'disponibles' => $disponibles,
+                            'vendidas' => $vendidas,
+                            'reservadas' => $reservadas
                         ],
-                        'rango_precios' => [
-                            'menos_200k' => 5,
-                            '200k_400k' => 6,
-                            '400k_600k' => 3,
-                            'mas_600k' => 1
-                        ]
+                        'rango_precios' => $rangos
                     ]);
 
                 case 'usuarios':
+                    // Estadísticas reales de usuarios
+                    $totalUsuarios = User::count();
+                    $usuariosActivos = User::where('estado', 'activo')->count();
+                    $asesores = User::where('role', 'asesor')->count();
+                    $clientes = User::where('role', 'cliente')->count();
+                    $administradores = User::where('role', 'administrador')->count();
+
                     return response()->json([
                         'estadisticas' => [
-                            'total_usuarios' => 6,
-                            'usuarios_activos' => 6,
-                            'asesores' => 2,
-                            'clientes' => 3,
-                            'administradores' => 1
+                            'total_usuarios' => $totalUsuarios,
+                            'usuarios_activos' => $usuariosActivos,
+                            'asesores' => $asesores,
+                            'clientes' => $clientes,
+                            'administradores' => $administradores
                         ],
-                        'usuarios' => [
-                            [
-                                'id' => 1,
-                                'nombre' => 'Administrador',
-                                'email' => 'admin@inmobiliaria.com',
-                                'role' => 'administrador',
-                                'activo' => true,
-                                'fecha_registro' => '2025-01-01'
-                            ]
-                        ]
+                        'usuarios' => []
                     ]);
 
                 case 'financiero':
+                    // Datos financieros reales
+                    $ingresosTotales = Venta::sum('monto_final') ?? 0;
+                    $comisionesTotales = $ingresosTotales * 0.05; // 5% de comisión promedio
+                    $margenNeto = $ingresosTotales - $comisionesTotales;
+                    $numeroTransacciones = Venta::count();
+                    $ticketPromedio = $numeroTransacciones > 0 ? $ingresosTotales / $numeroTransacciones : 0;
+                    $roi = $ingresosTotales > 0 ? ($margenNeto / $ingresosTotales) * 100 : 0;
+
                     return response()->json([
                         'resumen' => [
-                            'ingresos_totales' => 920000,
-                            'comisiones_totales' => 46000,
-                            'margen_neto' => 874000,
-                            'roi' => 95.0,
-                            'numero_transacciones' => 6,
-                            'ticket_promedio' => 153333
+                            'ingresos_totales' => (float) $ingresosTotales,
+                            'comisiones_totales' => (float) $comisionesTotales,
+                            'margen_neto' => (float) $margenNeto,
+                            'roi' => round($roi, 1),
+                            'numero_transacciones' => $numeroTransacciones,
+                            'ticket_promedio' => round($ticketPromedio, 2)
                         ],
                         'desglose' => [
-                            'ingresos_por_ventas' => 920000,
-                            'gastos_comisiones' => 46000,
-                            'utilidad_neta' => 874000
+                            'ingresos_por_ventas' => (float) $ingresosTotales,
+                            'gastos_comisiones' => (float) $comisionesTotales,
+                            'utilidad_neta' => (float) $margenNeto
                         ]
                     ]);
 
