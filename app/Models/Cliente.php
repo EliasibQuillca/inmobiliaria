@@ -52,6 +52,11 @@ class Cliente extends Model
         return $this->belongsTo(Asesor::class, 'asesor_id');
     }
 
+    public function departamentoInteres()
+    {
+        return $this->belongsTo(Departamento::class, 'departamento_interes');
+    }
+
     public function favoritos()
     {
         return $this->belongsToMany(Departamento::class, 'favoritos', 'cliente_id', 'departamento_id')

@@ -127,6 +127,12 @@ export default function Solicitudes({ auth, clientesNuevos = [], departamentosIn
                                                         {cliente.email && <p><strong>Email:</strong> {cliente.email}</p>}
                                                         <p><strong>Contacto por:</strong> {cliente.medio_contacto}</p>
                                                         {cliente.notas_contacto && <p><strong>Notas:</strong> {cliente.notas_contacto}</p>}
+                                                        {cliente.departamentoInteres && (
+                                                            <p><strong>Departamento de Interés:</strong> 
+                                                                {cliente.departamentoInteres?.titulo || cliente.departamentoInteres?.codigo}
+                                                                {cliente.departamentoInteres?.precio && ` - $${Number(cliente.departamentoInteres.precio).toLocaleString()}`}
+                                                            </p>
+                                                        )}
                                                         <p><strong>Fecha:</strong> {new Date(cliente.created_at).toLocaleDateString()}</p>
                                                     </div>
                                                 </div>

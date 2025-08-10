@@ -20,8 +20,8 @@ class SolicitudController extends Controller
     {
         $asesor = Auth::user()->asesor;
 
-        // Clientes que han contactado pero aún no tienen cotización
-        $clientesNuevos = Cliente::with(['usuario', 'cotizaciones'])
+        // Clientes que han contactado pero aún no tienen cotización (con departamento de interés)
+        $clientesNuevos = Cliente::with(['usuario', 'cotizaciones', 'departamentoInteres'])
             ->where('asesor_id', $asesor->id)
             ->whereDoesntHave('cotizaciones')
             ->orderBy('created_at', 'desc')

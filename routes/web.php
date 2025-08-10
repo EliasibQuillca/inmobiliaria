@@ -136,15 +136,10 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('
     // Dashboard del asesor
     Route::get('/dashboard', [\App\Http\Controllers\Asesor\DashboardController::class, 'index'])->name('dashboard');
 
-    // === PERFIL Y CONFIGURACIÓN ===
+    // === PERFIL ===
     Route::get('/perfil', [\App\Http\Controllers\Asesor\PerfilController::class, 'index'])->name('perfil');
     Route::patch('/perfil', [\App\Http\Controllers\Asesor\PerfilController::class, 'update'])->name('perfil.update');
     Route::patch('/perfil/password', [\App\Http\Controllers\Asesor\PerfilController::class, 'updatePassword'])->name('perfil.password.update');
-
-    Route::get('/configuracion', [\App\Http\Controllers\Asesor\ConfiguracionController::class, 'index'])->name('configuracion');
-    Route::patch('/configuracion/notificaciones', [\App\Http\Controllers\Asesor\ConfiguracionController::class, 'updateNotificaciones'])->name('configuracion.notificaciones');
-    Route::patch('/configuracion/horarios', [\App\Http\Controllers\Asesor\ConfiguracionController::class, 'updateHorarios'])->name('configuracion.horarios');
-    Route::patch('/configuracion/comisiones', [\App\Http\Controllers\Asesor\ConfiguracionController::class, 'updateComisiones'])->name('configuracion.comisiones');
 
     // === GESTIÓN DE CLIENTES ===
     Route::resource('clientes', \App\Http\Controllers\Asesor\ClienteController::class);
@@ -165,10 +160,6 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('
     Route::get('/cotizaciones/{cotizacion}/edit', [\App\Http\Controllers\Asesor\CotizacionController::class, 'edit'])->name('cotizaciones.edit');
     Route::patch('/cotizaciones/{cotizacion}', [\App\Http\Controllers\Asesor\CotizacionController::class, 'update'])->name('cotizaciones.update');
 
-    // === PROPIEDADES (DEPARTAMENTOS) ===
-    Route::get('/propiedades', [\App\Http\Controllers\Asesor\PropiedadController::class, 'index'])->name('propiedades');
-    Route::get('/propiedades/{departamento}', [\App\Http\Controllers\Asesor\PropiedadController::class, 'show'])->name('propiedades.show');
-
     // === RESERVAS ===
     Route::get('/reservas', [\App\Http\Controllers\Asesor\ReservaController::class, 'index'])->name('reservas');
     Route::post('/reservas', [\App\Http\Controllers\Asesor\ReservaController::class, 'store'])->name('reservas.store');
@@ -184,11 +175,6 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('
     Route::get('/ventas/{venta}/edit', [\App\Http\Controllers\Asesor\VentaController::class, 'edit'])->name('ventas.edit');
     Route::patch('/ventas/{venta}', [\App\Http\Controllers\Asesor\VentaController::class, 'update'])->name('ventas.update');
     Route::patch('/ventas/{venta}/documentos', [\App\Http\Controllers\Asesor\VentaController::class, 'actualizarDocumentos'])->name('ventas.documentos');
-
-    // === COMISIONES ===
-    Route::get('/comisiones', function () {
-        return Inertia::render('Asesor/Comisiones');
-    })->name('comisiones');
 });
 
 /*
