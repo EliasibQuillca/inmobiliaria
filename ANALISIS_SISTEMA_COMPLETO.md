@@ -536,3 +536,37 @@ El sistema inmobiliario presenta una **arquitectura robusta y funcionalidad comp
 **👨‍💻 Sistema evaluado:** Laravel 11 + React + Inertia.js  
 **🏢 Dominio:** Sistema Inmobiliario CRM  
 **📊 Estado:** ✅ PRODUCCIÓN READY
+
+
+1️⃣ Orden recomendado para depuración
+Administrador
+Es el rol con más permisos y puede crear/editar usuarios, departamentos, etc.
+Si el admin funciona bien, puedes crear y corregir los otros roles desde su panel.
+Asesor
+Es el siguiente en jerarquía, depende de que el admin lo cree correctamente.
+Gestiona clientes, cotizaciones, reservas y ventas.
+Cliente
+Es el usuario final, interactúa con el catálogo, solicitudes y favoritos.
+Depende de que los asesores y admins tengan datos correctos.
+2️⃣ Resumen de roles y funciones en tu sistema
+👤 Cliente
+Registrarse y editar su perfil.
+Ver catálogo de departamentos.
+Enviar solicitudes de información o visitas.
+Agregar/quitar favoritos.
+Ver sus cotizaciones, reservas y compras.
+Recibir notificaciones y respuestas de asesores.
+👨‍💼 Asesor
+Gestionar su perfil.
+Ver y gestionar sus clientes.
+Crear y responder cotizaciones.
+Gestionar reservas y ventas.
+Ver reportes de su actividad.
+Comunicación directa con clientes.
+ 
+Auditar acciones de usuarios.
+3️⃣ Recomendación de flujo de depuración
+Empieza por el Administrador: Asegúrate que puede crear y gestionar asesores y clientes sin errores.
+Sigue con el Asesor: Verifica que los asesores creados por el admin pueden operar normalmente (clientes, cotizaciones, reservas).
+Finaliza con el Cliente: Prueba el flujo de registro, solicitudes, favoritos y compras.
+¿Quieres que te ayude a depurar primero el flujo del administrador y luego seguimos con los otros roles? ¿O prefieres empezar por otro rol?

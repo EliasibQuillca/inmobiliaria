@@ -29,10 +29,6 @@ return new class extends Migration
                 $table->index(['departamento_id', 'tipo', 'orden']);
                 $table->index(['departamento_id', 'activa']);
             });
-
-            echo "✅ Tabla 'imagenes' creada exitosamente.\n";
-        } else {
-            echo "ℹ️ La tabla 'imagenes' ya existe.\n";
         }
     }
 

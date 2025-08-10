@@ -12,18 +12,37 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('cotizaciones', function (Blueprint $table) {
-            $table->decimal('descuento', 5, 2)->nullable()->after('monto');
-            $table->date('fecha_validez')->after('fecha');
-            $table->text('notas')->nullable()->after('estado');
-            $table->text('condiciones')->nullable()->after('notas');
-            $table->dropColumn('tipo');
-            $table->dropColumn('mensaje');
-            $table->dropColumn('telefono');
-            $table->dropColumn('disponibilidad');
-            $table->dropColumn('preferencia_contacto');
-
+            if (!Schema::hasColumn('cotizaciones', 'descuento')) {
+                $table->decimal('descuento', 5, 2)->nullable()->after('monto');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'fecha_validez')) {
+                $table->date('fecha_validez')->after('fecha');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'notas')) {
+                $table->text('notas')->nullable()->after('estado');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'condiciones')) {
+                $table->text('condiciones')->nullable()->after('notas');
+            }
+            if (Schema::hasColumn('cotizaciones', 'tipo')) {
+                $table->dropColumn('tipo');
+            }
+            if (Schema::hasColumn('cotizaciones', 'mensaje')) {
+                $table->dropColumn('mensaje');
+            }
+            if (Schema::hasColumn('cotizaciones', 'telefono')) {
+                $table->dropColumn('telefono');
+            }
+            if (Schema::hasColumn('cotizaciones', 'disponibilidad')) {
+                $table->dropColumn('disponibilidad');
+            }
+            if (Schema::hasColumn('cotizaciones', 'preferencia_contacto')) {
+                $table->dropColumn('preferencia_contacto');
+            }
             // Modificar el enum para añadir 'vencida'
-            $table->dropColumn('estado');
+            if (Schema::hasColumn('cotizaciones', 'estado')) {
+                $table->dropColumn('estado');
+            }
             $table->enum('estado', ['pendiente', 'aprobada', 'rechazada', 'vencida'])->default('pendiente')->after('monto');
         });
     }
