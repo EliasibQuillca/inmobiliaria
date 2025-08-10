@@ -7,6 +7,7 @@ use App\Models\Cliente;
 use App\Models\Cotizacion;
 use App\Models\Departamento;
 use App\Models\User;
+use App\Models\Asesor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -20,19 +21,51 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // En una implementación real, obtendríamos todos los datos del cliente
-        // autenticado desde la base de datos
+        // Obtener el cliente actual
+        $cliente = Cliente::where('usuario_id', Auth::id())->first();
+        
+        $data = [
+            'cliente' => $cliente,
+            'solicitudes' => [],
+            'favoritos' => [],
+            'estadisticas' => [
+                'total_solicitudes' => 0,
+                'solicitudes_pendientes' => 0,
+                'favoritos_count' => 0
+            ]
+        ];
+        
+        if ($cliente) {
+            // Obtener las últimas solicitudes (cotizaciones)
+            $solicitudes = Cotizacion::where('cliente_id', $cliente->id)
+                                   ->orderBy('created_at', 'desc')
+                                   ->with(['departamento', 'asesor.usuario'])
+                                   ->take(5)
+                                   ->get();
+            
+            // Obtener favoritos
+            $favoritos = $cliente->favoritos()->take(3)->get();
+            
+            // Calcular estadísticas
+            $totalSolicitudes = Cotizacion::where('cliente_id', $cliente->id)->count();
+            $solicitudesPendientes = Cotizacion::where('cliente_id', $cliente->id)
+                                              ->where('estado', 'pendiente')
+                                              ->count();
+            $favoritosCount = $cliente->favoritos()->count();
+            
+            $data = [
+                'cliente' => $cliente,
+                'solicitudes' => $solicitudes,
+                'favoritos' => $favoritos,
+                'estadisticas' => [
+                    'total_solicitudes' => $totalSolicitudes,
+                    'solicitudes_pendientes' => $solicitudesPendientes,
+                    'favoritos_count' => $favoritosCount
+                ]
+            ];
+        }
 
-        // Ejemplo:
-        // $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
-        // $solicitudes = Cotizacion::where('cliente_id', $cliente->id)
-        //                         ->orderBy('created_at', 'desc')
-        //                         ->with(['departamento', 'asesor'])
-        //                         ->take(5)
-        //                         ->get();
-        // $favoritos = $cliente->favoritos()->take(3)->get();
-
-        return Inertia::render('Cliente/Dashboard');
+        return Inertia::render('Cliente/Dashboard', $data);
     }
 
     /**
@@ -42,10 +75,13 @@ class DashboardController extends Controller
      */
     public function perfil()
     {
-        // En una implementación real, obtendríamos los datos del cliente
-        // $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
+        // Obtener los datos del cliente autenticado
+        $usuario = Auth::user();
+        $cliente = Cliente::where('usuario_id', Auth::id())->first();
 
         return Inertia::render('Cliente/Perfil', [
+            'usuario' => $usuario,
+            'cliente' => $cliente,
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error')
@@ -64,83 +100,40 @@ class DashboardController extends Controller
         // Validación de datos
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
             'telefono' => 'required|string|max:20',
             'direccion' => 'nullable|string|max:255',
             'dni' => 'nullable|string|max:20',
+            'tipo_propiedad' => 'nullable|string|max:100',
+            'habitaciones_deseadas' => 'nullable|integer|min:1',
+            'presupuesto_min' => 'nullable|numeric|min:0',
+            'presupuesto_max' => 'nullable|numeric|min:0',
+            'zona_preferida' => 'nullable|string|max:255',
         ]);
 
-        // En una implementación real, actualizaríamos los datos del cliente
-        // $user = User::findOrFail(Auth::id());
-        // $user->name = $validated['nombre'];
-        // $user->email = $validated['email'];
-        // $user->save();
-        //
-        // $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
-        // $cliente->telefono = $validated['telefono'];
-        // $cliente->direccion = $validated['direccion'];
-        // $cliente->dni = $validated['dni'];
-        // $cliente->save();
+        // Actualizar datos del usuario
+        $user = User::findOrFail(Auth::id());
+        $user->name = $validated['nombre'];
+        $user->email = $validated['email'];
+        $user->telefono = $validated['telefono'] ?? $user->telefono;
+        $user->save();
+
+        // Actualizar o crear datos del cliente
+        $cliente = Cliente::where('usuario_id', Auth::id())->first();
+        if ($cliente) {
+            $cliente->telefono = $validated['telefono'];
+            $cliente->direccion = $validated['direccion'];
+            $cliente->dni = $validated['dni'] ?? $cliente->dni;
+            $cliente->tipo_propiedad = $validated['tipo_propiedad'] ?? $cliente->tipo_propiedad;
+            $cliente->habitaciones_deseadas = $validated['habitaciones_deseadas'];
+            $cliente->presupuesto_min = $validated['presupuesto_min'];
+            $cliente->presupuesto_max = $validated['presupuesto_max'];
+            $cliente->zona_preferida = $validated['zona_preferida'];
+            $cliente->save();
+        }
 
         return redirect()->route('cliente.perfil')
             ->with('success', 'Perfil actualizado exitosamente.');
-    }
-
-    /**
-     * Mostrar los departamentos favoritos del cliente.
-     *
-     * @return \Inertia\Response
-     */
-    public function favoritos()
-    {
-        // En una implementación real, obtendríamos los favoritos del cliente
-        // $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
-        // $favoritos = $cliente->favoritos()->with(['imagenes'])->paginate(10);
-
-        return Inertia::render('Cliente/Favoritos');
-    }
-
-    /**
-     * Mostrar los asesores asignados al cliente.
-     *
-     * @return \Inertia\Response
-     */
-    public function asesores()
-    {
-        // En una implementación real, obtendríamos los asesores asignados al cliente
-        // $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
-        // $asesores = Asesor::whereHas('cotizaciones', function($query) use ($cliente) {
-        //     $query->where('cliente_id', $cliente->id);
-        // })->distinct()->get();
-
-        return Inertia::render('Cliente/Asesores');
-    }
-
-    /**
-     * Cambiar la contraseña del cliente.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function cambiarPassword(Request $request)
-    {
-        $validated = $request->validate([
-            'current_password' => 'required',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        // En una implementación real, verificaríamos y actualizaríamos la contraseña
-        // $user = User::findOrFail(Auth::id());
-        //
-        // if (!Hash::check($validated['current_password'], $user->password)) {
-        //     return back()->withErrors(['current_password' => 'La contraseña actual es incorrecta.']);
-        // }
-        //
-        // $user->password = Hash::make($validated['password']);
-        // $user->save();
-
-        return redirect()->route('cliente.perfil')
-            ->with('success', 'Contraseña actualizada exitosamente.');
     }
 
     /**
@@ -152,25 +145,62 @@ class DashboardController extends Controller
     public function actualizarPreferencias(Request $request)
     {
         $validated = $request->validate([
-            'tipo_propiedad' => 'required|string|in:departamento,casa,oficina,local_comercial,terreno',
-            'rango_precio_min' => 'nullable|numeric|min:0',
-            'rango_precio_max' => 'nullable|numeric|min:0',
-            'ubicaciones_preferidas' => 'nullable|array',
-            'habitaciones_min' => 'required|integer|min:1|max:10',
-            'banos_min' => 'required|integer|min:1|max:10',
-            'area_min' => 'nullable|numeric|min:0',
-            'caracteristicas_especiales' => 'nullable|array',
-            'notificaciones_email' => 'boolean',
-            'notificaciones_sms' => 'boolean',
-            'frecuencia_notificaciones' => 'required|string|in:inmediata,diaria,semanal,mensual',
+            'tipo_propiedad' => 'required|string|in:apartamento,casa,oficina,local,terreno',
+            'habitaciones_deseadas' => 'nullable|integer|min:1|max:10',
+            'presupuesto_min' => 'nullable|numeric|min:0',
+            'presupuesto_max' => 'nullable|numeric|min:0|gte:presupuesto_min',
+            'zona_preferida' => 'nullable|string|max:255',
         ]);
 
-        // En una implementación real, actualizaríamos las preferencias del cliente
-        // $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
-        // $cliente->preferencias = $validated;
-        // $cliente->save();
+        $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
+        
+        $cliente->tipo_propiedad = $validated['tipo_propiedad'];
+        $cliente->habitaciones_deseadas = $validated['habitaciones_deseadas'];
+        $cliente->presupuesto_min = $validated['presupuesto_min'];
+        $cliente->presupuesto_max = $validated['presupuesto_max'];
+        $cliente->zona_preferida = $validated['zona_preferida'];
+        
+        $cliente->save();
 
         return redirect()->route('cliente.perfil')
             ->with('success', 'Preferencias actualizadas exitosamente.');
+    }
+
+    /**
+     * Cambiar la contraseña del usuario.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function cambiarPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => 'required|current_password',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+        $user->password = bcrypt($validated['password']);
+        $user->save();
+
+        return redirect()->route('cliente.perfil')
+            ->with('success', 'Contraseña actualizada exitosamente.');
+    }
+
+    /**
+     * Mostrar la lista de asesores disponibles.
+     *
+     * @return \Inertia\Response
+     */
+    public function asesores()
+    {
+        $asesores = Asesor::with('usuario')
+                         ->where('estado', 'activo')
+                         ->orderBy('nombre')
+                         ->get();
+
+        return Inertia::render('Cliente/Asesores', [
+            'asesores' => $asesores
+        ]);
     }
 }

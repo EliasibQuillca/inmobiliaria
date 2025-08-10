@@ -205,18 +205,24 @@ Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->
 
     // === GESTIÓN DE USUARIOS ===
     Route::get('/usuarios', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('usuarios');
-
     Route::get('/usuarios/crear', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('usuarios.crear');
     Route::post('/usuarios', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('usuarios.store');
-
-    Route::get('/usuarios/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('usuarios.create');
-
     Route::get('/usuarios/{id}/editar', [\App\Http\Controllers\Admin\UserController::class, 'edit'])->name('usuarios.editar');
     Route::put('/usuarios/{id}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('usuarios.update');
 
     // Rutas para operaciones CRUD
     Route::patch('/usuarios/{id}/estado', [\App\Http\Controllers\Admin\UserController::class, 'cambiarEstado'])->name('usuarios.cambiar-estado');
     Route::delete('/usuarios/{id}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('usuarios.eliminar');
+
+    // === GESTIÓN DE ASESORES ===
+    Route::get('/asesores', [\App\Http\Controllers\Admin\AsesorController::class, 'index'])->name('asesores');
+    Route::get('/asesores/crear', [\App\Http\Controllers\Admin\AsesorController::class, 'create'])->name('asesores.crear');
+    Route::post('/asesores', [\App\Http\Controllers\Admin\AsesorController::class, 'store'])->name('asesores.store');
+    Route::get('/asesores/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'show'])->name('asesores.ver');
+    Route::get('/asesores/{id}/editar', [\App\Http\Controllers\Admin\AsesorController::class, 'edit'])->name('asesores.editar');
+    Route::put('/asesores/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'update'])->name('asesores.update');
+    Route::patch('/asesores/{id}/estado', [\App\Http\Controllers\Admin\AsesorController::class, 'cambiarEstado'])->name('asesores.cambiar-estado');
+    Route::delete('/asesores/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'destroy'])->name('asesores.eliminar');
 
     // === GESTIÓN DE DEPARTAMENTOS ===
     Route::get('/departamentos', [\App\Http\Controllers\Admin\DepartamentoController::class, 'index'])->name('departamentos');
@@ -264,11 +270,6 @@ Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->
     })->name('propiedades.editar');
 
     // === GESTIÓN DE VENTAS ===
-    // Ruta de prueba
-    Route::get('/ventas-test', function () {
-        return Inertia::render('Admin/VentasTest');
-    })->name('ventas.test');
-
     Route::get('/ventas', [\App\Http\Controllers\Admin\VentaController::class, 'index'])->name('ventas');
     Route::get('/ventas/crear', [\App\Http\Controllers\Admin\VentaController::class, 'create'])->name('ventas.crear');
     Route::post('/ventas', [\App\Http\Controllers\Admin\VentaController::class, 'store'])->name('ventas.store');
@@ -354,20 +355,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-// Ruta de prueba para PDF
-Route::get('/test-pdf', function () {
-    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reportes.test', ['tipo' => 'testing']);
-    return $pdf->download('test.pdf');
-});
-
-// Ruta de prueba para exportación de reportes
-Route::get('/test-export/{tipo}', function ($tipo) {
-    $controller = new \App\Http\Controllers\Admin\ReporteController();
-    $request = request();
-    $request->merge(['formato' => 'pdf']);
-    return $controller->exportarReporte($request, $tipo);
 });
 
 require __DIR__.'/auth.php';

@@ -78,21 +78,17 @@ class Departamento extends Model
 
     public function ventas()
     {
-        // RELACIÓN TEMPORAL DESHABILITADA - NECESITA CORRECCIÓN DE ESTRUCTURA
         // Las ventas están relacionadas a través de: Departamento -> Cotizaciones -> Reservas -> Ventas
-        // Por ahora retornamos una colección vacía para evitar errores SQL
-        return collect();
-        
-        /* TODO: Implementar correctamente cuando se defina la estructura final
         return $this->hasManyThrough(
-            Venta::class,      
-            Reserva::class,    
-            'cotizacion_id',   
-            'reserva_id',      
-            'id',              
-            'id'               
-        );
-        */
+            Venta::class,      // Modelo final
+            Reserva::class,    // Modelo intermedio
+            'cotizacion_id',   // Foreign key en reservas (reservas.cotizacion_id)
+            'reserva_id',      // Foreign key en ventas (ventas.reserva_id)
+            'id',              // Local key en departamentos (departamentos.id)
+            'id'               // Local key en reservas (reservas.id)
+        )->whereHas('reserva.cotizacion', function($query) {
+            $query->where('departamento_id', $this->id);
+        });
     }
 
     public function atributos()

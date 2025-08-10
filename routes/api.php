@@ -10,9 +10,9 @@ use App\Http\Controllers\Api\VentaController;
 use App\Http\Controllers\Api\ImagenController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ReporteController;
+use App\Http\Controllers\Api\AsesorController;
 use App\Http\Controllers\Admin\ReporteController as AdminReporteController;
 use App\Http\Controllers\Admin\SimpleReporteController;
-use App\Http\Controllers\AsesorController;
 
 /*
 |--------------------------------------------------------------------------
