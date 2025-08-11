@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AsesorLayout from '../../../Layouts/AsesorLayout';
 
-export default function CrearCotizacion({ auth, clientes, departamentos, clienteSeleccionado }) {
+export default function CrearCotizacion({ auth, clientes, departamentos, departamentosFiltrados = [], clienteSeleccionado }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         cliente_id: clienteSeleccionado ? clienteSeleccionado.id : '',
         departamento_id: '',
@@ -13,33 +13,20 @@ export default function CrearCotizacion({ auth, clientes, departamentos, cliente
         condiciones: '',
     });
 
-    const [departamentosFiltrados, setDepartamentosFiltrados] = useState(departamentos);
+    const [mostrarFiltrados, setMostrarFiltrados] = useState(true);
     const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState(null);
 
+    // Determinar qué departamentos mostrar
+    const departamentosAMostrar = mostrarFiltrados && departamentosFiltrados.length > 0 
+        ? departamentosFiltrados 
+        : departamentos;
+
     useEffect(() => {
-        // Si hay cliente seleccionado, pre-llenar algunos campos
-        if (clienteSeleccionado) {
-            // Filtrar departamentos según preferencias del cliente
-            let filtrados = departamentos;
-
-            if (clienteSeleccionado.tipo_propiedad) {
-                filtrados = filtrados.filter(d => d.tipo_propiedad === clienteSeleccionado.tipo_propiedad);
-            }
-
-            if (clienteSeleccionado.habitaciones_deseadas) {
-                filtrados = filtrados.filter(d => d.habitaciones === clienteSeleccionado.habitaciones_deseadas);
-            }
-
-            if (clienteSeleccionado.presupuesto_min && clienteSeleccionado.presupuesto_max) {
-                filtrados = filtrados.filter(d =>
-                    d.precio >= clienteSeleccionado.presupuesto_min &&
-                    d.precio <= clienteSeleccionado.presupuesto_max
-                );
-            }
-
-            setDepartamentosFiltrados(filtrados);
+        // Inicialmente mostrar filtrados si hay cliente seleccionado y hay departamentos filtrados
+        if (clienteSeleccionado && departamentosFiltrados.length === 0) {
+            setMostrarFiltrados(false);
         }
-    }, [clienteSeleccionado, departamentos]);
+    }, [clienteSeleccionado, departamentosFiltrados]);
 
     const handleDepartamentoChange = (departamentoId) => {
         const departamento = departamentos.find(d => d.id == departamentoId);
@@ -136,13 +123,42 @@ export default function CrearCotizacion({ auth, clientes, departamentos, cliente
                                         {/* Selección de Departamento */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Departamento
-                                                {clienteSeleccionado && (
+                                                Departamento *
+                                                {clienteSeleccionado && departamentosFiltrados.length > 0 && (
                                                     <span className="text-xs text-blue-600 ml-2">
                                                         (Filtrado por preferencias del cliente)
                                                     </span>
                                                 )}
                                             </label>
+                                            
+                                            {/* Controles para alternar entre filtrados y todos */}
+                                            {clienteSeleccionado && departamentosFiltrados.length > 0 && (
+                                                <div className="mb-2 flex space-x-4">
+                                                    <label className="inline-flex items-center">
+                                                        <input
+                                                            type="radio"
+                                                            checked={mostrarFiltrados}
+                                                            onChange={() => setMostrarFiltrados(true)}
+                                                            className="form-radio text-blue-600"
+                                                        />
+                                                        <span className="ml-2 text-sm text-gray-700">
+                                                            Recomendados ({departamentosFiltrados.length})
+                                                        </span>
+                                                    </label>
+                                                    <label className="inline-flex items-center">
+                                                        <input
+                                                            type="radio"
+                                                            checked={!mostrarFiltrados}
+                                                            onChange={() => setMostrarFiltrados(false)}
+                                                            className="form-radio text-blue-600"
+                                                        />
+                                                        <span className="ml-2 text-sm text-gray-700">
+                                                            Todos los disponibles ({departamentos.length})
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            )}
+
                                             <select
                                                 value={data.departamento_id}
                                                 onChange={(e) => handleDepartamentoChange(e.target.value)}
@@ -150,14 +166,23 @@ export default function CrearCotizacion({ auth, clientes, departamentos, cliente
                                                 required
                                             >
                                                 <option value="">Seleccionar departamento...</option>
-                                                {departamentosFiltrados.map((departamento) => (
+                                                {departamentosAMostrar.map((departamento) => (
                                                     <option key={departamento.id} value={departamento.id}>
-                                                        {departamento.codigo} - {departamento.tipo_propiedad} - {formatCurrency(departamento.precio)}
+                                                        {departamento.titulo || departamento.codigo} - {formatCurrency(departamento.precio)}
                                                     </option>
                                                 ))}
                                             </select>
                                             {errors.departamento_id && (
                                                 <p className="mt-1 text-sm text-red-600">{errors.departamento_id}</p>
+                                            )}
+                                            
+                                            {/* Mensaje informativo si no hay departamentos filtrados */}
+                                            {clienteSeleccionado && departamentosFiltrados.length === 0 && (
+                                                <p className="mt-1 text-sm text-yellow-600">
+                                                    <i className="fas fa-info-circle mr-1"></i>
+                                                    No hay departamentos que coincidan con las preferencias del cliente. 
+                                                    Se muestran todos los disponibles.
+                                                </p>
                                             )}
                                         </div>
 

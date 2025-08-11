@@ -10,6 +10,7 @@ export default function Solicitudes({ auth, clientesNuevos = [], departamentosIn
     const { data, setData, post, patch, processing, errors, reset } = useForm({
         nombre: '',
         telefono: '',
+        dni: '',
         email: '',
         departamento_interes: '',
         notas_contacto: '',
@@ -193,6 +194,20 @@ export default function Solicitudes({ auth, clientesNuevos = [], departamentosIn
                                                 required
                                             />
                                             {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono}</p>}
+                                        </div>
+
+                                        <div className="mb-4">
+                                            <label className="block text-sm font-medium text-gray-700">
+                                                DNI (opcional)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.dni}
+                                                onChange={(e) => setData('dni', e.target.value)}
+                                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                                                placeholder="Ej: 12345678"
+                                            />
+                                            {errors.dni && <p className="text-red-500 text-xs mt-1">{errors.dni}</p>}
                                         </div>
 
                                         <div className="mb-4">

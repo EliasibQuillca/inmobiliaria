@@ -53,6 +53,7 @@ class SolicitudController extends Controller
             'departamento_interes' => 'nullable|exists:departamentos,id',
             'notas_contacto' => 'nullable|string|max:1000',
             'medio_contacto' => 'required|in:whatsapp,telefono,presencial',
+            'dni' => 'nullable|string|max:20|unique:clientes,dni',
         ]);
 
         // Crear usuario temporal si proporcionó email
@@ -68,7 +69,7 @@ class SolicitudController extends Controller
 
         // Registrar cliente
         $cliente = Cliente::create([
-            'user_id' => $usuario ? $usuario->id : null,
+            'usuario_id' => $usuario ? $usuario->id : null,
             'asesor_id' => $asesor->id,
             'nombre' => $validated['nombre'],
             'telefono' => $validated['telefono'],
@@ -77,6 +78,9 @@ class SolicitudController extends Controller
             'notas_contacto' => $validated['notas_contacto'],
             'medio_contacto' => $validated['medio_contacto'],
             'estado' => 'contactado',
+            'dni' => $validated['dni'] ?? 'TEMP-' . time(), // DNI temporal si no se proporciona
+            'direccion' => 'Por definir', // Dirección temporal
+            'fecha_registro' => now(),
         ]);
 
         return redirect()->route('asesor.solicitudes')

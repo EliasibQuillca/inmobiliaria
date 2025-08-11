@@ -162,6 +162,7 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('
 
     // === RESERVAS ===
     Route::get('/reservas', [\App\Http\Controllers\Asesor\ReservaController::class, 'index'])->name('reservas');
+    Route::get('/reservas/crear', [\App\Http\Controllers\Asesor\ReservaController::class, 'create'])->name('reservas.create');
     Route::post('/reservas', [\App\Http\Controllers\Asesor\ReservaController::class, 'store'])->name('reservas.store');
     Route::patch('/reservas/{reserva}/confirmar', [\App\Http\Controllers\Asesor\ReservaController::class, 'confirmar'])->name('reservas.confirmar');
     Route::patch('/reservas/{reserva}/cancelar', [\App\Http\Controllers\Asesor\ReservaController::class, 'cancelar'])->name('reservas.cancelar');

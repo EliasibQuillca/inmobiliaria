@@ -49,30 +49,41 @@ class CotizacionController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        // Obtener departamentos disponibles, filtrar por preferencias si hay cliente seleccionado
+        // Obtener departamentos disponibles
         $departamentosQuery = Departamento::where('estado', 'disponible');
-
+        
+        // Si hay cliente seleccionado con preferencias específicas, aplicar filtros
+        $departamentosFiltrados = [];
         if ($clienteSeleccionado) {
-            // Filtrar por preferencias del cliente
-            if ($clienteSeleccionado->tipo_propiedad) {
-                $departamentosQuery->where('tipo_propiedad', $clienteSeleccionado->tipo_propiedad);
-            }
+            $queryFiltrada = clone $departamentosQuery;
+            $hayFiltros = false;
+            
+            // Filtrar por preferencias del cliente si existen
             if ($clienteSeleccionado->habitaciones_deseadas) {
-                $departamentosQuery->where('habitaciones', $clienteSeleccionado->habitaciones_deseadas);
+                $queryFiltrada->where('dormitorios', $clienteSeleccionado->habitaciones_deseadas);
+                $hayFiltros = true;
             }
             if ($clienteSeleccionado->presupuesto_min && $clienteSeleccionado->presupuesto_max) {
-                $departamentosQuery->whereBetween('precio', [
+                $queryFiltrada->whereBetween('precio', [
                     $clienteSeleccionado->presupuesto_min,
                     $clienteSeleccionado->presupuesto_max
                 ]);
+                $hayFiltros = true;
+            }
+            
+            // Si se aplicaron filtros, obtener los departamentos filtrados
+            if ($hayFiltros) {
+                $departamentosFiltrados = $queryFiltrada->get();
             }
         }
 
-        $departamentos = $departamentosQuery->with('imagenes')->get();
+        // Obtener todos los departamentos disponibles
+        $departamentos = $departamentosQuery->get();
 
         return Inertia::render('Asesor/Cotizaciones/Crear', [
             'clientes' => $clientes,
             'departamentos' => $departamentos,
+            'departamentosFiltrados' => $departamentosFiltrados,
             'clienteSeleccionado' => $clienteSeleccionado,
         ]);
     }

@@ -30,6 +30,35 @@ class ReservaController extends Controller
     }
 
     /**
+     * Muestra el formulario para crear una nueva reserva
+     */
+    public function create(Request $request)
+    {
+        $asesor = Auth::user()->asesor;
+
+        // Obtener cotizaciones aceptadas que aún no tienen reserva
+        $cotizacionesDisponibles = Cotizacion::with(['cliente.usuario', 'departamento'])
+            ->where('asesor_id', $asesor->id)
+            ->where('estado', 'aceptada')
+            ->whereDoesntHave('reserva')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Si viene una cotización específica, pre-seleccionarla
+        $cotizacionSeleccionada = null;
+        if ($request->has('cotizacion_id')) {
+            $cotizacionSeleccionada = $cotizacionesDisponibles
+                ->where('id', $request->cotizacion_id)
+                ->first();
+        }
+
+        return Inertia::render('Asesor/Reservas/Crear', [
+            'cotizaciones' => $cotizacionesDisponibles,
+            'cotizacionSeleccionada' => $cotizacionSeleccionada,
+        ]);
+    }
+
+    /**
      * Crear reserva desde cotización aceptada
      */
     public function store(Request $request)
