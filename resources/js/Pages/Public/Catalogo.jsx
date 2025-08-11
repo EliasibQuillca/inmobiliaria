@@ -51,14 +51,11 @@ export default function Catalogo({
     };
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('es-CO', {
+        return new Intl.NumberFormat('es-PE', {
             style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0
+            currency: 'PEN',
         }).format(amount);
-    };
-
-    const toggleFavorito = async (departamentoId) => {
+    };    const toggleFavorito = async (departamentoId) => {
         if (!auth.user || auth.user.role !== 'cliente') {
             return;
         }

@@ -38,9 +38,9 @@ export default function Ventas({ auth, ventas = [] }) {
     };
 
     const formatearMoneda = (monto) => {
-        return new Intl.NumberFormat('es-CO', {
+        return new Intl.NumberFormat('es-PE', {
             style: 'currency',
-            currency: 'COP',
+            currency: 'PEN',
             minimumFractionDigits: 0
         }).format(monto);
     };

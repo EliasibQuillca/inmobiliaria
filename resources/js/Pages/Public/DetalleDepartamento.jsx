@@ -21,10 +21,9 @@ export default function DetalleDepartamento({
     });
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('es-CO', {
+        return new Intl.NumberFormat('es-PE', {
             style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0
+            currency: 'PEN',
         }).format(amount);
     };
 

@@ -35,9 +35,9 @@ export default function EditarCotizacion({ auth, cotizacion, clientes, departame
     };
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('es-CO', {
+        return new Intl.NumberFormat('es-PE', {
             style: 'currency',
-            currency: 'COP',
+            currency: 'PEN',
             minimumFractionDigits: 0
         }).format(amount);
     };

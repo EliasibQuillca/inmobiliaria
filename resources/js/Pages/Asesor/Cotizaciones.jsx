@@ -42,9 +42,9 @@ export default function Cotizaciones({ auth, cotizaciones = [] }) {
     };
 
     const formatearMoneda = (monto) => {
-        return new Intl.NumberFormat('es-CO', {
+        return new Intl.NumberFormat('es-PE', {
             style: 'currency',
-            currency: 'COP',
+            currency: 'PEN',
             minimumFractionDigits: 0
         }).format(monto);
     };

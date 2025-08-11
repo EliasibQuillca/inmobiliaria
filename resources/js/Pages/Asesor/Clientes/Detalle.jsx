@@ -34,9 +34,9 @@ export default function DetalleCliente({ auth, cliente }) {
 
     const formatCurrency = (amount) => {
         if (!amount) return 'No especificado';
-        return new Intl.NumberFormat('es-CO', {
+        return new Intl.NumberFormat('es-PE', {
             style: 'currency',
-            currency: 'COP',
+            currency: 'PEN',
             minimumFractionDigits: 0
         }).format(amount);
     };
