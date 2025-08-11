@@ -36,9 +36,23 @@ export default function CrearReserva({ auth, cotizaciones, cotizacionSeleccionad
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('asesor.reservas.store'), {
+        
+        // Asegurar que el token CSRF esté presente
+        const token = document.head.querySelector('meta[name="csrf-token"]');
+        if (!token) {
+            console.error('Token CSRF no encontrado');
+            return;
+        }
+        
+        post('/asesor/reservas', {
+            headers: {
+                'X-CSRF-TOKEN': token.content
+            },
             onSuccess: () => {
                 reset();
+            },
+            onError: (errors) => {
+                console.log('Errores:', errors);
             }
         });
     };

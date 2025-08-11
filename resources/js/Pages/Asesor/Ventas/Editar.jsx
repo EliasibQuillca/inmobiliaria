@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AsesorLayout from '@/Layouts/AsesorLayout';
 
-export default function Editar({ venta }) {
+export default function Editar({ auth, venta }) {
     const { data, setData, patch, processing, errors } = useForm({
         fecha_venta: venta.fecha_venta,
         monto_final: venta.monto_final,
@@ -23,7 +23,7 @@ export default function Editar({ venta }) {
     };
 
     return (
-        <AsesorLayout>
+        <AsesorLayout user={auth.user}>
             <Head title={`Editar Venta #${venta.id}`} />
 
             <div className="py-12">

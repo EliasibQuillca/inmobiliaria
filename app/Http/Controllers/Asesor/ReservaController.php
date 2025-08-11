@@ -25,7 +25,10 @@ class ReservaController extends Controller
             ->get();
 
         return Inertia::render('Asesor/Reservas', [
-            'reservas' => $reservas
+            'reservas' => $reservas,
+            'auth' => [
+                'user' => Auth::user()
+            ]
         ]);
     }
 
@@ -55,6 +58,9 @@ class ReservaController extends Controller
         return Inertia::render('Asesor/Reservas/Crear', [
             'cotizaciones' => $cotizacionesDisponibles,
             'cotizacionSeleccionada' => $cotizacionSeleccionada,
+            'auth' => [
+                'user' => Auth::user()
+            ]
         ]);
     }
 
@@ -116,7 +122,10 @@ class ReservaController extends Controller
             ->findOrFail($id);
 
         return Inertia::render('Asesor/Reservas/Detalle', [
-            'reserva' => $reserva
+            'reserva' => $reserva,
+            'auth' => [
+                'user' => Auth::user()
+            ]
         ]);
     }
 

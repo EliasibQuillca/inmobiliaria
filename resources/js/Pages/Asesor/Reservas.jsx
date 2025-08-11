@@ -10,7 +10,7 @@ export default function Reservas({ auth, reservas = [] }) {
     const filtrarReservas = () => {
         switch (filtro) {
             case 'activas':
-                return reservas.filter(r => r.estado === 'activa');
+                return reservas.filter(r => r.estado === 'pendiente');
             case 'confirmadas':
                 return reservas.filter(r => r.estado === 'confirmada');
             case 'vencidas':
@@ -28,19 +28,36 @@ export default function Reservas({ auth, reservas = [] }) {
     };
 
     const crearVenta = (reserva) => {
-        router.get(`/asesor/ventas/crear?reserva_id=${reserva.id}`);
+        router.get(`/asesor/ventas/create?reserva_id=${reserva.id}`);
     };
 
     const confirmarReserva = (id) => {
-        router.patch(`/asesor/reservas/${id}`, {
-            estado: 'confirmada'
+        // Asegurar que el token CSRF esté presente
+        const token = document.head.querySelector('meta[name="csrf-token"]');
+        if (!token) {
+            console.error('Token CSRF no encontrado');
+            return;
+        }
+
+        router.patch(`/asesor/reservas/${id}/confirmar`, {}, {
+            headers: {
+                'X-CSRF-TOKEN': token.content
+            },
+            onSuccess: () => {
+                // Refrescar la página para mostrar los cambios
+                router.reload({ only: ['reservas'] });
+            },
+            onError: (error) => {
+                console.error('Error al confirmar reserva:', error);
+                alert('Error al confirmar la reserva. Por favor, intenta de nuevo.');
+            }
         });
     };
 
     const getEstadoColor = (estado) => {
         switch (estado) {
-            case 'activa':
-                return 'bg-blue-100 text-blue-800';
+            case 'pendiente':
+                return 'bg-yellow-100 text-yellow-800';
             case 'confirmada':
                 return 'bg-green-100 text-green-800';
             case 'vencida':
@@ -97,7 +114,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                             }`}
                                         >
-                                            Activas
+                                            Pendientes
                                         </button>
                                         <button
                                             onClick={() => setFiltro('confirmadas')}
@@ -158,7 +175,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                                 <p className="text-sm text-gray-600">
                                                     <span className="font-medium">Vence:</span> {new Date(reserva.fecha_vencimiento).toLocaleDateString()}
                                                 </p>
-                                                {reserva.estado === 'activa' && (
+                                                {reserva.estado === 'pendiente' && (
                                                     <p className={`text-sm ${diasRestantes(reserva.fecha_vencimiento) <= 7 ? 'text-red-600' : 'text-gray-600'}`}>
                                                         <span className="font-medium">Días restantes:</span> {diasRestantes(reserva.fecha_vencimiento)}
                                                     </p>
@@ -174,7 +191,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                         >
                                             Ver Detalle
                                         </button>
-                                        {reserva.estado === 'activa' && (
+                                        {reserva.estado === 'pendiente' && (
                                             <button
                                                 onClick={() => confirmarReserva(reserva.id)}
                                                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium"

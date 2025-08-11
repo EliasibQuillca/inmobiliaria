@@ -83,7 +83,7 @@ class VentaController extends Controller
     /**
      * Mostrar formulario para registrar venta
      */
-    public function create()
+    public function create(Request $request)
     {
         $asesor = Auth::user()->asesor;
 
@@ -94,8 +94,18 @@ class VentaController extends Controller
             ->whereDoesntHave('venta')
             ->get();
 
+        // Si viene una reserva específica, pre-seleccionarla
+        $reservaSeleccionada = null;
+        if ($request->has('reserva_id')) {
+            $reservaSeleccionada = $reservas->where('id', $request->reserva_id)->first();
+        }
+
         return Inertia::render('Asesor/Ventas/Crear', [
-            'reservas' => $reservas
+            'reservas' => $reservas,
+            'reservaSeleccionada' => $reservaSeleccionada,
+            'auth' => [
+                'user' => Auth::user()
+            ]
         ]);
     }
 
@@ -113,7 +123,10 @@ class VentaController extends Controller
             ->findOrFail($id);
 
         return Inertia::render('Asesor/Ventas/Detalle', [
-            'venta' => $venta
+            'venta' => $venta,
+            'auth' => [
+                'user' => Auth::user()
+            ]
         ]);
     }
 
@@ -165,7 +178,10 @@ class VentaController extends Controller
             ->findOrFail($id);
 
         return Inertia::render('Asesor/Ventas/Editar', [
-            'venta' => $venta
+            'venta' => $venta,
+            'auth' => [
+                'user' => Auth::user()
+            ]
         ]);
     }
 

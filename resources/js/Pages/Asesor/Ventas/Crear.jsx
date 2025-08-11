@@ -2,20 +2,34 @@ import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AsesorLayout from '@/Layouts/AsesorLayout';
 
-export default function Crear({ reservas }) {
+export default function Crear({ auth, reservas, reservaSeleccionada }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        reserva_id: '',
+        reserva_id: reservaSeleccionada ? reservaSeleccionada.id : '',
         fecha_venta: new Date().toISOString().split('T')[0], // Fecha actual por defecto
-        monto_final: '',
+        monto_final: reservaSeleccionada ? reservaSeleccionada.monto_total : '',
         documentos_entregados: false,
         observaciones: ''
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('asesor.ventas.store'), {
+        
+        // Asegurar que el token CSRF esté presente
+        const token = document.head.querySelector('meta[name="csrf-token"]');
+        if (!token) {
+            console.error('Token CSRF no encontrado');
+            return;
+        }
+        
+        post('/asesor/ventas', {
+            headers: {
+                'X-CSRF-TOKEN': token.content
+            },
             onSuccess: () => {
                 reset();
+            },
+            onError: (errors) => {
+                console.log('Errores:', errors);
             }
         });
     };
@@ -43,7 +57,7 @@ export default function Crear({ reservas }) {
     };
 
     return (
-        <AsesorLayout>
+        <AsesorLayout user={auth.user}>
             <Head title="Registrar Venta" />
 
             <div className="py-12">
