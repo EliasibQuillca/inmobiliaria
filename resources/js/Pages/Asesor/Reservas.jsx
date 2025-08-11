@@ -54,6 +54,82 @@ export default function Reservas({ auth, reservas = [] }) {
         });
     };
 
+    const cancelarReserva = (id) => {
+        // Confirmar la acción con el usuario
+        const motivo = prompt('¿Por qué deseas cancelar esta reserva?\n(Este campo es obligatorio)');
+        
+        if (!motivo || motivo.trim() === '') {
+            alert('Es necesario proporcionar un motivo para cancelar la reserva.');
+            return;
+        }
+
+        if (motivo.trim().length < 10) {
+            alert('El motivo debe tener al menos 10 caracteres.');
+            return;
+        }
+
+        // Asegurar que el token CSRF esté presente
+        const token = document.head.querySelector('meta[name="csrf-token"]');
+        if (!token) {
+            console.error('Token CSRF no encontrado');
+            return;
+        }
+
+        router.patch(`/asesor/reservas/${id}/cancelar`, {
+            motivo: motivo.trim()
+        }, {
+            headers: {
+                'X-CSRF-TOKEN': token.content
+            },
+            onSuccess: () => {
+                // Refrescar la página para mostrar los cambios
+                router.reload({ only: ['reservas'] });
+            },
+            onError: (error) => {
+                console.error('Error al cancelar reserva:', error);
+                alert('Error al cancelar la reserva. Por favor, intenta de nuevo.');
+            }
+        });
+    };
+
+    const revertirConfirmacion = (id) => {
+        // Confirmar la acción con el usuario
+        const motivo = prompt('¿Por qué deseas revertir la confirmación?\n(El cliente no pagó, error de confirmación, etc.)');
+        
+        if (!motivo || motivo.trim() === '') {
+            alert('Es necesario proporcionar un motivo para revertir la confirmación.');
+            return;
+        }
+
+        if (motivo.trim().length < 10) {
+            alert('El motivo debe tener al menos 10 caracteres.');
+            return;
+        }
+
+        // Asegurar que el token CSRF esté presente
+        const token = document.head.querySelector('meta[name="csrf-token"]');
+        if (!token) {
+            console.error('Token CSRF no encontrado');
+            return;
+        }
+
+        router.patch(`/asesor/reservas/${id}/revertir`, {
+            motivo: motivo.trim()
+        }, {
+            headers: {
+                'X-CSRF-TOKEN': token.content
+            },
+            onSuccess: () => {
+                // Refrescar la página para mostrar los cambios
+                router.reload({ only: ['reservas'] });
+            },
+            onError: (error) => {
+                console.error('Error al revertir confirmación:', error);
+                alert('Error al revertir la confirmación. Por favor, intenta de nuevo.');
+            }
+        });
+    };
+
     const getEstadoColor = (estado) => {
         switch (estado) {
             case 'pendiente':
@@ -191,21 +267,62 @@ export default function Reservas({ auth, reservas = [] }) {
                                         >
                                             Ver Detalle
                                         </button>
+                                        {/* ESTADO: PENDIENTE */}
                                         {reserva.estado === 'pendiente' && (
-                                            <button
-                                                onClick={() => confirmarReserva(reserva.id)}
-                                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
-                                            >
-                                                Confirmar
-                                            </button>
+                                            <>
+                                                <button
+                                                    onClick={() => confirmarReserva(reserva.id)}
+                                                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
+                                                >
+                                                    Confirmar
+                                                </button>
+                                                <button
+                                                    onClick={() => cancelarReserva(reserva.id)}
+                                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </>
                                         )}
+                                        
+                                        {/* ESTADO: CONFIRMADA */}
                                         {reserva.estado === 'confirmada' && (
-                                            <button
-                                                onClick={() => crearVenta(reserva)}
-                                                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
-                                            >
-                                                Crear Venta
-                                            </button>
+                                            <>
+                                                {/* Si NO tiene venta, mostrar ambos botones */}
+                                                {!reserva.venta && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => crearVenta(reserva)}
+                                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
+                                                        >
+                                                            Crear Venta
+                                                        </button>
+                                                        <button
+                                                            onClick={() => revertirConfirmacion(reserva.id)}
+                                                            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
+                                                        >
+                                                            Revertir
+                                                        </button>
+                                                    </>
+                                                )}
+                                                
+                                                {/* Si YA tiene venta, solo mostrar enlace a venta */}
+                                                {reserva.venta && (
+                                                    <button
+                                                        onClick={() => router.get(`/asesor/ventas/${reserva.venta.id}`)}
+                                                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm font-medium"
+                                                    >
+                                                        Ver Venta
+                                                    </button>
+                                                )}
+                                            </>
+                                        )}
+                                        
+                                        {/* ESTADOS: CANCELADA, VENCIDA - Solo detalle */}
+                                        {(reserva.estado === 'cancelada' || reserva.estado === 'vencida') && (
+                                            <span className="flex-1 text-center text-gray-500 text-sm italic px-3 py-2">
+                                                {reserva.estado === 'cancelada' ? 'Reserva cancelada' : 'Reserva vencida'}
+                                            </span>
                                         )}
                                     </div>
                                 </div>

@@ -19,7 +19,7 @@ class ReservaController extends Controller
     {
         $asesor = Auth::user()->asesor;
 
-        $reservas = Reserva::with(['cotizacion.cliente.usuario', 'cotizacion.departamento'])
+        $reservas = Reserva::with(['cotizacion.cliente.usuario', 'cotizacion.departamento', 'venta'])
             ->where('asesor_id', $asesor->id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -200,5 +200,33 @@ class ReservaController extends Controller
         $reserva->update($validated);
 
         return redirect()->back()->with('success', 'Reserva actualizada exitosamente');
+    }
+
+    /**
+     * Revertir confirmación (solo si no tiene venta asociada)
+     */
+    public function revertir(Request $request, $id)
+    {
+        $asesor = Auth::user()->asesor;
+
+        $validated = $request->validate([
+            'motivo' => 'required|string|max:500',
+        ]);
+
+        $reserva = Reserva::where('asesor_id', $asesor->id)
+            ->where('estado', 'confirmada')
+            ->findOrFail($id);
+
+        // Verificar que no tenga venta asociada
+        if ($reserva->venta) {
+            return redirect()->back()->with('error', 'No se puede revertir una reserva que ya tiene venta asociada');
+        }
+
+        $reserva->update([
+            'estado' => 'pendiente',
+            'notas' => $validated['motivo'],
+        ]);
+
+        return redirect()->back()->with('success', 'Confirmación revertida. La reserva vuelve a estado pendiente.');
     }
 }

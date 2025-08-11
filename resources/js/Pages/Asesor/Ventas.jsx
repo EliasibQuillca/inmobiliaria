@@ -49,8 +49,8 @@ export default function Ventas({ auth, ventas = [] }) {
         return monto * (porcentaje / 100);
     };
 
-    const totalVentas = ventas.reduce((sum, venta) => sum + venta.monto_final, 0);
-    const totalComisiones = ventas.reduce((sum, venta) => sum + calcularComision(venta.monto_final), 0);
+    const totalVentas = ventas.reduce((sum, venta) => sum + parseFloat(venta.monto_final || 0), 0);
+    const totalComisiones = ventas.reduce((sum, venta) => sum + calcularComision(parseFloat(venta.monto_final || 0)), 0);
     const ventasDelMes = ventas.filter(venta => {
         const fechaVenta = new Date(venta.fecha_venta);
         const fechaActual = new Date();

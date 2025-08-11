@@ -166,6 +166,7 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('
     Route::post('/reservas', [\App\Http\Controllers\Asesor\ReservaController::class, 'store'])->name('reservas.store');
     Route::patch('/reservas/{reserva}/confirmar', [\App\Http\Controllers\Asesor\ReservaController::class, 'confirmar'])->name('reservas.confirmar');
     Route::patch('/reservas/{reserva}/cancelar', [\App\Http\Controllers\Asesor\ReservaController::class, 'cancelar'])->name('reservas.cancelar');
+    Route::patch('/reservas/{reserva}/revertir', [\App\Http\Controllers\Asesor\ReservaController::class, 'revertir'])->name('reservas.revertir');
     Route::patch('/reservas/{reserva}', [\App\Http\Controllers\Asesor\ReservaController::class, 'update'])->name('reservas.update');
 
     // === VENTAS ===

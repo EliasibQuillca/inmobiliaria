@@ -37,22 +37,32 @@ export default function CrearReserva({ auth, cotizaciones, cotizacionSeleccionad
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Asegurar que el token CSRF esté presente
+        // Obtener token CSRF fresco
         const token = document.head.querySelector('meta[name="csrf-token"]');
         if (!token) {
             console.error('Token CSRF no encontrado');
+            alert('Error de sesión. Por favor, recarga la página.');
             return;
         }
         
+        console.log('Enviando datos:', data);
+        console.log('Token CSRF:', token.content.substring(0, 10) + '...');
+        
         post('/asesor/reservas', {
             headers: {
-                'X-CSRF-TOKEN': token.content
+                'X-CSRF-TOKEN': token.content,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             },
             onSuccess: () => {
+                console.log('Reserva creada exitosamente');
                 reset();
             },
             onError: (errors) => {
-                console.log('Errores:', errors);
+                console.error('Errores al crear reserva:', errors);
+                if (errors.message && errors.message.includes('419')) {
+                    alert('Sesión expirada. Por favor, recarga la página e intenta de nuevo.');
+                }
             }
         });
     };
