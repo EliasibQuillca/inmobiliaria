@@ -15,17 +15,32 @@ class CotizacionController extends Controller
     /**
      * Muestra las cotizaciones del asesor
      */
-    public function index()
+    public function index(Request $request)
     {
         $asesor = Auth::user()->asesor;
+        
+        // Determinar si mostrar historial o cotizaciones activas
+        $mostrarHistorial = $request->boolean('historial', false);
 
-        $cotizaciones = Cotizacion::with(['cliente.usuario', 'departamento'])
-            ->where('asesor_id', $asesor->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        if ($mostrarHistorial) {
+            // Mostrar cotizaciones en historial
+            $cotizaciones = Cotizacion::with(['cliente.usuario', 'departamento', 'reserva.venta'])
+                ->where('asesor_id', $asesor->id)
+                ->historial()
+                ->orderBy('updated_at', 'desc')
+                ->get();
+        } else {
+            // Mostrar solo cotizaciones activas (por defecto)
+            $cotizaciones = Cotizacion::with(['cliente.usuario', 'departamento'])
+                ->where('asesor_id', $asesor->id)
+                ->activas()
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
 
         return Inertia::render('Asesor/Cotizaciones', [
-            'cotizaciones' => $cotizaciones
+            'cotizaciones' => $cotizaciones,
+            'mostrandoHistorial' => $mostrarHistorial
         ]);
     }
 

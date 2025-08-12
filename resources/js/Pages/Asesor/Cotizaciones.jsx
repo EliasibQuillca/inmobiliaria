@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AsesorLayout from '../../Layouts/AsesorLayout';
 
-export default function Cotizaciones({ auth, cotizaciones = [] }) {
+export default function Cotizaciones({ auth, cotizaciones = [], mostrandoHistorial = false }) {
     const [selectedCotizacion, setSelectedCotizacion] = useState(null);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
 
@@ -36,9 +36,25 @@ export default function Cotizaciones({ auth, cotizaciones = [] }) {
             'pendiente': 'bg-yellow-100 text-yellow-800',
             'aceptada': 'bg-green-100 text-green-800',
             'rechazada': 'bg-red-100 text-red-800',
+            'en_proceso': 'bg-blue-100 text-blue-800',
+            'completada': 'bg-purple-100 text-purple-800',
+            'cancelada': 'bg-orange-100 text-orange-800',
             'expirada': 'bg-gray-100 text-gray-800'
         };
         return colors[estado] || 'bg-gray-100 text-gray-800';
+    };
+
+    const getEstadoTexto = (estado) => {
+        const textos = {
+            'pendiente': 'Pendiente',
+            'aceptada': 'Aceptada',
+            'rechazada': 'Rechazada',
+            'en_proceso': 'En Proceso',
+            'completada': 'Finalizada',
+            'cancelada': 'Cancelada',
+            'expirada': 'Expirada'
+        };
+        return textos[estado] || estado;
     };
 
     const formatearMoneda = (monto) => {
@@ -60,29 +76,73 @@ export default function Cotizaciones({ auth, cotizaciones = [] }) {
                         <div className="md:flex md:items-center md:justify-between">
                             <div className="flex-1 min-w-0">
                                 <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                                    Mis Cotizaciones
+                                    {mostrandoHistorial ? 'Historial de Cotizaciones' : 'Mis Cotizaciones Activas'}
                                 </h2>
                                 <p className="mt-1 text-sm text-gray-500">
-                                    Gestiona las cotizaciones de departamentos para tus clientes
+                                    {mostrandoHistorial 
+                                        ? 'Cotizaciones procesadas, finalizadas o archivadas'
+                                        : 'Gestiona las cotizaciones de departamentos para tus clientes'
+                                    }
                                 </p>
                             </div>
-                            <div className="mt-4 flex md:mt-0 md:ml-4">
+                            <div className="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+                                {/* Botón para alternar vista */}
                                 <Link
-                                    href={route('asesor.cotizaciones.create')}
-                                    className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    href={route('asesor.cotizaciones', { historial: !mostrandoHistorial })}
+                                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 >
-                                    <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
-                                    Nueva Cotización
+                                    {mostrandoHistorial ? (
+                                        <>
+                                            <i className="fas fa-list mr-2"></i>
+                                            Ver Activas
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fas fa-history mr-2"></i>
+                                            Ver Historial
+                                        </>
+                                    )}
                                 </Link>
+                                
+                                {!mostrandoHistorial && (
+                                    <Link
+                                        href={route('asesor.cotizaciones.create')}
+                                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    >
+                                        <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Nueva Cotización
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     </div>
 
                     {/* Estadísticas rápidas */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        {[
+                        {(mostrandoHistorial ? [
+                            {
+                                name: 'Total Historial',
+                                value: cotizaciones.length,
+                                color: 'bg-purple-500'
+                            },
+                            {
+                                name: 'En Proceso',
+                                value: cotizaciones.filter(c => c.estado === 'en_proceso').length,
+                                color: 'bg-blue-500'
+                            },
+                            {
+                                name: 'Finalizadas',
+                                value: cotizaciones.filter(c => c.estado === 'completada').length,
+                                color: 'bg-green-500'
+                            },
+                            {
+                                name: 'Canceladas',
+                                value: cotizaciones.filter(c => c.estado === 'cancelada').length,
+                                color: 'bg-red-500'
+                            }
+                        ] : [
                             {
                                 name: 'Total',
                                 value: cotizaciones.length,
@@ -103,7 +163,7 @@ export default function Cotizaciones({ auth, cotizaciones = [] }) {
                                 value: cotizaciones.filter(c => c.estado === 'rechazada').length,
                                 color: 'bg-red-500'
                             }
-                        ].map((stat) => (
+                        ]).map((stat) => (
                             <div key={stat.name} className="bg-white overflow-hidden shadow rounded-lg">
                                 <div className="p-5">
                                     <div className="flex items-center">
@@ -162,7 +222,7 @@ export default function Cotizaciones({ auth, cotizaciones = [] }) {
                                                         Cotización #{cotizacion.id}
                                                     </h3>
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEstadoColor(cotizacion.estado)}`}>
-                                                        {cotizacion.estado.toUpperCase()}
+                                                        {getEstadoTexto(cotizacion.estado)}
                                                     </span>
                                                 </div>
 
@@ -182,6 +242,32 @@ export default function Cotizaciones({ auth, cotizaciones = [] }) {
                                                     </div>
                                                 </div>
 
+                                                {/* Información adicional para historial */}
+                                                {mostrandoHistorial && (
+                                                    <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-gray-600">
+                                                            {cotizacion.estado === 'en_proceso' && cotizacion.reserva && (
+                                                                <div>
+                                                                    <p className="font-medium text-blue-700">📋 Reserva Activa</p>
+                                                                    <p>Estado: {cotizacion.reserva.estado}</p>
+                                                                    <p>Monto reserva: {formatearMoneda(cotizacion.reserva.monto_reserva)}</p>
+                                                                </div>
+                                                            )}
+                                                            {cotizacion.estado === 'completada' && cotizacion.reserva?.venta && (
+                                                                <div>
+                                                                    <p className="font-medium text-green-700">✅ Venta Finalizada</p>
+                                                                    <p>Fecha venta: {new Date(cotizacion.reserva.venta.fecha_venta).toLocaleDateString()}</p>
+                                                                    <p>Monto final: {formatearMoneda(cotizacion.reserva.venta.monto_final)}</p>
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <p className="font-medium">📅 Actualizado</p>
+                                                                <p>{new Date(cotizacion.updated_at).toLocaleString()}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 {cotizacion.notas && (
                                                     <div className="mt-2">
                                                         <p className="text-sm text-gray-600">
@@ -192,27 +278,45 @@ export default function Cotizaciones({ auth, cotizaciones = [] }) {
                                             </div>
 
                                             <div className="flex space-x-2">
-                                                <button
-                                                    onClick={() => handleUpdateEstado(cotizacion)}
-                                                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                >
-                                                    Actualizar Estado
-                                                </button>
+                                                {!mostrandoHistorial ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleUpdateEstado(cotizacion)}
+                                                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                        >
+                                                            <i className="fas fa-edit mr-1"></i>
+                                                            Estado
+                                                        </button>
 
-                                                <Link
-                                                    href={route('asesor.cotizaciones.edit', cotizacion.id)}
-                                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                >
-                                                    Editar
-                                                </Link>
+                                                        <Link
+                                                            href={route('asesor.cotizaciones.edit', cotizacion.id)}
+                                                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                        >
+                                                            <i className="fas fa-pencil-alt mr-1"></i>
+                                                            Editar
+                                                        </Link>
 
-                                                {cotizacion.estado === 'aceptada' && (
-                                                    <Link
-                                                        href={route('asesor.reservas.create', { cotizacion_id: cotizacion.id })}
-                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                                    >
-                                                        Crear Reserva
-                                                    </Link>
+                                                        {cotizacion.estado === 'aceptada' && (
+                                                            <Link
+                                                                href={route('asesor.reservas.create', { cotizacion_id: cotizacion.id })}
+                                                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                            >
+                                                                <i className="fas fa-calendar-plus mr-1"></i>
+                                                                Reservar
+                                                            </Link>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <div className="flex items-center text-sm text-gray-500">
+                                                        <i className="fas fa-archive mr-2"></i>
+                                                        <span>Cotización archivada</span>
+                                                        {cotizacion.estado === 'completada' && (
+                                                            <span className="ml-2 text-green-600 font-medium">
+                                                                <i className="fas fa-check-circle mr-1"></i>
+                                                                Proceso completado
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

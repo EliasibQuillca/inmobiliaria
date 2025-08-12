@@ -65,6 +65,22 @@ class VentaController extends Controller
             'observaciones' => $validated['observaciones'],
         ]);
 
+        // Crear registro inicial en historial
+        \App\Models\VentaHistorial::create([
+            'venta_id' => $venta->id,
+            'usuario_id' => Auth::id(),
+            'accion' => 'creacion',
+            'datos_anteriores' => null,
+            'datos_nuevos' => $venta->only([
+                'fecha_venta',
+                'monto_final', 
+                'documentos_entregados',
+                'observaciones'
+            ]),
+            'motivo' => 'Creación inicial de la venta',
+            'observaciones' => 'Venta registrada por primera vez'
+        ]);
+
         // Si los documentos fueron entregados, marcar departamento como vendido
         if ($validated['documentos_entregados']) {
             $departamento = Departamento::find($reserva->departamento_id);
@@ -74,6 +90,12 @@ class VentaController extends Controller
                     'disponible' => false
                 ]);
             }
+        }
+
+        // Marcar cotización como finalizada
+        $cotizacion = $reserva->cotizacion;
+        if ($cotizacion) {
+            $cotizacion->marcarFinalizada();
         }
 
         return redirect()->route('asesor.ventas')
@@ -177,6 +199,10 @@ class VentaController extends Controller
             })
             ->findOrFail($id);
 
+        // Agregar información de control de ediciones
+        $venta->dias_desde_venta = $venta->diasDesdeVenta();
+        $venta->puede_editarse = $venta->puedeEditarse();
+
         return Inertia::render('Asesor/Ventas/Editar', [
             'venta' => $venta,
             'auth' => [
@@ -186,7 +212,7 @@ class VentaController extends Controller
     }
 
     /**
-     * Actualizar venta
+     * Actualizar venta con control de ediciones
      */
     public function update(Request $request, $id)
     {
@@ -196,16 +222,79 @@ class VentaController extends Controller
             'fecha_venta' => 'required|date|before_or_equal:today',
             'monto_final' => 'required|numeric|min:0',
             'observaciones' => 'nullable|string|max:1000',
+            'motivo_edicion' => 'required|string|min:10|max:500', // Motivo obligatorio
         ]);
 
-        $venta = Venta::whereHas('reserva', function($query) use ($asesor) {
+        $venta = Venta::with(['historial'])
+            ->whereHas('reserva', function($query) use ($asesor) {
                 $query->where('asesor_id', $asesor->id);
             })
             ->findOrFail($id);
 
-        $venta->update($validated);
+        // VERIFICAR SI PUEDE EDITARSE
+        
+        // 1. Verificar si está bloqueada
+        if ($venta->bloqueada_edicion) {
+            return redirect()->back()
+                ->withErrors(['error' => 'Esta venta está bloqueada para edición.']);
+        }
+
+        // 2. Verificar límite de ediciones
+        if ($venta->cantidad_ediciones >= $venta->max_ediciones) {
+            return redirect()->back()
+                ->withErrors(['error' => "Has alcanzado el límite máximo de {$venta->max_ediciones} ediciones para esta venta."]);
+        }
+
+        // 3. Verificar periodo de tiempo (7 días desde la venta)
+        if ($venta->diasDesdeVenta() > 7) {
+            return redirect()->back()
+                ->withErrors(['error' => 'No puedes editar una venta después de 7 días de registrada.']);
+        }
+
+        // GUARDAR DATOS ANTERIORES PARA HISTORIAL
+        $datosAnteriores = $venta->only([
+            'fecha_venta',
+            'monto_final', 
+            'observaciones'
+        ]);
+
+        // ACTUALIZAR LA VENTA
+        $venta->update([
+            'fecha_venta' => $validated['fecha_venta'],
+            'monto_final' => $validated['monto_final'],
+            'observaciones' => $validated['observaciones'],
+            'cantidad_ediciones' => $venta->cantidad_ediciones + 1,
+            'fecha_primera_edicion' => $venta->fecha_primera_edicion ?? now(),
+            'fecha_ultima_edicion' => now(),
+        ]);
+
+        // CREAR REGISTRO EN HISTORIAL
+        \App\Models\VentaHistorial::create([
+            'venta_id' => $venta->id,
+            'usuario_id' => Auth::id(),
+            'accion' => 'edicion',
+            'datos_anteriores' => $datosAnteriores,
+            'datos_nuevos' => $venta->only([
+                'fecha_venta',
+                'monto_final', 
+                'observaciones'
+            ]),
+            'motivo' => $validated['motivo_edicion'],
+            'observaciones' => "Edición #{$venta->cantidad_ediciones} de {$venta->max_ediciones} permitidas"
+        ]);
+
+        // VERIFICAR SI DEBE BLOQUEARSE
+        if ($venta->cantidad_ediciones >= $venta->max_ediciones) {
+            $venta->update(['bloqueada_edicion' => true]);
+            $mensaje = 'Venta actualizada. ⚠️ Has alcanzado el límite máximo de ediciones. Esta venta ya no puede editarse.';
+        } elseif ($venta->cantidad_ediciones == $venta->max_ediciones - 1) {
+            $mensaje = "Venta actualizada. ⚠️ Solo tienes 1 edición más disponible.";
+        } else {
+            $edicionesRestantes = $venta->max_ediciones - $venta->cantidad_ediciones;
+            $mensaje = "Venta actualizada. Te quedan {$edicionesRestantes} ediciones disponibles.";
+        }
 
         return redirect()->route('asesor.ventas')
-            ->with('success', 'Venta actualizada exitosamente');
+            ->with('success', $mensaje);
     }
 }

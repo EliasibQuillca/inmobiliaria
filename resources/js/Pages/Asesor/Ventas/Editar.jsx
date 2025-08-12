@@ -7,7 +7,8 @@ export default function Editar({ auth, venta }) {
         fecha_venta: venta.fecha_venta,
         monto_final: venta.monto_final,
         documentos_entregados: venta.documentos_entregados,
-        observaciones: venta.observaciones || ''
+        observaciones: venta.observaciones || '',
+        motivo_edicion: ''
     });
 
     const handleSubmit = (e) => {
@@ -35,6 +36,51 @@ export default function Editar({ auth, venta }) {
                                     <i className="fas fa-edit mr-3 text-blue-600"></i>
                                     Editar Venta #{venta.id}
                                 </h1>
+                            </div>
+
+                            {/* Información de control de ediciones */}
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                                <h3 className="text-lg font-semibold text-yellow-800 mb-3">
+                                    <i className="fas fa-edit mr-2"></i>
+                                    Control de Ediciones
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                    <div>
+                                        <span className="font-medium text-yellow-700">Ediciones realizadas:</span>
+                                        <p className="text-yellow-900 font-semibold">
+                                            {venta.cantidad_ediciones || 0} de {venta.max_ediciones || 3}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <span className="font-medium text-yellow-700">Días desde venta:</span>
+                                        <p className="text-yellow-900 font-semibold">
+                                            {venta.dias_desde_venta || 0} días
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <span className="font-medium text-yellow-700">Estado:</span>
+                                        <p className={`font-semibold ${venta.bloqueada_edicion ? 'text-red-600' : 'text-green-600'}`}>
+                                            {venta.bloqueada_edicion ? 'Bloqueada' : 'Editable'}
+                                        </p>
+                                    </div>
+                                </div>
+                                {venta.cantidad_ediciones > 0 && (
+                                    <div className="mt-3 pt-3 border-t border-yellow-200">
+                                        <p className="text-xs text-yellow-700">
+                                            <i className="fas fa-info-circle mr-1"></i>
+                                            Primera edición: {venta.fecha_primera_edicion ? new Date(venta.fecha_primera_edicion).toLocaleDateString('es-PE') : 'N/A'} | 
+                                            Última edición: {venta.fecha_ultima_edicion ? new Date(venta.fecha_ultima_edicion).toLocaleDateString('es-PE') : 'N/A'}
+                                        </p>
+                                    </div>
+                                )}
+                                {(venta.cantidad_ediciones >= venta.max_ediciones || venta.bloqueada_edicion) && (
+                                    <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded">
+                                        <p className="text-sm text-red-700 font-medium">
+                                            <i className="fas fa-ban mr-2"></i>
+                                            Esta venta no puede editarse más veces.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Información de la reserva (solo lectura) */}
@@ -166,6 +212,39 @@ export default function Editar({ auth, venta }) {
                                             <p className="mt-1 text-sm text-red-600">{errors.observaciones}</p>
                                         )}
                                     </div>
+
+                                    {/* Motivo de Edición - OBLIGATORIO */}
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Motivo de la Edición *
+                                            <span className="text-red-500 text-xs ml-1">(Obligatorio - mín. 10 caracteres)</span>
+                                        </label>
+                                        <textarea
+                                            value={data.motivo_edicion}
+                                            onChange={(e) => setData('motivo_edicion', e.target.value)}
+                                            rows={3}
+                                            minLength={10}
+                                            maxLength={500}
+                                            placeholder="Explique detalladamente por qué está editando esta venta (ej: corrección de monto acordado con el cliente, actualización de fecha por documentos, etc.)"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                            required
+                                        />
+                                        <div className="flex justify-between mt-1">
+                                            <div>
+                                                {errors.motivo_edicion && (
+                                                    <p className="text-sm text-red-600">{errors.motivo_edicion}</p>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                                {data.motivo_edicion.length}/500 caracteres
+                                            </p>
+                                        </div>
+                                        {data.motivo_edicion.length < 10 && data.motivo_edicion.length > 0 && (
+                                            <p className="text-xs text-red-500 mt-1">
+                                                Faltan {10 - data.motivo_edicion.length} caracteres
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Botones */}
@@ -179,13 +258,25 @@ export default function Editar({ auth, venta }) {
                                     </a>
                                     <button
                                         type="submit"
-                                        disabled={processing}
+                                        disabled={processing || venta.bloqueada_edicion || (venta.cantidad_ediciones >= venta.max_ediciones) || data.motivo_edicion.length < 10}
                                         className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-25"
+                                        title={
+                                            venta.bloqueada_edicion || (venta.cantidad_ediciones >= venta.max_ediciones) 
+                                                ? "Esta venta no puede editarse más veces"
+                                                : data.motivo_edicion.length < 10
+                                                    ? "Debe explicar el motivo de la edición (mín. 10 caracteres)"
+                                                    : "Guardar cambios"
+                                        }
                                     >
                                         {processing ? (
                                             <>
                                                 <i className="fas fa-spinner fa-spin mr-2"></i>
                                                 Actualizando...
+                                            </>
+                                        ) : venta.bloqueada_edicion || (venta.cantidad_ediciones >= venta.max_ediciones) ? (
+                                            <>
+                                                <i className="fas fa-ban mr-2"></i>
+                                                No Editable
                                             </>
                                         ) : (
                                             <>

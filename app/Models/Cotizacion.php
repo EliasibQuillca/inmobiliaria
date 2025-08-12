@@ -76,6 +76,26 @@ class Cotizacion extends Model
         return $query->where('estado', 'rechazada');
     }
 
+    public function scopeReservadas($query)
+    {
+        return $query->where('estado', 'en_proceso');
+    }
+
+    public function scopeFinalizadas($query)
+    {
+        return $query->where('estado', 'completada');
+    }
+
+    public function scopeActivas($query)
+    {
+        return $query->whereIn('estado', ['pendiente', 'aceptada', 'rechazada']);
+    }
+
+    public function scopeHistorial($query)
+    {
+        return $query->whereIn('estado', ['en_proceso', 'completada', 'cancelada', 'expirada']);
+    }
+
     // Métodos de utilidad
     public function estaPendiente()
     {
@@ -92,6 +112,26 @@ class Cotizacion extends Model
         return $this->attributes['estado'] === 'rechazada';
     }
 
+    public function estaReservada()
+    {
+        return $this->attributes['estado'] === 'en_proceso';
+    }
+
+    public function estaFinalizada()
+    {
+        return $this->attributes['estado'] === 'completada';
+    }
+
+    public function estaActiva()
+    {
+        return in_array($this->attributes['estado'], ['pendiente', 'aceptada', 'rechazada']);
+    }
+
+    public function estaEnHistorial()
+    {
+        return in_array($this->attributes['estado'], ['en_proceso', 'completada', 'cancelada', 'expirada']);
+    }
+
     public function aceptar()
     {
         $this->update(['estado' => 'aceptada']);
@@ -100,6 +140,16 @@ class Cotizacion extends Model
     public function rechazar()
     {
         $this->update(['estado' => 'rechazada']);
+    }
+
+    public function marcarReservada()
+    {
+        $this->update(['estado' => 'en_proceso']);
+    }
+
+    public function marcarFinalizada()
+    {
+        $this->update(['estado' => 'completada']);
     }
 
     public function tieneReserva()

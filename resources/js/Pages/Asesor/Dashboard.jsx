@@ -16,7 +16,7 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
             title: 'Cotizaciones',
             description: 'Crear y gestionar cotizaciones de departamentos',
             icon: '💰',
-            href: '/asesor/cotizaciones',
+            href: route('asesor.cotizaciones'),
             color: 'bg-green-500',
             count: estadisticas.cotizaciones_activas || 0
         },
@@ -200,19 +200,19 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
                             <h2 className="text-lg font-medium text-gray-900 mb-4">Acciones Rápidas</h2>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <Link
-                                    href="/asesor/cotizaciones/crear"
+                                    href={route('asesor.cotizaciones.create')}
                                     className="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 transition ease-in-out duration-150"
                                 >
                                     Nueva Cotización
                                 </Link>
                                 <Link
-                                    href="/asesor/reservas/crear"
+                                    href={route('asesor.reservas.create')}
                                     className="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 active:bg-yellow-900 focus:outline-none focus:border-yellow-900 focus:ring ring-yellow-300 transition ease-in-out duration-150"
                                 >
                                     Nueva Reserva
                                 </Link>
                                 <Link
-                                    href="/asesor/ventas/crear"
+                                    href={route('asesor.ventas.create')}
                                     className="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 active:bg-purple-900 focus:outline-none focus:border-purple-900 focus:ring ring-purple-300 transition ease-in-out duration-150"
                                 >
                                     Nueva Venta

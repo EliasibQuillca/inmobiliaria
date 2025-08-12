@@ -37,7 +37,7 @@ export default function Clientes({ auth, clientes = [] }) {
     };
 
     const crearCotizacion = (cliente) => {
-        router.get(`/asesor/cotizaciones/create?cliente_id=${cliente.id}`);
+        router.get(route('asesor.cotizaciones.create', { cliente_id: cliente.id }));
     };
 
     const getEstadoColor = (estado) => {

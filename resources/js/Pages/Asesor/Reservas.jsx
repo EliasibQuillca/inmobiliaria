@@ -204,7 +204,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                         </button>
                                     </div>
                                     <Link
-                                        href="/asesor/reservas/crear"
+                                        href={route('asesor.reservas.create')}
                                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
                                     >
                                         Nueva Reserva
@@ -336,7 +336,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                         No hay reservas {filtro !== 'todas' ? filtro : ''} en este momento
                                     </p>
                                     <Link
-                                        href="/asesor/reservas/crear"
+                                        href={route('asesor.reservas.create')}
                                         className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
                                     >
                                         Crear Primera Reserva

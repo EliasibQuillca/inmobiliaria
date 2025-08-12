@@ -103,6 +103,9 @@ class ReservaController extends Controller
             'notas' => $validated['notas'],
         ]);
 
+        // Marcar cotización como reservada
+        $cotizacion->marcarReservada();
+
         // Cambiar estado del departamento a reservado
         $departamento->update(['estado' => 'reservado']);
 
