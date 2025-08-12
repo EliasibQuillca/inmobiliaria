@@ -28,11 +28,16 @@ class DashboardController extends Controller
             'cliente' => $cliente,
             'solicitudes' => [],
             'favoritos' => [],
+            'reservas' => [],
             'estadisticas' => [
                 'total_solicitudes' => 0,
                 'solicitudes_pendientes' => 0,
-                'favoritos_count' => 0
-            ]
+                'cotizaciones_recibidas' => 0,
+                'favoritos_count' => 0,
+                'reservas_activas' => 0
+            ],
+            'actividades_recientes' => [],
+            'asesores_contacto' => []
         ];
         
         if ($cliente) {
@@ -43,25 +48,86 @@ class DashboardController extends Controller
                                    ->take(5)
                                    ->get();
             
-            // Obtener favoritos
-            $favoritos = $cliente->favoritos()->take(3)->get();
+            // Obtener favoritos con más información
+            $favoritos = $cliente->favoritos()
+                               ->with(['imagenes'])
+                               ->take(3)
+                               ->get();
             
-            // Calcular estadísticas
+            // Obtener reservas activas
+            $reservas = $cliente->reservas()
+                              ->with(['departamento', 'asesor.usuario'])
+                              ->where('estado', '!=', 'cancelada')
+                              ->take(3)
+                              ->get();
+            
+            // Calcular estadísticas completas
             $totalSolicitudes = Cotizacion::where('cliente_id', $cliente->id)->count();
             $solicitudesPendientes = Cotizacion::where('cliente_id', $cliente->id)
                                               ->where('estado', 'pendiente')
                                               ->count();
+            $cotizacionesRecibidas = Cotizacion::where('cliente_id', $cliente->id)
+                                              ->where('estado', '!=', 'pendiente')
+                                              ->count();
             $favoritosCount = $cliente->favoritos()->count();
+            $reservasActivas = $cliente->reservas()
+                                     ->where('estado', '!=', 'cancelada')
+                                     ->count();
+            
+            // Crear actividades recientes combinando solicitudes y reservas
+            $actividadesRecientes = collect();
+            
+            // Agregar solicitudes como actividades
+            foreach ($solicitudes->take(3) as $solicitud) {
+                $actividadesRecientes->push([
+                    'id' => 'sol_' . $solicitud->id,
+                    'tipo' => 'solicitud',
+                    'descripcion' => 'Solicitud enviada: ' . ($solicitud->departamento->codigo ?? 'Depto. N/A'),
+                    'fecha' => $solicitud->created_at->format('Y-m-d'),
+                    'estado' => $solicitud->estado,
+                    'asesor' => $solicitud->asesor->usuario->name ?? null,
+                    'monto' => $solicitud->monto_ofertado
+                ]);
+            }
+            
+            // Agregar reservas como actividades
+            foreach ($reservas->take(2) as $reserva) {
+                $actividadesRecientes->push([
+                    'id' => 'res_' . $reserva->id,
+                    'tipo' => 'reserva',
+                    'descripcion' => 'Reserva: ' . ($reserva->departamento->codigo ?? 'Depto. N/A'),
+                    'fecha' => $reserva->fecha_reserva,
+                    'estado' => $reserva->estado,
+                    'asesor' => $reserva->asesor->usuario->name ?? null,
+                    'monto' => $reserva->monto_reserva
+                ]);
+            }
+            
+            // Ordenar actividades por fecha
+            $actividadesRecientes = $actividadesRecientes->sortByDesc('fecha')->take(5)->values();
+            
+            // Obtener asesores que han tenido contacto
+            $asesoresContacto = Asesor::whereHas('cotizaciones', function($query) use ($cliente) {
+                                    $query->where('cliente_id', $cliente->id);
+                                })
+                                ->with('usuario')
+                                ->take(3)
+                                ->get();
             
             $data = [
-                'cliente' => $cliente,
+                'cliente' => $cliente->load('usuario'),
                 'solicitudes' => $solicitudes,
                 'favoritos' => $favoritos,
+                'reservas' => $reservas,
                 'estadisticas' => [
                     'total_solicitudes' => $totalSolicitudes,
                     'solicitudes_pendientes' => $solicitudesPendientes,
-                    'favoritos_count' => $favoritosCount
-                ]
+                    'cotizaciones_recibidas' => $cotizacionesRecibidas,
+                    'favoritos_count' => $favoritosCount,
+                    'reservas_activas' => $reservasActivas
+                ],
+                'actividades_recientes' => $actividadesRecientes,
+                'asesores_contacto' => $asesoresContacto
             ];
         }
 

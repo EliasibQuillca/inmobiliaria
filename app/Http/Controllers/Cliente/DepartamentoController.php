@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Cliente;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cliente;
 use App\Models\Departamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -108,55 +109,34 @@ class DepartamentoController extends Controller
         return redirect()->back()->with('success', 'Departamento eliminado de favoritos.');
     }
 
-    /**
-     * Mostrar la página de favoritos del cliente.
+        /**
+     * Mostrar la lista de favoritos del cliente.
      *
      * @return \Inertia\Response
      */
     public function favoritos()
     {
-        $cliente = Auth::user()->cliente;
+        // Obtener el cliente actual
+        $cliente = Cliente::where('usuario_id', Auth::id())->first();
         
-        if (!$cliente) {
-            return Inertia::render('Cliente/Favoritos', [
-                'favoritos' => []
-            ]);
+        $favoritos = collect();
+        
+        if ($cliente) {
+            // Obtener los favoritos del cliente
+            $favoritos = $cliente->favoritos()
+                               ->with(['imagenes', 'propietario'])
+                               ->where('estado', 'disponible')
+                               ->paginate(12);
         }
 
-        // Obtener favoritos con información completa del departamento
-        $favoritos = $cliente->favoritos()
-            ->with(['imagenes', 'asesor.usuario'])
-            ->where('estado', 'disponible')
-            ->get()
-            ->map(function ($departamento) {
-                return [
-                    'id' => $departamento->id,
-                    'codigo' => $departamento->codigo,
-                    'titulo' => $departamento->codigo,
-                    'ubicacion' => $departamento->direccion,
-                    'precio' => $departamento->precio,
-                    'habitaciones' => $departamento->habitaciones,
-                    'banos' => $departamento->banos,
-                    'area_total' => $departamento->area_construida,
-                    'estado' => ucfirst($departamento->estado),
-                    'imagen_principal' => $departamento->imagenes->isNotEmpty() 
-                        ? '/storage/' . $departamento->imagenes->first()->ruta 
-                        : null,
-                    'fecha_guardado' => $departamento->pivot->created_at->format('Y-m-d'),
-                    'asesor' => $departamento->asesor ? [
-                        'nombre' => $departamento->asesor->nombre,
-                        'telefono' => $departamento->asesor->telefono
-                    ] : null
-                ];
-            });
-
         return Inertia::render('Cliente/Favoritos', [
-            'favoritos' => $favoritos
+            'favoritos' => $favoritos,
+            'cliente' => $cliente
         ]);
     }
 
     /**
-     * Alternar un departamento en los favoritos del cliente.
+     * Alternar el estado de favorito de un departamento
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
@@ -164,30 +144,27 @@ class DepartamentoController extends Controller
     public function toggleFavorito(Request $request)
     {
         $request->validate([
-            'departamento_id' => 'required|integer|exists:departamentos,id'
+            'departamento_id' => 'required|exists:departamentos,id'
         ]);
 
-        $cliente = Auth::user()->cliente;
+        // Obtener el cliente actual
+        $cliente = Cliente::where('usuario_id', Auth::id())->first();
+        
         if (!$cliente) {
-            return redirect()->back()->with('error', 'Cliente no encontrado');
+            return redirect()->back()->with('error', 'Cliente no encontrado.');
         }
 
         $departamentoId = $request->departamento_id;
         
         // Verificar si ya está en favoritos
-        $existeFavorito = $cliente->favoritos()->where('departamento_id', $departamentoId)->exists();
-        
-        if ($existeFavorito) {
-            // Quitar de favoritos
+        if ($cliente->favoritos()->where('departamento_id', $departamentoId)->exists()) {
+            // Remover de favoritos
             $cliente->favoritos()->detach($departamentoId);
-            $mensaje = 'Propiedad removida de favoritos';
+            $mensaje = 'Departamento removido de favoritos.';
         } else {
             // Agregar a favoritos
-            $cliente->favoritos()->attach($departamentoId, [
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            $mensaje = 'Propiedad agregada a favoritos';
+            $cliente->favoritos()->attach($departamentoId);
+            $mensaje = 'Departamento agregado a favoritos.';
         }
 
         return redirect()->back()->with('success', $mensaje);

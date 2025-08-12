@@ -103,22 +103,30 @@ Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->gr
     Route::get('/dashboard', [App\Http\Controllers\Cliente\DashboardController::class, 'index'])->name('dashboard');
 
     // === FAVORITOS ===
-    Route::get('/favoritos', [App\Http\Controllers\Cliente\DepartamentoController::class, 'favoritos'])->name('favoritos');
+    Route::get('/favoritos', [App\Http\Controllers\Cliente\DepartamentoController::class, 'favoritos'])->name('favoritos.index');
     Route::post('/favoritos/toggle', [App\Http\Controllers\Cliente\DepartamentoController::class, 'toggleFavorito'])->name('favoritos.toggle');
 
     // === SOLICITUDES ===
-    Route::get('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('solicitudes');
+    Route::get('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('solicitudes.index');
     Route::get('/solicitudes/crear', [App\Http\Controllers\Cliente\SolicitudController::class, 'create'])->name('solicitudes.create');
     Route::post('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'store'])->name('solicitudes.store');
+    
+    // === COTIZACIONES Y RESERVAS ===
+    Route::get('/cotizaciones', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('cotizaciones.index');
+    Route::get('/reservas', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('reservas.index');
+    
+    // === COMENTARIOS Y CHAT ===
+    Route::get('/solicitudes/{cotizacion}/comentarios', [App\Http\Controllers\Cliente\ComentarioController::class, 'show'])->name('solicitudes.comentarios');
+    Route::post('/solicitudes/{cotizacion}/comentarios', [App\Http\Controllers\Cliente\ComentarioController::class, 'store'])->name('solicitudes.comentarios.store');
+    Route::get('/comentarios/no-leidos', [App\Http\Controllers\Cliente\ComentarioController::class, 'contarNoLeidos'])->name('comentarios.no-leidos');
+    Route::post('/comentarios/marcar-leidos', [App\Http\Controllers\Cliente\ComentarioController::class, 'marcarTodosLeidos'])->name('comentarios.marcar-leidos');
 
     // === ASESORES ===
     Route::get('/asesores', [App\Http\Controllers\Cliente\DashboardController::class, 'asesores'])->name('asesores');
 
     // === PERFIL ===
-    Route::get('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'perfil'])->name('perfil');
+    Route::get('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'perfil'])->name('perfil.index');
     Route::patch('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'actualizarPerfil'])->name('perfil.update');
-    Route::patch('/perfil/password', [App\Http\Controllers\Cliente\DashboardController::class, 'cambiarPassword'])->name('perfil.password');
-    Route::patch('/perfil/preferencias', [App\Http\Controllers\Cliente\DashboardController::class, 'actualizarPreferencias'])->name('perfil.preferencias');
 
     // === CATÁLOGO - REDIRIGE AL PÚBLICO ===
     Route::get('/catalogo', function () {

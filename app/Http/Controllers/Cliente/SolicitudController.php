@@ -21,10 +21,29 @@ class SolicitudController extends Controller
      */
     public function index()
     {
-        // En una implementación real, obtendríamos las solicitudes del cliente
-        // autenticado desde la base de datos
+        // Obtener el cliente actual
+        $cliente = Cliente::where('usuario_id', Auth::id())->first();
+        
+        $solicitudes = collect();
+        
+        if ($cliente) {
+            // Obtener todas las cotizaciones (solicitudes) del cliente
+            $solicitudes = Cotizacion::where('cliente_id', $cliente->id)
+                                   ->orderBy('created_at', 'desc')
+                                   ->with([
+                                       'departamento',
+                                       'asesor.usuario',
+                                       'comentarios' => function($query) {
+                                           $query->orderBy('created_at', 'desc');
+                                       }
+                                   ])
+                                   ->get();
+        }
 
-        return Inertia::render('Cliente/Solicitudes');
+        return Inertia::render('Cliente/Solicitudes', [
+            'solicitudes' => $solicitudes,
+            'cliente' => $cliente
+        ]);
     }
 
     /**

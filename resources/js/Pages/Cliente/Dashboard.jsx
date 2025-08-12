@@ -1,505 +1,334 @@
-import { Head, Link } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, Link } from '@inertiajs/react';
 
-export default function ClienteDashboard({ auth }) {
-    // Estado para las estadísticas del dashboard
-    const [stats, setStats] = useState({
-        solicitudesEnviadas: 3,
-        cotizacionesRecibidas: 2,
-        reservasActivas: 1,
-        departamentosVistos: 8
-    });
+export default function Dashboard({ auth, stats, recentCotizaciones, favoritos, solicitudes }) {
+    const [currentTime, setCurrentTime] = useState(new Date());
+    const [animatedStats, setAnimatedStats] = useState(false);
 
-    // Actividades recientes con datos más coherentes
-    const [actividadesRecientes, setActividadesRecientes] = useState([
-        {
-            id: 1,
-            tipo: 'solicitud',
-            descripcion: 'Solicitud enviada: Departamento Magisterio 202',
-            fecha: '2025-07-15',
-            estado: 'enviada'
-        },
-        {
-            id: 2,
-            tipo: 'cotizacion',
-            descripcion: 'Cotización recibida: Departamento Magisterio 202',
-            fecha: '2025-07-16',
-            asesor: 'María González',
-            monto: 150000
-        },
-        {
-            id: 3,
-            tipo: 'visita',
-            descripcion: 'Visita programada: Departamento Magisterio 202',
-            fecha: '2025-07-22',
-            asesor: 'María González',
-            hora: '10:00 AM'
-        },
-    ]);
+    // Reloj en tiempo real
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
 
-    // Departamentos favoritos
-    const [favoritos, setFavoritos] = useState([
-        {
-            id: 1,
-            titulo: 'Departamento Magisterio 202',
-            ubicacion: 'Calle Magisterio 123, Sector A',
-            precio: 150000,
-            habitaciones: 3,
-            banos: 2,
-            area_total: 120,
-            estado: 'disponible'
-        },
-        {
-            id: 2,
-            titulo: 'Departamento Lima 305',
-            ubicacion: 'Av. Lima 305, Sector B',
-            precio: 180000,
-            habitaciones: 3,
-            banos: 2,
-            area_total: 140,
-            estado: 'disponible'
-        }
-    ]);
+    // Animación de estadísticas
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setAnimatedStats(true);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, []);
 
-    // Formato de moneda
-    const formatPrecio = (precio) => {
-        return new Intl.NumberFormat('es-PE', {
-            style: 'currency',
-            currency: 'PEN',
-            minimumFractionDigits: 0,
-        }).format(precio);
-    };
-
-    // Formato de fecha
-    const formatFecha = (fecha) => {
-        return new Date(fecha).toLocaleDateString('es-PE', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
+    const formatTime = (date) => {
+        return date.toLocaleTimeString('es-ES', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
         });
     };
 
     return (
-        <AuthenticatedLayout
-            user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Dashboard Cliente</h2>}
-        >
-            <Head title="Mi Panel - Inmobiliaria" />
+        <AuthenticatedLayout user={auth.user}>
+            <Head title="Dashboard Cliente" />
+            
+            {/* Hero Section con Gradiente Dinámico */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-blue-900 to-purple-900 text-white py-16 mb-8">
+                <div className="absolute inset-0 bg-black opacity-20"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-5 animate-pulse"></div>
+                
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                        <div className="inline-flex items-center px-4 py-2 bg-white bg-opacity-10 backdrop-blur-sm rounded-full mb-6">
+                            <div className="w-3 h-3 bg-green-400 rounded-full mr-3 animate-pulse"></div>
+                            <span className="font-mono text-sm">
+                                En línea • {formatTime(currentTime)}
+                            </span>
+                        </div>
+                        
+                        <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent">
+                            ¡Bienvenido, {auth.user.name}!
+                        </h1>
+                        <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+                            Tu portal personalizado para encontrar el departamento perfecto. 
+                            Explora, solicita, y haz realidad tu nuevo hogar.
+                        </p>
+                        
+                        <div className="flex flex-wrap justify-center gap-4">
+                            <Link href="/cliente/departamentos" 
+                                className="inline-flex items-center px-6 py-3 bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-30 rounded-lg hover:bg-opacity-30 transition-all duration-300 transform hover:scale-105">
+                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-9 9a1 1 0 001.414 1.414L2 12.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-4.586l.293.293a1 1 0 001.414-1.414l-9-9z"/>
+                                </svg>
+                                Explorar Departamentos
+                            </Link>
+                            <Link href="/cliente/solicitudes" 
+                                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"/>
+                                </svg>
+                                Mis Solicitudes
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <div className="py-12 bg-gray-100 min-h-screen">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header Section */}
-                    <div className="mb-8">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                            <div className="mb-4 sm:mb-0">
-                                <h1 className="text-3xl font-bold text-gray-900">
-                                    Mi Panel
-                                </h1>
-                                <p className="mt-1 text-lg text-gray-600">
-                                    Gestiona tus solicitudes, cotizaciones y reservas
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Panel de Estadísticas Animado */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div className={`bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl border border-blue-200 shadow-lg transform transition-all duration-700 ${animatedStats ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-blue-600 text-sm font-medium uppercase tracking-wider">Favoritos</p>
+                                <p className="text-3xl font-bold text-blue-900 mt-2">
+                                    {stats?.favoritos || 0}
                                 </p>
                             </div>
-                            <Link
-                                href="/catalogo"
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm"
-                            >
-                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            <div className="bg-blue-500 bg-opacity-20 p-3 rounded-full">
+                                <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
                                 </svg>
-                                Ver Catálogo de Propiedades
-                            </Link>
+                            </div>
+                        </div>
+                        <div className="mt-4 flex items-center">
+                            <span className="text-green-500 text-sm font-medium">
+                                <svg className="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"/>
+                                </svg>
+                                Propiedades guardadas
+                            </span>
                         </div>
                     </div>
 
-                    {/* Tarjetas de estadísticas */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        {/* Solicitudes Enviadas */}
-                        <div className="bg-white overflow-hidden shadow-sm rounded-lg border-l-4 border-blue-500 hover:shadow-md transition-shadow duration-200">
-                            <div className="p-6">
-                                <div className="flex items-center">
-                                    <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                                        <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-4">
-                                        <p className="text-sm font-medium text-gray-500 truncate">
-                                            Solicitudes Enviadas
-                                        </p>
-                                        <p className="text-2xl font-bold text-gray-900">
-                                            {stats.solicitudesEnviadas}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <Link
-                                        href="/cliente/solicitudes"
-                                        className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline"
-                                    >
-                                        Ver mis solicitudes
-                                    </Link>
-                                </div>
+                    <div className={`bg-gradient-to-br from-purple-50 to-pink-100 p-6 rounded-xl border border-purple-200 shadow-lg transform transition-all duration-700 delay-100 ${animatedStats ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-purple-600 text-sm font-medium uppercase tracking-wider">Solicitudes</p>
+                                <p className="text-3xl font-bold text-purple-900 mt-2">
+                                    {stats?.solicitudes || 0}
+                                </p>
+                            </div>
+                            <div className="bg-purple-500 bg-opacity-20 p-3 rounded-full">
+                                <svg className="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"/>
+                                </svg>
                             </div>
                         </div>
-
-                        {/* Cotizaciones Recibidas */}
-                        <div className="bg-white overflow-hidden shadow-sm rounded-lg border-l-4 border-green-500 hover:shadow-md transition-shadow duration-200">
-                            <div className="p-6">
-                                <div className="flex items-center">
-                                    <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
-                                        <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-4">
-                                        <p className="text-sm font-medium text-gray-500 truncate">
-                                            Cotizaciones Recibidas
-                                        </p>
-                                        <p className="text-2xl font-bold text-gray-900">
-                                            {stats.cotizacionesRecibidas}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <Link
-                                        href="/cliente/cotizaciones"
-                                        className="text-sm text-green-600 hover:text-green-800 font-medium hover:underline"
-                                    >
-                                        Ver mis cotizaciones
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Reservas Activas */}
-                        <div className="bg-white overflow-hidden shadow-sm rounded-lg border-l-4 border-yellow-500 hover:shadow-md transition-shadow duration-200">
-                            <div className="p-6">
-                                <div className="flex items-center">
-                                    <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
-                                        <svg className="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-4">
-                                        <p className="text-sm font-medium text-gray-500 truncate">
-                                            Reservas Activas
-                                        </p>
-                                        <p className="text-2xl font-bold text-gray-900">
-                                            {stats.reservasActivas}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <Link
-                                        href="/cliente/reservas"
-                                        className="text-sm text-yellow-600 hover:text-yellow-800 font-medium hover:underline"
-                                    >
-                                        Ver mis reservas
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Departamentos Vistos */}
-                        <div className="bg-white overflow-hidden shadow-sm rounded-lg border-l-4 border-purple-500 hover:shadow-md transition-shadow duration-200">
-                            <div className="p-6">
-                                <div className="flex items-center">
-                                    <div className="flex-shrink-0 bg-purple-100 rounded-md p-3">
-                                        <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-4">
-                                        <p className="text-sm font-medium text-gray-500 truncate">
-                                            Departamentos Vistos
-                                        </p>
-                                        <p className="text-2xl font-bold text-gray-900">
-                                            {stats.departamentosVistos}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <Link
-                                        href="/cliente/historial"
-                                        className="text-sm text-purple-600 hover:text-purple-800 font-medium hover:underline"
-                                    >
-                                        Ver mi historial
-                                    </Link>
-                                </div>
-                            </div>
+                        <div className="mt-4 flex items-center">
+                            <span className="text-blue-500 text-sm font-medium">
+                                Consultas enviadas
+                            </span>
                         </div>
                     </div>
 
-                    {/* Acciones rápidas */}
-                    <div className="bg-white overflow-hidden shadow-md rounded-lg mb-8">
-                        <div className="px-6 py-5 border-b border-gray-200">
-                            <h3 className="text-lg leading-6 font-semibold text-gray-900">
-                                Acciones Rápidas
-                            </h3>
+                    <div className={`bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200 shadow-lg transform transition-all duration-700 delay-200 ${animatedStats ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-green-600 text-sm font-medium uppercase tracking-wider">Cotizaciones</p>
+                                <p className="text-3xl font-bold text-green-900 mt-2">
+                                    {stats?.cotizaciones || 0}
+                                </p>
+                            </div>
+                            <div className="bg-green-500 bg-opacity-20 p-3 rounded-full">
+                                <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
+                                </svg>
+                            </div>
                         </div>
-                        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Explorar Departamentos */}
-                            <Link
-                                href="/catalogo"
-                                className="group flex items-center p-5 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:from-blue-100 hover:to-blue-200 transition-all duration-200 transform hover:scale-105"
-                            >
-                                <div className="flex-shrink-0 bg-blue-600 rounded-md p-3 group-hover:bg-blue-700 transition-colors duration-200">
-                                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        <div className="mt-4 flex items-center">
+                            <span className="text-orange-500 text-sm font-medium">
+                                Presupuestos activos
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className={`bg-gradient-to-br from-orange-50 to-red-100 p-6 rounded-xl border border-orange-200 shadow-lg transform transition-all duration-700 delay-300 ${animatedStats ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-orange-600 text-sm font-medium uppercase tracking-wider">Reservas</p>
+                                <p className="text-3xl font-bold text-orange-900 mt-2">
+                                    {stats?.reservas || 0}
+                                </p>
+                            </div>
+                            <div className="bg-orange-500 bg-opacity-20 p-3 rounded-full">
+                                <svg className="w-8 h-8 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div className="mt-4 flex items-center">
+                            <span className="text-red-500 text-sm font-medium">
+                                Apartados confirmados
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sección de Accesos Rápidos */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                    {/* Acciones Principales */}
+                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Acciones Rápidas</h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            <Link href="/cliente/departamentos" 
+                                className="group flex items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-transparent hover:border-blue-200 transition-all duration-300">
+                                <div className="bg-blue-100 p-3 rounded-lg group-hover:bg-blue-200 transition-colors">
+                                    <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-9 9a1 1 0 001.414 1.414L2 12.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-4.586l.293.293a1 1 0 001.414-1.414l-9-9z"/>
                                     </svg>
                                 </div>
                                 <div className="ml-4">
-                                    <h4 className="text-base font-semibold text-gray-900 group-hover:text-blue-800">
-                                        Explorar Departamentos
-                                    </h4>
-                                    <p className="mt-1 text-sm text-gray-600">
-                                        Descubre nuestros departamentos disponibles
-                                    </p>
+                                    <h3 className="font-semibold text-gray-900">Explorar</h3>
+                                    <p className="text-sm text-gray-600">Ver departamentos</p>
                                 </div>
                             </Link>
 
-                            {/* Nueva Solicitud */}
-                            <Link
-                                href="/cliente/solicitudes/crear"
-                                className="group flex items-center p-5 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200 hover:from-green-100 hover:to-green-200 transition-all duration-200 transform hover:scale-105"
-                            >
-                                <div className="flex-shrink-0 bg-green-600 rounded-md p-3 group-hover:bg-green-700 transition-colors duration-200">
-                                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            <Link href="/cliente/favoritos" 
+                                className="group flex items-center p-4 bg-gradient-to-r from-pink-50 to-red-50 rounded-xl border-2 border-transparent hover:border-pink-200 transition-all duration-300">
+                                <div className="bg-pink-100 p-3 rounded-lg group-hover:bg-pink-200 transition-colors">
+                                    <svg className="w-6 h-6 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
                                     </svg>
                                 </div>
                                 <div className="ml-4">
-                                    <h4 className="text-base font-semibold text-gray-900 group-hover:text-green-800">
-                                        Nueva Solicitud
-                                    </h4>
-                                    <p className="mt-1 text-sm text-gray-600">
-                                        Solicita información sobre un departamento
-                                    </p>
+                                    <h3 className="font-semibold text-gray-900">Favoritos</h3>
+                                    <p className="text-sm text-gray-600">Tus preferidos</p>
                                 </div>
                             </Link>
 
-                            {/* Actualizar Perfil */}
-                            <Link
-                                href="/cliente/perfil"
-                                className="group flex items-center p-5 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:from-purple-100 hover:to-purple-200 transition-all duration-200 transform hover:scale-105"
-                            >
-                                <div className="flex-shrink-0 bg-purple-600 rounded-md p-3 group-hover:bg-purple-700 transition-colors duration-200">
-                                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            <Link href="/cliente/cotizaciones" 
+                                className="group flex items-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-transparent hover:border-green-200 transition-all duration-300">
+                                <div className="bg-green-100 p-3 rounded-lg group-hover:bg-green-200 transition-colors">
+                                    <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
                                     </svg>
                                 </div>
                                 <div className="ml-4">
-                                    <h4 className="text-base font-semibold text-gray-900 group-hover:text-purple-800">
-                                        Actualizar Perfil
-                                    </h4>
-                                    <p className="mt-1 text-sm text-gray-600">
-                                        Actualiza tu información personal
-                                    </p>
+                                    <h3 className="font-semibold text-gray-900">Cotizaciones</h3>
+                                    <p className="text-sm text-gray-600">Mis presupuestos</p>
+                                </div>
+                            </Link>
+
+                            <Link href="/cliente/reservas" 
+                                className="group flex items-center p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border-2 border-transparent hover:border-purple-200 transition-all duration-300">
+                                <div className="bg-purple-100 p-3 rounded-lg group-hover:bg-purple-200 transition-colors">
+                                    <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
+                                    </svg>
+                                </div>
+                                <div className="ml-4">
+                                    <h3 className="font-semibold text-gray-900">Reservas</h3>
+                                    <p className="text-sm text-gray-600">Mis apartados</p>
                                 </div>
                             </Link>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                        {/* Actividades recientes */}
-                    {/* Actividad reciente */}
-                    <div className="bg-white overflow-hidden shadow-md rounded-lg">
-                        <div className="px-6 py-5 border-b border-gray-200">
-                            <h3 className="text-lg leading-6 font-semibold text-gray-900">
-                                Actividad Reciente
-                            </h3>
+                    {/* Tips y Consejos */}
+                    <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl shadow-lg border border-yellow-200 p-6">
+                        <div className="flex items-center mb-4">
+                            <div className="bg-yellow-100 p-2 rounded-lg">
+                                <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"/>
+                                </svg>
+                            </div>
+                            <h3 className="ml-3 text-lg font-semibold text-gray-900">Consejo del día</h3>
                         </div>
-                        <div className="p-6">
-                            {actividadesRecientes.length > 0 ? (
-                                <div className="space-y-6">
-                                    {actividadesRecientes.map((actividad, index) => (
-                                        <div key={index} className="flex items-start space-x-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-                                            <div className="flex-shrink-0">
-                                                <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                                                    actividad.tipo === 'cotizacion' ? 'bg-blue-100' :
-                                                    actividad.tipo === 'reserva' ? 'bg-yellow-100' :
-                                                    actividad.tipo === 'venta' ? 'bg-green-100' :
-                                                    actividad.tipo === 'solicitud' ? 'bg-purple-100' :
-                                                    actividad.tipo === 'visita' ? 'bg-orange-100' : 'bg-gray-100'
-                                                }`}>
-                                                    {actividad.tipo === 'cotizacion' && (
-                                                        <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                                        </svg>
-                                                    )}
-                                                    {actividad.tipo === 'reserva' && (
-                                                        <svg className="h-5 w-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                    )}
-                                                    {actividad.tipo === 'venta' && (
-                                                        <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                        </svg>
-                                                    )}
-                                                    {actividad.tipo === 'solicitud' && (
-                                                        <svg className="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20" />
-                                                        </svg>
-                                                    )}
-                                                    {actividad.tipo === 'visita' && (
-                                                        <svg className="h-5 w-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                        </svg>
-                                                    )}
-                                                </div>
+                        <div className="space-y-4">
+                            <div className="bg-white bg-opacity-50 p-4 rounded-lg">
+                                <h4 className="font-medium text-gray-800 mb-2">💡 Busca inteligentemente</h4>
+                                <p className="text-sm text-gray-600">Usa los filtros para encontrar departamentos que se ajusten a tu presupuesto y ubicación preferida.</p>
+                            </div>
+                            <div className="bg-white bg-opacity-50 p-4 rounded-lg">
+                                <h4 className="font-medium text-gray-800 mb-2">⭐ Guarda tus favoritos</h4>
+                                <p className="text-sm text-gray-600">Marca como favoritos los departamentos que más te gusten para compararlos fácilmente.</p>
+                            </div>
+                            <div className="bg-white bg-opacity-50 p-4 rounded-lg">
+                                <h4 className="font-medium text-gray-800 mb-2">📱 Mantente actualizado</h4>
+                                <p className="text-sm text-gray-600">Revisa tus notificaciones para no perderte respuestas de los asesores.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Actividad Reciente */}
+                {(recentCotizaciones?.length > 0 || favoritos?.length > 0 || solicitudes?.length > 0) && (
+                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-8">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Actividad Reciente</h2>
+                        
+                        {recentCotizaciones?.length > 0 && (
+                            <div className="mb-6">
+                                <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                                    <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
+                                    </svg>
+                                    Cotizaciones Recientes
+                                </h3>
+                                <div className="space-y-3">
+                                    {recentCotizaciones.map((cotizacion) => (
+                                        <div key={cotizacion.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                            <div>
+                                                <p className="font-medium text-gray-900">{cotizacion.publicacion?.titulo || 'Departamento'}</p>
+                                                <p className="text-sm text-gray-600">Estado: {cotizacion.estado}</p>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between">
-                                                    <p className="text-sm font-semibold text-gray-900">
-                                                        {actividad.tipo === 'cotizacion' && 'Nueva Cotización'}
-                                                        {actividad.tipo === 'reserva' && 'Reserva Realizada'}
-                                                        {actividad.tipo === 'venta' && 'Venta Completada'}
-                                                        {actividad.tipo === 'solicitud' && 'Solicitud Enviada'}
-                                                        {actividad.tipo === 'visita' && 'Visita Programada'}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">
-                                                        {formatFecha(actividad.fecha)}
-                                                    </p>
-                                                </div>
-                                                <p className="mt-1 text-sm text-gray-600">
-                                                    {actividad.descripcion}
-                                                </p>
-                                                {actividad.monto && (
-                                                    <p className="mt-2 text-sm font-medium text-green-600">
-                                                        {formatPrecio(actividad.monto)}
-                                                    </p>
-                                                )}
-                                                {actividad.asesor && (
-                                                    <p className="mt-1 text-xs text-gray-500">
-                                                        Asesor: {actividad.asesor}
-                                                    </p>
-                                                )}
-                                            </div>
+                                            <span className="text-sm font-medium text-green-600">
+                                                ${cotizacion.monto?.toLocaleString('es-MX')}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <div className="flex justify-center mb-4">
-                                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
-                                            <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <h4 className="text-lg font-medium text-gray-900 mb-2">
-                                        No hay actividad reciente
-                                    </h4>
-                                    <p className="text-gray-500">
-                                        Cuando realices una cotización, reserva o venta, aparecerá aquí.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                            </div>
+                        )}
 
-                    {/* Departamentos favoritos */}
-                    <div className="bg-white overflow-hidden shadow-md rounded-lg mt-8">
-                        <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
-                            <h3 className="text-lg leading-6 font-semibold text-gray-900">
-                                Departamentos Favoritos
-                            </h3>
-                            <Link
-                                href="/cliente/favoritos"
-                                className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
-                            >
-                                Ver todos
-                            </Link>
-                        </div>
-                        <div className="p-6">
-                            {favoritos.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {favoritos?.length > 0 && (
+                            <div className="mb-6">
+                                <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                                    <svg className="w-5 h-5 text-pink-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                                    </svg>
+                                    Favoritos Recientes
+                                </h3>
+                                <div className="space-y-3">
                                     {favoritos.slice(0, 3).map((favorito) => (
-                                        <div key={favorito.id} className="group bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
-                                            <div className="aspect-w-16 aspect-h-9 bg-gray-200">
-                                                {favorito.imagen_principal ? (
-                                                    <img
-                                                        src={favorito.imagen_principal}
-                                                        alt={`Departamento ${favorito.nombre}`}
-                                                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                                                        <svg className="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                        </svg>
-                                                    </div>
-                                                )}
+                                        <div key={favorito.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                            <div>
+                                                <p className="font-medium text-gray-900">{favorito.publicacion?.titulo}</p>
+                                                <p className="text-sm text-gray-600">{favorito.publicacion?.ubicacion}</p>
                                             </div>
-                                            <div className="p-4">
-                                                <h4 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
-                                                    {favorito.titulo}
-                                                </h4>
-                                                <p className="mt-1 text-sm text-gray-600">
-                                                    📍 {favorito.ubicacion}
-                                                </p>
-                                                <div className="mt-3 flex items-center space-x-3 text-sm text-gray-500">
-                                                    <span className="flex items-center">
-                                                        🛏️ {favorito.habitaciones} hab.
-                                                    </span>
-                                                    <span className="flex items-center">
-                                                        🚿 {favorito.banos} baños
-                                                    </span>
-                                                    <span className="flex items-center">
-                                                        📐 {favorito.area_total}m²
-                                                    </span>
-                                                </div>
-                                                <div className="mt-3 flex items-center justify-between">
-                                                    <span className="text-lg font-bold text-green-600">
-                                                        {formatPrecio(favorito.precio)}
-                                                    </span>
-                                                    <div className="flex items-center space-x-2">
-                                                        <Link
-                                                            href={`/departamentos/${favorito.id}`}
-                                                            className="text-sm bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
-                                                        >
-                                                            Ver detalles
-                                                        </Link>
-                                                        <button className="text-red-500 hover:text-red-700 transition-colors duration-200">
-                                                            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <Link href={`/cliente/departamentos/${favorito.publicacion?.id}`} 
+                                                className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                                                Ver detalles
+                                            </Link>
                                         </div>
                                     ))}
                                 </div>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <div className="flex justify-center mb-4">
-                                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
-                                            <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <h4 className="text-lg font-medium text-gray-900 mb-2">
-                                        No tienes favoritos aún
-                                    </h4>
-                                    <p className="text-gray-500 mb-4">
-                                        Explora nuestros departamentos y guarda tus favoritos para verlos aquí.
-                                    </p>
-                                    <Link
-                                        href="/departamentos"
-                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
-                                    >
-                                        Explorar Departamentos
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
+                )}
+
+                {/* Estado del Sistema */}
+                <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <div className="bg-green-100 p-3 rounded-full">
+                                <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                                </svg>
+                            </div>
+                            <div className="ml-4">
+                                <h3 className="text-lg font-semibold text-gray-900">Sistema Operativo</h3>
+                                <p className="text-gray-600">Todos los servicios funcionando correctamente</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-sm text-gray-500">Última actualización</p>
+                            <p className="font-mono text-sm text-gray-700">{formatTime(currentTime)}</p>
+                        </div>
                     </div>
                 </div>
             </div>

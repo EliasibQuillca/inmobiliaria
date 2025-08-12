@@ -165,7 +165,7 @@ export default function Catalogo({
                                         Mi Panel
                                     </Link>
                                     <Link
-                                        href={route('cliente.favoritos')}
+                                        href={route('cliente.favoritos.index')}
                                         className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-md font-semibold hover:bg-opacity-30 transition-colors duration-200 flex items-center"
                                     >
                                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -431,7 +431,7 @@ export default function Catalogo({
                                 {auth.user && auth.user.role === 'cliente' && (
                                     <>
                                         <Link
-                                            href={route('cliente.solicitudes')}
+                                            href={route('cliente.solicitudes.index')}
                                             className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100"
                                         >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

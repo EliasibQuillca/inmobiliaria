@@ -84,7 +84,7 @@ export default function PublicLayout({ auth, children }) {
                                                         Mi Panel
                                                     </Link>
                                                     <Link
-                                                        href={route('cliente.favoritos')}
+                                                        href={route('cliente.favoritos.index')}
                                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     >
                                                         <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +93,7 @@ export default function PublicLayout({ auth, children }) {
                                                         Mis Favoritos
                                                     </Link>
                                                     <Link
-                                                        href={route('cliente.solicitudes')}
+                                                        href={route('cliente.solicitudes.index')}
                                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     >
                                                         <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,7 +102,7 @@ export default function PublicLayout({ auth, children }) {
                                                         Mis Solicitudes
                                                     </Link>
                                                     <Link
-                                                        href={route('cliente.perfil')}
+                                                        href={route('cliente.perfil.index')}
                                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     >
                                                         <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
