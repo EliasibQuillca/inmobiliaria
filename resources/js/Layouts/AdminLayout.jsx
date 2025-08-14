@@ -9,7 +9,7 @@ export default function AdminLayout({ user, auth, header, children }) {
     const currentUser = user || (auth && auth.user);
 
     const logout = () => {
-        router.post(route('logout'));
+        router.post("/logout");
     };
 
     return (

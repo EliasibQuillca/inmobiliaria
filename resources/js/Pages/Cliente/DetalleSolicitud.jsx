@@ -71,7 +71,7 @@ export default function DetalleSolicitud({ auth, cotizacion, cliente }) {
                         Detalle de Solicitud
                     </h2>
                     <Link
-                        href={route('cliente.solicitudes.index')}
+                        href={"/cliente/solicitudes"}
                         className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
                     >
                         ← Volver a Solicitudes
@@ -279,7 +279,7 @@ export default function DetalleSolicitud({ auth, cotizacion, cliente }) {
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
                             <div className="flex flex-wrap gap-4">
                                 <Link
-                                    href={route('catalogo.show', cotizacion.departamento?.id)}
+                                    href={`/catalogo/${cotizacion.departamento?.id}`}
                                     className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
                                 >
                                     Ver Departamento Completo

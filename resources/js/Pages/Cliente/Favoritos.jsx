@@ -8,7 +8,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
     // Función para quitar de favoritos
     const quitarFavorito = async (departamentoId) => {
         try {
-            await router.post(route('cliente.favoritos.toggle'), {
+            await router.post('/cliente/favoritos/toggle', {
                 departamento_id: departamentoId
             }, {
                 preserveState: true,
@@ -67,7 +67,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                             </div>
                             <div className="flex space-x-3">
                                 <Link
-                                    href={route('cliente.dashboard')}
+                                    href="/cliente/dashboard"
                                     className="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm"
                                 >
                                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +76,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                     Mi Panel
                                 </Link>
                                 <Link
-                                    href={route('catalogo.index')}
+                                    href="/catalogo"
                                     className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm"
                                 >
                                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,13 +242,13 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                         {/* Botones de acción */}
                                         <div className="flex space-x-3">
                                             <Link
-                                                href={route('catalogo.show', favorito.id)}
+                                                href={`/catalogo/${favorito.id}`}
                                                 className="flex-1 bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
                                             >
                                                 Ver Detalles
                                             </Link>
                                             <Link
-                                                href={route('cliente.solicitudes.create') + '?departamento=' + favorito.id}
+                                                href={"/cliente/solicitudes/crear" + '?departamento=' + favorito.id}
                                                 className="flex-1 bg-green-600 text-white text-center py-3 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium"
                                             >
                                                 Solicitar Info
@@ -274,7 +274,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                 Explora nuestro catálogo de departamentos y guarda tus favoritos para encontrarlos fácilmente después.
                             </p>
                             <Link
-                                href={route('catalogo.index')}
+                                href={"/catalogo"}
                                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
                             >
                                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

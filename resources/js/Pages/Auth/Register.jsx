@@ -16,7 +16,7 @@ export default function Register() {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('register'), {
+        post("/register", {
             onFinish: () => reset('password', 'password_confirmation'),
         });
     };
@@ -110,7 +110,7 @@ export default function Register() {
                 <p className="text-sm text-gray-600">
                     ¿Ya tienes una cuenta?{' '}
                     <Link
-                        href={route('login')}
+                        href={"/login"}
                         className="font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
                     >
                         Iniciar Sesión

@@ -6,7 +6,7 @@ export default function AsesorLayout({ user, header, children }) {
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
     const logout = () => {
-        router.post(route('logout'));
+        router.post("/logout");
     };
 
     return (

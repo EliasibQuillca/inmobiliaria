@@ -10,7 +10,7 @@ export default function PublicLayout({ auth, children }) {
                     <div className="flex justify-between items-center py-4">
                         {/* Logo/Brand */}
                         <div className="flex items-center">
-                            <Link href={route('catalogo.index')} className="flex items-center">
+                            <Link href="/catalogo" className="flex items-center">
                                 <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
@@ -26,7 +26,7 @@ export default function PublicLayout({ auth, children }) {
                         {/* Navigation */}
                         <nav className="hidden md:flex space-x-8">
                             <Link
-                                href={route('catalogo.index')}
+                                href="/catalogo"
                                 className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
                             >
                                 Catálogo
@@ -58,7 +58,7 @@ export default function PublicLayout({ auth, children }) {
                                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
                                             {auth.user.role === 'administrador' && (
                                                 <Link
-                                                    href={route('admin.dashboard')}
+                                                    href="/admin/dashboard"
                                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                 >
                                                     Panel de Administrador
@@ -66,7 +66,7 @@ export default function PublicLayout({ auth, children }) {
                                             )}
                                             {auth.user.role === 'asesor' && (
                                                 <Link
-                                                    href={route('asesor.dashboard')}
+                                                    href="/asesor/dashboard"
                                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                 >
                                                     Panel de Asesor
@@ -75,7 +75,7 @@ export default function PublicLayout({ auth, children }) {
                                             {auth.user.role === 'cliente' && (
                                                 <>
                                                     <Link
-                                                        href={route('cliente.dashboard')}
+                                                        href="/cliente/dashboard"
                                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     >
                                                         <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@ export default function PublicLayout({ auth, children }) {
                                                         Mi Panel
                                                     </Link>
                                                     <Link
-                                                        href={route('cliente.favoritos.index')}
+                                                        href="/cliente/favoritos"
                                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     >
                                                         <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +93,7 @@ export default function PublicLayout({ auth, children }) {
                                                         Mis Favoritos
                                                     </Link>
                                                     <Link
-                                                        href={route('cliente.solicitudes.index')}
+                                                        href="/cliente/solicitudes"
                                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     >
                                                         <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,7 +102,7 @@ export default function PublicLayout({ auth, children }) {
                                                         Mis Solicitudes
                                                     </Link>
                                                     <Link
-                                                        href={route('cliente.perfil.index')}
+                                                        href="/cliente/perfil"
                                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                     >
                                                         <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +114,7 @@ export default function PublicLayout({ auth, children }) {
                                                 </>
                                             )}
                                             <Link
-                                                href={route('logout')}
+                                                href="/logout"
                                                 method="post"
                                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                             >
@@ -126,13 +126,13 @@ export default function PublicLayout({ auth, children }) {
                             ) : (
                                 <div className="flex items-center space-x-3">
                                     <Link
-                                        href={route('login')}
+                                        href="/login"
                                         className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
                                     >
                                         Iniciar Sesión
                                     </Link>
                                     <Link
-                                        href={route('register')}
+                                        href="/register"
                                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
                                     >
                                         Registrarse
@@ -203,7 +203,7 @@ export default function PublicLayout({ auth, children }) {
                             <h3 className="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
                             <ul className="space-y-2">
                                 <li>
-                                    <Link href={route('catalogo.index')} className="text-gray-300 hover:text-white text-sm">
+                                    <Link href="/catalogo" className="text-gray-300 hover:text-white text-sm">
                                         Catálogo de Propiedades
                                     </Link>
                                 </li>

@@ -31,7 +31,7 @@ export default function Catalogo({
     });
 
     const aplicarFiltros = () => {
-        router.get(route('catalogo.index'), filtrosLocales, {
+        router.get('/catalogo', filtrosLocales, {
             preserveState: true,
             preserveScroll: true,
         });
@@ -47,7 +47,7 @@ export default function Catalogo({
             orden: 'recientes',
         };
         setFiltrosLocales(filtrosVacios);
-        router.get(route('catalogo.index'), filtrosVacios);
+        router.get('/catalogo', filtrosVacios);
     };
 
     const formatCurrency = (amount) => {
@@ -61,7 +61,7 @@ export default function Catalogo({
         }
 
         try {
-            await router.post(route('cliente.favoritos.toggle'), {
+            await router.post('/cliente/favoritos/toggle', {
                 departamento_id: departamentoId
             }, {
                 preserveState: true,
@@ -97,7 +97,7 @@ export default function Catalogo({
 
     const enviarSolicitud = (e) => {
         e.preventDefault();
-        post(route('catalogo.contacto'), {
+        post('/catalogo/contacto', {
             onSuccess: () => {
                 setMostrarModalContacto(false);
                 reset();
@@ -156,7 +156,7 @@ export default function Catalogo({
                                 </div>
                                 <div className="flex space-x-3">
                                     <Link
-                                        href={route('cliente.dashboard')}
+                                        href="/cliente/dashboard"
                                         className="bg-white text-green-600 px-4 py-2 rounded-md font-semibold hover:bg-gray-100 transition-colors duration-200 flex items-center"
                                     >
                                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,7 +165,7 @@ export default function Catalogo({
                                         Mi Panel
                                     </Link>
                                     <Link
-                                        href={route('cliente.favoritos.index')}
+                                        href="/cliente/favoritos"
                                         className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-md font-semibold hover:bg-opacity-30 transition-colors duration-200 flex items-center"
                                     >
                                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -349,7 +349,7 @@ export default function Catalogo({
                                     {/* Acciones */}
                                     <div className="flex space-x-2">
                                         <Link
-                                            href={route('catalogo.show', departamento.id)}
+                                            href={`/catalogo/${departamento.id}`}
                                             className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium text-center"
                                         >
                                             Ver Detalles
@@ -431,7 +431,7 @@ export default function Catalogo({
                                 {auth.user && auth.user.role === 'cliente' && (
                                     <>
                                         <Link
-                                            href={route('cliente.solicitudes.index')}
+                                            href="/cliente/solicitudes"
                                             className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100"
                                         >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -440,7 +440,7 @@ export default function Catalogo({
                                             Crear Solicitud
                                         </Link>
                                         <Link
-                                            href={route('cliente.asesores')}
+                                            href="/cliente/asesores"
                                             className="inline-flex items-center px-4 py-2 text-sm font-medium text-green-600 bg-green-50 border border-green-200 rounded-md hover:bg-green-100"
                                         >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

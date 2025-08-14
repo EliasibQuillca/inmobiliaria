@@ -41,7 +41,7 @@ export default function DetalleDepartamento({
 
     const enviarSolicitud = (e) => {
         e.preventDefault();
-        post(route('catalogo.contacto'), {
+        post('/catalogo/contacto', {
             onSuccess: () => {
                 setMostrarModalContacto(false);
                 reset();
@@ -61,7 +61,7 @@ export default function DetalleDepartamento({
                             <ol className="flex items-center space-x-4">
                                 <li>
                                     <Link
-                                        href={route('catalogo.index')}
+                                        href="/catalogo"
                                         className="text-gray-400 hover:text-gray-500"
                                     >
                                         Catálogo
@@ -187,7 +187,7 @@ export default function DetalleDepartamento({
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Tipo de Propiedad:</span>
-                                            <span className="font-medium">{tiposPropiedad[departamento.tipo_propiedad] || departamento.tipo_propiedad}</span>
+                                            <span className="font-medium">{(tiposPropiedad && tiposPropiedad[departamento.tipo_propiedad]) || departamento.tipo_propiedad}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Habitaciones:</span>
@@ -391,7 +391,7 @@ export default function DetalleDepartamento({
                                             </div>
 
                                             <Link
-                                                href={route('catalogo.show', relacionado.id)}
+                                                href={`/catalogo/${relacionado.id}`}
                                                 className="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium text-center"
                                             >
                                                 Ver Detalles

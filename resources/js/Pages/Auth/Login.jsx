@@ -16,7 +16,7 @@ export default function Login({ status, canResetPassword }) {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('login'), {
+        post("/login", {
             onFinish: () => reset('password'),
         });
     };
@@ -101,7 +101,7 @@ export default function Login({ status, canResetPassword }) {
                 <p className="text-sm text-gray-600">
                     ¿No tienes una cuenta?{' '}
                     <Link
-                        href={route('register')}
+                        href={"/register"}
                         className="font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
                     >
                         Regístrate Ahora

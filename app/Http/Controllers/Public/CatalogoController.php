@@ -96,7 +96,7 @@ class CatalogoController extends Controller
         }
 
         // Cargar relaciones necesarias
-        $departamento->load(['imagenes', 'atributos', 'asesor.usuario']);
+        $departamento->load(['imagenes', 'atributos', 'propietario']);
 
         // Obtener departamentos similares basados solo en precio
         $departamentosSimilares = Departamento::with('imagenes')
@@ -111,7 +111,15 @@ class CatalogoController extends Controller
 
         return Inertia::render('Public/DetalleDepartamento', [
             'departamento' => $departamento,
-            'departamentosSimilares' => $departamentosSimilares
+            'departamentosSimilares' => $departamentosSimilares,
+            'tiposPropiedad' => [
+                'departamento' => 'Departamento',
+                'casa' => 'Casa',
+                'oficina' => 'Oficina',
+                'local_comercial' => 'Local Comercial',
+                'terreno' => 'Terreno',
+                'otros' => 'Otros'
+            ]
         ]);
     }
 
@@ -129,7 +137,17 @@ class CatalogoController extends Controller
             'crear_cuenta' => 'boolean',
         ]);
 
-        $departamento = Departamento::with('asesor')->findOrFail($validated['departamento_id']);
+        $departamento = Departamento::findOrFail($validated['departamento_id']);
+
+        // Obtener un asesor disponible (el primero disponible por simplicidad)
+        $asesor = Asesor::whereHas('usuario', function($query) {
+            $query->where('estado', 'activo');
+        })->first();
+
+        // Si no hay asesores disponibles, crear un error
+        if (!$asesor) {
+            return back()->withErrors(['error' => 'No hay asesores disponibles en este momento. Inténtalo más tarde.']);
+        }
 
         // Si el usuario está autenticado, usar sus datos
         if (Auth::check()) {
@@ -140,7 +158,7 @@ class CatalogoController extends Controller
         }
 
         // Verificar si ya existe un cliente con este teléfono para este asesor
-        $clienteExistente = Cliente::where('asesor_id', $departamento->asesor->id)
+        $clienteExistente = Cliente::where('asesor_id', $asesor->id)
             ->where(function($query) use ($validated) {
                 $query->where('telefono', $validated['telefono']);
                 if ($validated['email']) {
@@ -172,7 +190,7 @@ class CatalogoController extends Controller
             // Crear cliente para el asesor
             $cliente = Cliente::create([
                 'usuario_id' => $usuario ? $usuario->id : (Auth::check() ? Auth::id() : null),
-                'asesor_id' => $departamento->asesor->id,
+                'asesor_id' => $asesor->id,
                 'nombre' => $validated['nombre'],
                 'telefono' => $validated['telefono'],
                 'email' => $validated['email'],

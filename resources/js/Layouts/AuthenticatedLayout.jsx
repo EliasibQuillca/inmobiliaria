@@ -27,7 +27,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 {user.role === 'asesor' ? (
                                     <>
                                         <NavLink
-                                            href={route('asesor.dashboard')}
+                                            href={"/asesor/dashboard"}
                                             active={route().current('asesor.dashboard')}
                                             className="text-gray-700 hover:text-teal-600"
                                         >
@@ -61,7 +61,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 ) : (
                                     <>
                                         <NavLink
-                                            href={route('cliente.dashboard')}
+                                            href={"/cliente/dashboard"}
                                             active={route().current('cliente.dashboard')}
                                             className="text-gray-700 hover:text-teal-600"
                                         >
@@ -137,7 +137,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             Configuración
                                         </Dropdown.Link>
                                         <Dropdown.Link
-                                            href={route('logout')}
+                                            href={"/logout"}
                                             method="post"
                                             as="button"
                                             className="hover:bg-gray-50"
@@ -238,7 +238,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"
-                                href={route('logout')}
+                                href={"/logout"}
                                 as="button"
                             >
                                 Cerrar Sesión

@@ -53,7 +53,7 @@ export default function ClienteSolicitudes({ auth, solicitudes = [], cliente }) 
                         Mis Solicitudes
                     </h2>
                     <Link
-                        href={route('cliente.solicitudes.create')}
+                        href="/cliente/solicitudes/crear"
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                     >
                         Nueva Solicitud
@@ -232,13 +232,13 @@ export default function ClienteSolicitudes({ auth, solicitudes = [], cliente }) 
 
                                             <div className="flex justify-end gap-2">
                                                 <Link
-                                                    href={route('cliente.solicitudes.comentarios', solicitud.id)}
+                                                    href={`/cliente/solicitudes/${solicitud.id}/comentarios`}
                                                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
                                                 >
                                                     💬 Ver Conversación
                                                 </Link>
                                                 <Link
-                                                    href={route('catalogo.show', solicitud.departamento?.id)}
+                                                    href={`/catalogo/${solicitud.departamento?.id}`}
                                                     className="text-blue-600 hover:text-blue-800 text-sm font-medium border border-blue-600 hover:border-blue-800 py-2 px-4 rounded"
                                                 >
                                                     Ver Departamento
@@ -260,13 +260,13 @@ export default function ClienteSolicitudes({ auth, solicitudes = [], cliente }) 
                                     </p>
                                     <div className="space-x-4">
                                         <Link
-                                            href={route('catalogo.index')}
+                                            href="/catalogo"
                                             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                                         >
                                             Ver Catálogo
                                         </Link>
                                         <Link
-                                            href={route('cliente.solicitudes.create')}
+                                            href="/cliente/solicitudes/crear"
                                             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
                                         >
                                             Nueva Solicitud
