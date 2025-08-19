@@ -18,13 +18,11 @@ class CheckRole
         $user = $request->user();
 
         if (!$user) {
-            return response()->json([
-                'message' => 'No autenticado',
-            ], 401);
+            return redirect()->route('login');
         }
 
         // Verificar si el usuario tiene el rol requerido
-        if (!$user->hasRole($role)) {
+        if ($user->role !== $role) {
             // Redirigir al dashboard apropiado según el rol del usuario
             if ($user->esCliente()) {
                 return redirect()->route('cliente.dashboard');

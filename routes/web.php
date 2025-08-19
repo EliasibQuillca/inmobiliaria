@@ -79,17 +79,22 @@ Route::get('/properties', function () {
 Route::get('/dashboard', function () {
     $user = \Illuminate\Support\Facades\Auth::user();
 
-    // Redirigir según el rol del usuario
-    if ($user->hasRole('administrador')) {
-        return redirect()->route('admin.dashboard');
-    } elseif ($user->hasRole('asesor')) {
-        return redirect()->route('asesor.dashboard');
-    } elseif ($user->hasRole('cliente')) {
-        return redirect()->route('cliente.dashboard');
+    if (!$user) {
+        return redirect()->route('login');
     }
 
-    // Dashboard por defecto si no tiene rol específico
-    return Inertia::render('Dashboard');
+    // Redirigir según el rol del usuario
+    switch ($user->role) {
+        case 'administrador':
+            return redirect()->route('admin.dashboard');
+        case 'asesor':
+            return redirect()->route('asesor.dashboard');
+        case 'cliente':
+            return redirect()->route('cliente.dashboard');
+        default:
+            // Dashboard por defecto si no tiene rol específico
+            return Inertia::render('Dashboard');
+    }
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 /*

@@ -21,17 +21,17 @@ class AdminRedirectMiddleware
             $user = Auth::user();
 
             // Si es administrador y NO está en rutas de admin, redirigir
-            if ($user->hasRole('administrador') && !$request->is('admin/*') && !$request->is('logout')) {
+            if ($user->role === 'administrador' && !$request->is('admin/*') && !$request->is('logout')) {
                 return redirect()->route('admin.dashboard');
             }
 
             // Si es asesor y NO está en rutas de asesor, redirigir
-            if ($user->hasRole('asesor') && !$request->is('asesor/*') && !$request->is('logout')) {
+            if ($user->role === 'asesor' && !$request->is('asesor/*') && !$request->is('logout')) {
                 return redirect()->route('asesor.dashboard');
             }
 
             // Si es cliente y está en rutas de admin o asesor, redirigir
-            if ($user->hasRole('cliente') && ($request->is('admin/*') || $request->is('asesor/*'))) {
+            if ($user->role === 'cliente' && ($request->is('admin/*') || $request->is('asesor/*'))) {
                 return redirect()->route('cliente.dashboard');
             }
         }
