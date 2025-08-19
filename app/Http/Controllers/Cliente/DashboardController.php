@@ -177,29 +177,35 @@ class DashboardController extends Controller
             'zona_preferida' => 'nullable|string|max:255',
         ]);
 
-        // Actualizar datos del usuario
-        $user = User::findOrFail(Auth::id());
-        $user->name = $validated['nombre'];
-        $user->email = $validated['email'];
-        $user->telefono = $validated['telefono'] ?? $user->telefono;
-        $user->save();
+        try {
+            // Actualizar datos del usuario
+            $user = User::findOrFail(Auth::id());
+            $user->name = $validated['nombre'];
+            $user->email = $validated['email'];
+            $user->telefono = $validated['telefono'] ?? $user->telefono;
+            $user->save();
 
-        // Actualizar o crear datos del cliente
-        $cliente = Cliente::where('usuario_id', Auth::id())->first();
-        if ($cliente) {
-            $cliente->telefono = $validated['telefono'];
-            $cliente->direccion = $validated['direccion'];
-            $cliente->dni = $validated['dni'] ?? $cliente->dni;
-            $cliente->tipo_propiedad = $validated['tipo_propiedad'] ?? $cliente->tipo_propiedad;
-            $cliente->habitaciones_deseadas = $validated['habitaciones_deseadas'];
-            $cliente->presupuesto_min = $validated['presupuesto_min'];
-            $cliente->presupuesto_max = $validated['presupuesto_max'];
-            $cliente->zona_preferida = $validated['zona_preferida'];
-            $cliente->save();
+            // Actualizar o crear datos del cliente
+            $cliente = Cliente::where('usuario_id', Auth::id())->first();
+            if ($cliente) {
+                $cliente->telefono = $validated['telefono'];
+                $cliente->direccion = $validated['direccion'];
+                $cliente->dni = $validated['dni'] ?? $cliente->dni;
+                $cliente->tipo_propiedad = $validated['tipo_propiedad'] ?? $cliente->tipo_propiedad;
+                $cliente->habitaciones_deseadas = $validated['habitaciones_deseadas'];
+                $cliente->presupuesto_min = $validated['presupuesto_min'];
+                $cliente->presupuesto_max = $validated['presupuesto_max'];
+                $cliente->zona_preferida = $validated['zona_preferida'];
+                $cliente->save();
+            }
+
+            return redirect()->route('cliente.perfil.index')
+                ->with('success', 'Perfil actualizado exitosamente.');
+                
+        } catch (\Exception $e) {
+            return redirect()->route('cliente.perfil.index')
+                ->with('error', 'Error al actualizar el perfil: ' . $e->getMessage());
         }
-
-        return redirect()->route('cliente.perfil')
-            ->with('success', 'Perfil actualizado exitosamente.');
     }
 
     /**
@@ -218,18 +224,24 @@ class DashboardController extends Controller
             'zona_preferida' => 'nullable|string|max:255',
         ]);
 
-        $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
-        
-        $cliente->tipo_propiedad = $validated['tipo_propiedad'];
-        $cliente->habitaciones_deseadas = $validated['habitaciones_deseadas'];
-        $cliente->presupuesto_min = $validated['presupuesto_min'];
-        $cliente->presupuesto_max = $validated['presupuesto_max'];
-        $cliente->zona_preferida = $validated['zona_preferida'];
-        
-        $cliente->save();
+        try {
+            $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
+            
+            $cliente->tipo_propiedad = $validated['tipo_propiedad'];
+            $cliente->habitaciones_deseadas = $validated['habitaciones_deseadas'];
+            $cliente->presupuesto_min = $validated['presupuesto_min'];
+            $cliente->presupuesto_max = $validated['presupuesto_max'];
+            $cliente->zona_preferida = $validated['zona_preferida'];
+            
+            $cliente->save();
 
-        return redirect()->route('cliente.perfil')
-            ->with('success', 'Preferencias actualizadas exitosamente.');
+            return redirect()->route('cliente.perfil.index')
+                ->with('success', 'Preferencias actualizadas exitosamente.');
+                
+        } catch (\Exception $e) {
+            return redirect()->route('cliente.perfil.index')
+                ->with('error', 'Error al actualizar las preferencias: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -245,12 +257,18 @@ class DashboardController extends Controller
             'password' => 'required|min:8|confirmed',
         ]);
 
-        $user = Auth::user();
-        $user->password = bcrypt($validated['password']);
-        $user->save();
+        try {
+            $user = User::findOrFail(Auth::id());
+            $user->password = bcrypt($validated['password']);
+            $user->save();
 
-        return redirect()->route('cliente.perfil')
-            ->with('success', 'Contraseña actualizada exitosamente.');
+            return redirect()->route('cliente.perfil.index')
+                ->with('success', 'Contraseña actualizada exitosamente.');
+                
+        } catch (\Exception $e) {
+            return redirect()->route('cliente.perfil.index')
+                ->with('error', 'Error al actualizar la contraseña: ' . $e->getMessage());
+        }
     }
 
     /**

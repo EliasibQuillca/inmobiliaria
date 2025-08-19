@@ -183,7 +183,7 @@ export default function Services({ auth }) {
                                 <Link href="/contact" className="bg-white text-indigo-600 px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors">
                                     Contactar Ahora
                                 </Link>
-                                <Link href="/properties" className="bg-transparent text-white border border-white px-8 py-3 rounded-lg font-medium hover:bg-white/10 transition-colors">
+                                <Link href="/catalogo" className="bg-transparent text-white border border-white px-8 py-3 rounded-lg font-medium hover:bg-white/10 transition-colors">
                                     Ver Propiedades
                                 </Link>
                             </div>
@@ -227,7 +227,7 @@ export default function Services({ auth }) {
                                 <h3 className="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
                                 <ul className="space-y-2">
                                     <li><Link href="/" className="text-gray-400 hover:text-white transition-colors">Inicio</Link></li>
-                                    <li><Link href="/properties" className="text-gray-400 hover:text-white transition-colors">Propiedades</Link></li>
+                                    <li><Link href="/catalogo" className="text-gray-400 hover:text-white transition-colors">Propiedades</Link></li>
                                     <li><Link href="/about" className="text-gray-400 hover:text-white transition-colors">Nosotros</Link></li>
                                     <li><Link href="/services" className="text-gray-400 hover:text-white transition-colors">Servicios</Link></li>
                                     <li><Link href="/contact" className="text-gray-400 hover:text-white transition-colors">Contacto</Link></li>

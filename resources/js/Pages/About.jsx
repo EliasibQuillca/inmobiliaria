@@ -290,7 +290,7 @@ export default function About({ auth }) {
                             perfecta en Cusco. Contáctenos hoy mismo para una consulta personalizada.
                         </p>
                         <div className="flex flex-col sm:flex-row justify-center gap-4">
-                            <Link href="/properties" className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-medium">
+                            <Link href="/catalogo" className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-medium">
                                 Ver Propiedades
                             </Link>
                             <Link href="/contact" className="bg-transparent text-white border border-white hover:bg-white hover:text-indigo-600 px-8 py-3 rounded-lg font-medium transition-colors">

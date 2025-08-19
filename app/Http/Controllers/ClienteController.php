@@ -16,7 +16,7 @@ class ClienteController extends Controller
         $cliente = Cliente::where('usuario_id', $user->id)->first();
         
         if (!$cliente) {
-            return redirect()->route('cliente.perfil.create')
+            return redirect()->route('cliente.perfil.index')
                            ->with('message', 'Por favor completa tu perfil de cliente primero.');
         }
 

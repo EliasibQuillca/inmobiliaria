@@ -362,7 +362,7 @@ export default function Contact({ auth }) {
                                 <h3 className="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
                                 <ul className="space-y-2">
                                     <li><Link href="/" className="text-gray-400 hover:text-white transition-colors">Inicio</Link></li>
-                                    <li><Link href="/properties" className="text-gray-400 hover:text-white transition-colors">Propiedades</Link></li>
+                                    <li><Link href="/catalogo" className="text-gray-400 hover:text-white transition-colors">Propiedades</Link></li>
                                     <li><Link href="/about" className="text-gray-400 hover:text-white transition-colors">Nosotros</Link></li>
                                     <li><Link href="/services" className="text-gray-400 hover:text-white transition-colors">Servicios</Link></li>
                                     <li><Link href="/contact" className="text-gray-400 hover:text-white transition-colors">Contacto</Link></li>
