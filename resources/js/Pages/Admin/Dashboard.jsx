@@ -2,64 +2,26 @@ import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
-export default function AdminDashboard({ auth }) {
-    // Estado para las estadísticas del dashboard
-    const [stats, setStats] = useState({
-        totalUsuarios: 45,
-        asesoresActivos: 12,
-        propiedadesActivas: 128,
-        ventasMes: 18,
-        clientesNuevos: 24,
-        reservasActivas: 8,
-        ingresosMes: 2450000,
-        comisionesPendientes: 180000
-    });
-
-    const [actividadesRecientes, setActividadesRecientes] = useState([
-        {
-            id: 1,
-            tipo: 'venta',
-            titulo: 'Nueva venta completada',
-            descripcion: 'Departamento Torre Norte - Ana García',
-            tiempo: 'Hace 2 horas',
-            icono: '💰',
-            color: 'green'
-        },
-        {
-            id: 2,
-            tipo: 'usuario',
-            titulo: 'Nuevo asesor registrado',
-            descripcion: 'Carlos Mendoza se unió al equipo',
-            tiempo: 'Hace 4 horas',
-            icono: '👤',
-            color: 'blue'
-        },
-        {
-            id: 3,
-            tipo: 'propiedad',
-            titulo: 'Propiedad agregada',
-            descripcion: 'Casa Campestre Los Robles',
-            tiempo: 'Hace 6 horas',
-            icono: '🏠',
-            color: 'purple'
-        },
-        {
-            id: 4,
-            tipo: 'reserva',
-            titulo: 'Nueva reserva',
-            descripcion: 'Apartamento Centro - María López',
-            tiempo: 'Hace 8 horas',
-            icono: '📅',
-            color: 'orange'
-        }
-    ]);
-
+export default function AdminDashboard({ auth, estadisticas, crecimiento, actividadesRecientes, rendimiento }) {
     // Formatear moneda
-        const formatCurrency = (amount) => {
+    const formatCurrency = (amount) => {
         return new Intl.NumberFormat('es-PE', {
             style: 'currency',
             currency: 'PEN'
         }).format(amount);
+    };
+
+    // Formatear porcentaje de crecimiento
+    const formatGrowth = (percentage) => {
+        const sign = percentage >= 0 ? '+' : '';
+        return `${sign}${percentage}%`;
+    };
+
+    // Obtener color para el crecimiento
+    const getGrowthColor = (percentage) => {
+        if (percentage > 0) return 'text-green-600';
+        if (percentage < 0) return 'text-red-600';
+        return 'text-gray-600';
     };
 
     return (
@@ -99,9 +61,11 @@ export default function AdminDashboard({ auth }) {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Total Usuarios</p>
-                                    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalUsuarios}</p>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
-                                        +12% este mes
+                                    <p className="text-3xl font-bold text-gray-900 mt-2">{estadisticas?.totalUsuarios || 0}</p>
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
+                                        crecimiento?.usuarios >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                        {formatGrowth(crecimiento?.usuarios || 0)} este mes
                                     </span>
                                 </div>
                                 <div className="p-3 bg-blue-100 rounded-full">
@@ -117,9 +81,11 @@ export default function AdminDashboard({ auth }) {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Propiedades Activas</p>
-                                    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.propiedadesActivas}</p>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-2">
-                                        +8% este mes
+                                    <p className="text-3xl font-bold text-gray-900 mt-2">{estadisticas?.propiedadesActivas || 0}</p>
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
+                                        crecimiento?.propiedades >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                        {formatGrowth(crecimiento?.propiedades || 0)} este mes
                                     </span>
                                 </div>
                                 <div className="p-3 bg-green-100 rounded-full">
@@ -135,9 +101,11 @@ export default function AdminDashboard({ auth }) {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Ventas del Mes</p>
-                                    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.ventasMes}</p>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
-                                        +24% vs mes anterior
+                                    <p className="text-3xl font-bold text-gray-900 mt-2">{estadisticas?.ventasDelMes || 0}</p>
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
+                                        crecimiento?.ventas >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                        {formatGrowth(crecimiento?.ventas || 0)} vs mes anterior
                                     </span>
                                 </div>
                                 <div className="p-3 bg-purple-100 rounded-full">
@@ -153,9 +121,11 @@ export default function AdminDashboard({ auth }) {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Ingresos del Mes</p>
-                                    <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(stats.ingresosMes)}</p>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
-                                        +18% vs mes anterior
+                                    <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(estadisticas?.ingresosDelMes || 0)}</p>
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
+                                        crecimiento?.ingresos >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                        {formatGrowth(crecimiento?.ingresos || 0)} vs mes anterior
                                     </span>
                                 </div>
                                 <div className="p-3 bg-yellow-100 rounded-full">
@@ -180,7 +150,7 @@ export default function AdminDashboard({ auth }) {
                                 </div>
                                 <div className="ml-4">
                                     <p className="text-sm font-medium text-gray-600">Asesores Activos</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats.asesoresActivos}</p>
+                                    <p className="text-2xl font-bold text-gray-900">{estadisticas?.asesoresActivos || 0}</p>
                                 </div>
                             </div>
                         </div>
@@ -195,7 +165,7 @@ export default function AdminDashboard({ auth }) {
                                 </div>
                                 <div className="ml-4">
                                     <p className="text-sm font-medium text-gray-600">Clientes Nuevos</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats.clientesNuevos}</p>
+                                    <p className="text-2xl font-bold text-gray-900">{estadisticas?.clientesNuevos || 0}</p>
                                 </div>
                             </div>
                         </div>
@@ -210,7 +180,7 @@ export default function AdminDashboard({ auth }) {
                                 </div>
                                 <div className="ml-4">
                                     <p className="text-sm font-medium text-gray-600">Reservas Activas</p>
-                                    <p className="text-2xl font-bold text-gray-900">{stats.reservasActivas}</p>
+                                    <p className="text-2xl font-bold text-gray-900">{estadisticas?.reservasActivas || 0}</p>
                                 </div>
                             </div>
                         </div>
@@ -225,7 +195,7 @@ export default function AdminDashboard({ auth }) {
                                 </div>
                                 <div className="ml-4">
                                     <p className="text-sm font-medium text-gray-600">Comisiones Pendientes</p>
-                                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.comisionesPendientes)}</p>
+                                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(estadisticas?.comisionesPendientes || 0)}</p>
                                 </div>
                             </div>
                         </div>
@@ -243,26 +213,47 @@ export default function AdminDashboard({ auth }) {
                                 </div>
                                 <div className="p-6">
                                     <div className="space-y-4">
-                                        {actividadesRecientes.map((actividad) => (
-                                            <div key={actividad.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                                <div className="flex-shrink-0">
-                                                    <span className="text-2xl">{actividad.icono}</span>
+                                        {actividadesRecientes && actividadesRecientes.length > 0 ? (
+                                            actividadesRecientes.map((actividad, index) => (
+                                                <div key={index} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                                    <div className="flex-shrink-0">
+                                                        <span className="text-2xl">
+                                                            {actividad.tipo === 'venta' ? '💰' : 
+                                                             actividad.tipo === 'usuario' ? '👤' : 
+                                                             actividad.tipo === 'propiedad' ? '🏠' : '📅'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-gray-900">{actividad.titulo}</p>
+                                                        <p className="text-sm text-gray-600">{actividad.descripcion}</p>
+                                                        <p className="text-xs text-gray-500 mt-1">{actividad.tiempo}</p>
+                                                        {actividad.monto && (
+                                                            <p className="text-xs text-green-600 font-medium">
+                                                                {formatCurrency(actividad.monto)}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                        actividad.tag === 'venta' ? 'bg-green-100 text-green-800' :
+                                                        actividad.tag === 'usuario' ? 'bg-blue-100 text-blue-800' :
+                                                        actividad.tag === 'propiedad' ? 'bg-purple-100 text-purple-800' :
+                                                        'bg-orange-100 text-orange-800'
+                                                    }`}>
+                                                        {actividad.tag || actividad.tipo}
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-gray-900">{actividad.titulo}</p>
-                                                    <p className="text-sm text-gray-600">{actividad.descripcion}</p>
-                                                    <p className="text-xs text-gray-500 mt-1">{actividad.tiempo}</p>
-                                                </div>
-                                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                    actividad.color === 'green' ? 'bg-green-100 text-green-800' :
-                                                    actividad.color === 'blue' ? 'bg-blue-100 text-blue-800' :
-                                                    actividad.color === 'purple' ? 'bg-purple-100 text-purple-800' :
-                                                    'bg-orange-100 text-orange-800'
-                                                }`}>
-                                                    {actividad.tipo}
-                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8">
+                                                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                </svg>
+                                                <h3 className="mt-2 text-sm font-medium text-gray-900">Sin actividades recientes</h3>
+                                                <p className="mt-1 text-sm text-gray-500">
+                                                    Cuando hay nueva actividad aparecerá aquí
+                                                </p>
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
                                     <div className="mt-6">
                                         <Link
@@ -324,15 +315,15 @@ export default function AdminDashboard({ auth }) {
                                     <div className="mt-4 space-y-3">
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm">Rendimiento</span>
-                                            <span className="text-sm font-medium">Excelente</span>
+                                            <span className="text-sm font-medium">{rendimiento || 'Excelente'}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm">Usuarios Conectados</span>
-                                            <span className="text-sm font-medium">8</span>
+                                            <span className="text-sm">Total Propiedades</span>
+                                            <span className="text-sm font-medium">{estadisticas?.propiedadesActivas || 0}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm">Última Actualización</span>
-                                            <span className="text-sm font-medium">Hoy</span>
+                                            <span className="text-sm">Total Usuarios</span>
+                                            <span className="text-sm font-medium">{estadisticas?.totalUsuarios || 0}</span>
                                         </div>
                                     </div>
                                 </div>

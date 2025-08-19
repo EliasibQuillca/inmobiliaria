@@ -200,9 +200,8 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('
 
 Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard del administrador
-    Route::get('/dashboard', function () {
-        return Inertia::render('Admin/Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/estadisticas', [\App\Http\Controllers\Admin\DashboardController::class, 'estadisticas'])->name('estadisticas');
 
     // === GESTIÓN DE USUARIOS ===
     Route::get('/usuarios', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('usuarios');
