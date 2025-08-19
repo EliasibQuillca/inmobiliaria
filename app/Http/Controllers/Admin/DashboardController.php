@@ -54,7 +54,7 @@ class DashboardController extends Controller
         $actividadesRecientes = collect();
         
         // Agregar ventas recientes
-        $ventasRecientes = Venta::with(['cliente.usuario', 'asesor.usuario', 'departamento'])
+        $ventasRecientes = Venta::with(['reserva.departamento', 'reserva.asesor.usuario'])
                                 ->orderBy('created_at', 'desc')
                                 ->take(3)
                                 ->get();
@@ -63,11 +63,11 @@ class DashboardController extends Controller
             $actividadesRecientes->push([
                 'tipo' => 'venta',
                 'titulo' => 'Nueva venta completada',
-                'descripcion' => $venta->departamento->codigo ?? 'Departamento',
-                'usuario' => $venta->asesor->usuario->name ?? 'N/A',
+                'descripcion' => $venta->reserva->departamento->codigo ?? 'Departamento',
+                'usuario' => $venta->reserva->asesor->usuario->name ?? 'N/A',
                 'tiempo' => $venta->created_at->diffForHumans(),
                 'tag' => 'venta',
-                'monto' => $venta->precio_final ?? 0
+                'monto' => $venta->monto_final ?? 0
             ]);
         }
         
@@ -103,6 +103,18 @@ class DashboardController extends Controller
                 'tag' => 'propiedad'
             ]);
         }
+
+        // Información de depuración del sistema
+        $infoDebug = [
+            'queries_ejecutadas' => DB::getQueryLog() ? count(DB::getQueryLog()) : 0,
+            'memoria_usada_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
+            'tiempo_respuesta' => round((microtime(true) - LARAVEL_START) * 1000, 2),
+            'cache_activo' => config('cache.default') !== 'array',
+            'debug_mode' => config('app.debug'),
+            'ambiente' => config('app.env'),
+            'version_php' => PHP_VERSION,
+            'version_laravel' => app()->version(),
+        ];
         
         // Ordenar actividades por fecha
         $actividadesRecientes = $actividadesRecientes->sortByDesc(function($item) {
@@ -159,7 +171,8 @@ class DashboardController extends Controller
                 'ingresos' => $crecimientoIngresos,
             ],
             'actividadesRecientes' => $actividadesRecientes,
-            'rendimiento' => 'Excelente', // Podrías calcular esto basado en métricas
+            'rendimiento' => 'Excelente',
+            'debug' => $infoDebug, // Información de depuración
         ]);
     }
     

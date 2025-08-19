@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
-export default function AdminDashboard({ auth, estadisticas, crecimiento, actividadesRecientes, rendimiento }) {
+export default function AdminDashboard({ auth, estadisticas, crecimiento, actividadesRecientes, rendimiento, debug }) {
     // Formatear moneda
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('es-PE', {
@@ -347,6 +347,48 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                                     </Link>
                                 </div>
                             </div>
+
+                            {/* Panel de Debug */}
+                            {debug && (
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                                    <div className="px-6 py-4 border-b border-gray-200">
+                                        <h3 className="text-lg font-semibold text-gray-900">🔧 Info Debug</h3>
+                                        <p className="text-sm text-gray-600">Información técnica del sistema</p>
+                                    </div>
+                                    <div className="p-6">
+                                        <div className="space-y-3 text-sm">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Memoria:</span>
+                                                <span className="font-medium">{debug.memoria_usada_mb} MB</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Tiempo:</span>
+                                                <span className="font-medium">{debug.tiempo_respuesta} ms</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">PHP:</span>
+                                                <span className="font-medium">{debug.version_php}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Laravel:</span>
+                                                <span className="font-medium">{debug.version_laravel}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Ambiente:</span>
+                                                <span className={`font-medium ${debug.ambiente === 'production' ? 'text-green-600' : 'text-yellow-600'}`}>
+                                                    {debug.ambiente}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Debug:</span>
+                                                <span className={`font-medium ${debug.debug_mode ? 'text-red-600' : 'text-green-600'}`}>
+                                                    {debug.debug_mode ? 'Activo' : 'Inactivo'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -40,6 +40,45 @@ class Venta extends Model
         return $this->belongsTo(Reserva::class, 'reserva_id');
     }
 
+    // Relación al departamento a través de la reserva
+    public function departamento()
+    {
+        return $this->hasOneThrough(
+            Departamento::class,
+            Reserva::class,
+            'id', // Foreign key en reservas (id)
+            'id', // Foreign key en departamentos (id)
+            'reserva_id', // Local key en ventas (reserva_id)
+            'departamento_id' // Local key en reservas (departamento_id)
+        );
+    }
+
+    // Relación al asesor a través de la reserva
+    public function asesor()
+    {
+        return $this->hasOneThrough(
+            Asesor::class,
+            Reserva::class,
+            'id',
+            'id',
+            'reserva_id',
+            'asesor_id'
+        );
+    }
+
+    // Relación al cliente a través de la reserva
+    public function cliente()
+    {
+        return $this->hasOneThrough(
+            Cliente::class,
+            Reserva::class,
+            'id',
+            'id',
+            'reserva_id',
+            'cliente_id'
+        );
+    }
+
     // Métodos de utilidad
     public function getCotizacion()
     {

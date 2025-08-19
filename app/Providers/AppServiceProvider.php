@@ -21,5 +21,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+        
+        // Registrar comandos de consola
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \App\Console\Commands\DiagnosticoSistema::class,
+                \App\Console\Commands\VerificarErrores::class,
+            ]);
+        }
     }
 }
