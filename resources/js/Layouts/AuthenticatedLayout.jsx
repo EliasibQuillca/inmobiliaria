@@ -3,16 +3,46 @@ import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+    const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
 
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    const logout = () => {
+        router.post("/logout");
+    };
+
+    // Temporizador de cierre de sesión automático para cliente (30 minutos)
+    useEffect(() => {
+        // Aviso 30 segundos antes
+        const warningTimer = setTimeout(() => {
+            setShowTimeoutWarning(true);
+        }, 1770000); // 29.5 minutos
+        // Logout real
+        const timer = setTimeout(() => {
+            logout();
+        }, 1800000); // 30 minutos
+        return () => {
+            clearTimeout(timer);
+            clearTimeout(warningTimer);
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* Modal de aviso de cierre de sesión */}
+            {showTimeoutWarning && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                        <h2 className="text-lg font-bold mb-2">Sesión por expirar</h2>
+                        <p className="mb-4">Por seguridad, tu sesión se cerrará en 30 segundos por inactividad.</p>
+                        <button className="px-4 py-2 bg-teal-600 text-white rounded" onClick={() => { setShowTimeoutWarning(false); window.location.reload(); }}>Seguir conectado</button>
+                    </div>
+                </div>
+            )}
+
             <nav className="border-b border-gray-100 bg-white shadow-sm">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-20 justify-between">

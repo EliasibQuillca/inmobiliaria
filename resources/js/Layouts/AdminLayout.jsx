@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, router } from '@inertiajs/react';
 
 export default function AdminLayout({ user, auth, header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
 
     // Aceptar tanto user como auth.user para compatibilidad
     const currentUser = user || (auth && auth.user);
@@ -12,8 +13,35 @@ export default function AdminLayout({ user, auth, header, children }) {
         router.post("/logout");
     };
 
+    // Temporizador de cierre de sesión automático para admin (5 minutos)
+    useEffect(() => {
+        // Aviso 30 segundos antes
+        const warningTimer = setTimeout(() => {
+            setShowTimeoutWarning(true);
+        }, 270000); // 4.5 minutos
+        // Logout real
+        const timer = setTimeout(() => {
+            logout();
+        }, 300000); // 5 minutos
+        return () => {
+            clearTimeout(timer);
+            clearTimeout(warningTimer);
+        };
+    }, []);
+
     return (
         <div className="min-h-screen bg-gray-100">
+            {/* Modal de aviso de cierre de sesión */}
+            {showTimeoutWarning && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+                        <h2 className="text-lg font-bold mb-2">Sesión por expirar</h2>
+                        <p className="mb-4">Por seguridad, tu sesión se cerrará en 30 segundos por inactividad.</p>
+                        <button className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => { setShowTimeoutWarning(false); window.location.reload(); }}>Seguir conectado</button>
+                    </div>
+                </div>
+            )}
+
             {/* Navegación Principal */}
             <nav className="bg-white border-b border-gray-100 shadow">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
