@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\DepartamentoController as ApiDepartamentoController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -166,6 +167,13 @@ class DepartamentoController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            Log::info('Admin DepartamentoController update called', [
+                'id' => $id,
+                'request_data' => $request->all(),
+                'user' => Auth::user() ? Auth::user()->email : 'no user',
+                'csrf_token' => $request->header('X-CSRF-TOKEN') ?: 'no token'
+            ]);
+            
             $response = $this->apiController->update($request, $id);
             $data = json_decode($response->getContent(), true);
 
@@ -175,6 +183,10 @@ class DepartamentoController extends Controller
                 return redirect()->back()->withInput()->with('error', $data['message'] ?? 'Error al actualizar el departamento');
             }
         } catch (\Exception $e) {
+            Log::error('Error en Admin DepartamentoController update', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->back()->withInput()->with('error', 'Error al actualizar departamento: ' . $e->getMessage());
         }
     }

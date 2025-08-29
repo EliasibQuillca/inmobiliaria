@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 // Componente para edición rápida en modal
@@ -1286,6 +1286,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                 onSave={(datos) => {
                                     // Actualizar departamento
                                     setLoading(true);
+                                    
                                     router.put(`/admin/departamentos/${departamentoSeleccionado.id}`, datos, {
                                         preserveState: false,
                                         onSuccess: () => {

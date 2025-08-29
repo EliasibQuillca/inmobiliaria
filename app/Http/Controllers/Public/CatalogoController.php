@@ -19,15 +19,17 @@ class CatalogoController extends Controller
      */
     public function index(Request $request)
     {
-        // Construcción de la consulta base - usando solo las columnas que existen
+        // Construcción de la consulta base - incluyendo todos los campos necesarios
         $query = Departamento::with(['imagenes'])
             ->where('estado', 'disponible')
             ->select([
-                'id', 'codigo', 'direccion', 'precio', 'estado', 
-                'propietario_id', 'created_at', 'updated_at'
+                'id', 'codigo', 'titulo', 'descripcion', 'ubicacion', 'direccion', 
+                'precio', 'precio_anterior', 'dormitorios', 'banos', 'area_total', 
+                'estacionamientos', 'estado', 'destacado', 'propietario_id', 
+                'created_at', 'updated_at'
             ]);
 
-                // Filtros básicos - solo usando columnas que existen
+        // Filtros básicos - ahora usando todas las columnas disponibles
         if ($request->filled('precio_min')) {
             $query->where('precio', '>=', $request->precio_min);
         }
@@ -40,6 +42,8 @@ class CatalogoController extends Controller
             $busqueda = $request->busqueda;
             $query->where(function($q) use ($busqueda) {
                 $q->where('codigo', 'like', "%{$busqueda}%")
+                  ->orWhere('titulo', 'like', "%{$busqueda}%")
+                  ->orWhere('ubicacion', 'like', "%{$busqueda}%")
                   ->orWhere('direccion', 'like', "%{$busqueda}%");
             });
         }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Departamento;
 use App\Models\Publicacion;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -122,7 +123,7 @@ class DepartamentoController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || !$user->hasRole('administrador')) {
+        if (!$user || $user->role !== 'administrador') {
             return response()->json([
                 'message' => 'Solo los administradores pueden crear departamentos',
             ], 403);
@@ -191,7 +192,7 @@ class DepartamentoController extends Controller
 
         $user = Auth::user();
 
-        if (!$user || !$user->hasRole('administrador')) {
+        if (!$user || $user->role !== 'administrador') {
             return response()->json([
                 'message' => 'Solo los administradores pueden actualizar departamentos',
             ], 403);
@@ -212,6 +213,13 @@ class DepartamentoController extends Controller
             'estado' => 'sometimes|in:disponible,reservado,vendido,inactivo',
             'propietario_id' => 'sometimes|exists:propietarios,id',
             'destacado' => 'sometimes|boolean',
+            // Campos para URLs de imágenes
+            'imagen_principal' => 'sometimes|string|max:500',
+            'imagen_galeria_1' => 'sometimes|string|max:500',
+            'imagen_galeria_2' => 'sometimes|string|max:500',
+            'imagen_galeria_3' => 'sometimes|string|max:500',
+            'imagen_galeria_4' => 'sometimes|string|max:500',
+            'imagen_galeria_5' => 'sometimes|string|max:500',
         ]);
 
         try {
@@ -221,9 +229,12 @@ class DepartamentoController extends Controller
                 'area_total', 'estacionamientos', 'estado', 'propietario_id', 'destacado'
             ]));
 
+            // Manejar imágenes por URL
+            $this->procesarImagenesURL($departamento, $request);
+
             return response()->json([
                 'message' => 'Departamento actualizado exitosamente',
-                'departamento' => $departamento->load(['propietario', 'atributos']),
+                'departamento' => $departamento->load(['propietario', 'atributos', 'imagenes']),
             ]);
 
         } catch (\Exception $e) {
@@ -287,7 +298,7 @@ class DepartamentoController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || !$user->hasRole('administrador')) {
+        if (!$user || $user->role !== 'administrador') {
             return response()->json([
                 'message' => 'Solo los administradores pueden ver todos los departamentos',
             ], 403);
@@ -358,7 +369,8 @@ class DepartamentoController extends Controller
     public function toggleDestacado(Request $request, $id)
     {
         // Verificar si el usuario es administrador
-        if (!Auth::user()->hasRole('administrador')) {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'administrador') {
             return response()->json([
                 'message' => 'No tiene permisos para realizar esta acción'
             ], 403);
@@ -385,7 +397,7 @@ class DepartamentoController extends Controller
         $user = Auth::user();
 
         // Solo administradores pueden eliminar departamentos
-        if (!$user || !$user->hasRole('administrador')) {
+        if (!$user || $user->role !== 'administrador') {
             return response()->json([
                 'message' => 'No tiene permisos para realizar esta acción'
             ], 403);
@@ -503,5 +515,68 @@ class DepartamentoController extends Controller
         return response()->json([
             'data' => $departamentos
         ]);
+    }
+
+    /**
+     * Procesar imágenes enviadas por URL
+     */
+    private function procesarImagenesURL($departamento, $request)
+    {
+        // Procesar imagen principal
+        if ($request->filled('imagen_principal')) {
+            $imagenUrl = $request->input('imagen_principal');
+            // Validar que no sea una URL base64 (muy larga y problemática)
+            if (!str_starts_with($imagenUrl, 'data:image/') && strlen($imagenUrl) < 500) {
+                // Desactivar imagen principal anterior
+                \App\Models\Imagen::where('departamento_id', $departamento->id)
+                    ->where('tipo', 'principal')
+                    ->update(['activa' => false]);
+                
+                // Crear nueva imagen principal
+                \App\Models\Imagen::create([
+                    'departamento_id' => $departamento->id,
+                    'url' => $imagenUrl,
+                    'titulo' => $departamento->titulo,
+                    'descripcion' => 'Imagen principal',
+                    'tipo' => 'principal',
+                    'orden' => 1,
+                    'activa' => true,
+                ]);
+            }
+        }
+
+        // Procesar imágenes de galería
+        $imagenesGaleria = [
+            'imagen_galeria_1' => 2,
+            'imagen_galeria_2' => 3,
+            'imagen_galeria_3' => 4,
+            'imagen_galeria_4' => 5,
+            'imagen_galeria_5' => 6,
+        ];
+
+        foreach ($imagenesGaleria as $campo => $orden) {
+            if ($request->filled($campo)) {
+                $imagenUrl = $request->input($campo);
+                // Validar que no sea una URL base64 y tenga longitud razonable
+                if (!str_starts_with($imagenUrl, 'data:image/') && strlen($imagenUrl) < 500) {
+                    // Desactivar imagen de galería anterior en esta posición
+                    \App\Models\Imagen::where('departamento_id', $departamento->id)
+                        ->where('tipo', 'galeria')
+                        ->where('orden', $orden)
+                        ->update(['activa' => false]);
+                    
+                    // Crear nueva imagen de galería
+                    \App\Models\Imagen::create([
+                        'departamento_id' => $departamento->id,
+                        'url' => $imagenUrl,
+                        'titulo' => $departamento->titulo . ' - Galería ' . ($orden - 1),
+                        'descripcion' => 'Imagen de galería',
+                        'tipo' => 'galeria',
+                        'orden' => $orden,
+                        'activa' => true,
+                    ]);
+                }
+            }
+        }
     }
 }

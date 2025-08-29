@@ -36,7 +36,7 @@ class DashboardController extends Controller
         // Ingresos del mes actual
         $ingresosDelMes = Venta::whereMonth('fecha_venta', Carbon::now()->month)
                             ->whereYear('fecha_venta', Carbon::now()->year)
-                            ->sum('precio_final');
+                            ->sum('monto_final');
         
         // Estadísticas secundarias
         $asesoresActivos = Asesor::where('estado', 'activo')->count();
@@ -46,9 +46,11 @@ class DashboardController extends Controller
         $reservasActivas = Reserva::where('estado', 'confirmada')->count();
         
         // Comisiones pendientes
-        $comisionesPendientes = Venta::whereNull('comision_pagada')
-                                  ->orWhere('comision_pagada', false)
-                                  ->sum('comision_asesor');
+        // TODO: Agregar columnas comision_asesor y comision_pagada a la tabla ventas
+        // $comisionesPendientes = Venta::whereNull('comision_pagada')
+        //                           ->orWhere('comision_pagada', false)
+        //                           ->sum('comision_asesor');
+        $comisionesPendientes = 0; // Valor temporal hasta implementar funcionalidad de comisiones
         
         // Actividades recientes
         $actividadesRecientes = collect();
@@ -66,6 +68,7 @@ class DashboardController extends Controller
                 'descripcion' => $venta->reserva->departamento->codigo ?? 'Departamento',
                 'usuario' => $venta->reserva->asesor->usuario->name ?? 'N/A',
                 'tiempo' => $venta->created_at->diffForHumans(),
+                'fecha_orden' => $venta->created_at,
                 'tag' => 'venta',
                 'monto' => $venta->monto_final ?? 0
             ]);
@@ -84,6 +87,7 @@ class DashboardController extends Controller
                 'descripcion' => $asesor->usuario->name . ' se unió al equipo',
                 'usuario' => $asesor->usuario->name,
                 'tiempo' => $asesor->created_at->diffForHumans(),
+                'fecha_orden' => $asesor->created_at,
                 'tag' => 'usuario'
             ]);
         }
@@ -100,6 +104,7 @@ class DashboardController extends Controller
                 'descripcion' => $propiedad->codigo ?? 'Nueva propiedad',
                 'usuario' => 'Sistema',
                 'tiempo' => $propiedad->created_at->diffForHumans(),
+                'fecha_orden' => $propiedad->created_at,
                 'tag' => 'propiedad'
             ]);
         }
@@ -118,8 +123,14 @@ class DashboardController extends Controller
         
         // Ordenar actividades por fecha
         $actividadesRecientes = $actividadesRecientes->sortByDesc(function($item) {
-            return Carbon::parse($item['tiempo']);
+            return $item['fecha_orden'];
         })->take(6)->values();
+        
+        // Limpiar campo temporal usado para ordenamiento
+        $actividadesRecientes = $actividadesRecientes->map(function($item) {
+            unset($item['fecha_orden']);
+            return $item;
+        });
         
         // Calcular porcentajes de crecimiento (comparado con el mes anterior)
         $mesAnterior = Carbon::now()->subMonth();
@@ -138,7 +149,7 @@ class DashboardController extends Controller
         
         $ingresosMesAnterior = Venta::whereMonth('fecha_venta', $mesAnterior->month)
                                  ->whereYear('fecha_venta', $mesAnterior->year)
-                                 ->sum('precio_final');
+                                 ->sum('monto_final');
         
         // Calcular porcentajes
         $crecimientoUsuarios = $usuariosMesAnterior > 0 ? 
@@ -189,7 +200,7 @@ class DashboardController extends Controller
         $fechaInicio = Carbon::now()->subDays($periodo);
         
         // Ventas por día
-        $ventasPorDia = Venta::selectRaw('DATE(fecha_venta) as fecha, COUNT(*) as total, SUM(precio_final) as ingresos')
+        $ventasPorDia = Venta::selectRaw('DATE(fecha_venta) as fecha, COUNT(*) as total, SUM(monto_final) as ingresos')
                            ->where('fecha_venta', '>=', $fechaInicio)
                            ->groupBy('fecha')
                            ->orderBy('fecha')

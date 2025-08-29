@@ -290,8 +290,8 @@ export default function Catalogo({
                                 <div className="aspect-w-16 aspect-h-9 bg-gray-200">
                                     {departamento.imagenes && departamento.imagenes.length > 0 ? (
                                         <img
-                                            src={`/storage/${departamento.imagenes[0].ruta}`}
-                                            alt={departamento.codigo}
+                                            src={departamento.imagenes[0].url.startsWith('http') ? departamento.imagenes[0].url : `/storage/${departamento.imagenes[0].url}`}
+                                            alt={departamento.titulo || departamento.codigo}
                                             className="w-full h-48 object-cover"
                                         />
                                     ) : (
@@ -306,27 +306,40 @@ export default function Catalogo({
                                 {/* Contenido */}
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-4">
-                                        <h3 className="text-lg font-semibold text-gray-900">
-                                            {departamento.codigo}
-                                        </h3>
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900">
+                                                {departamento.titulo || departamento.codigo}
+                                            </h3>
+                                            {departamento.ubicacion && (
+                                                <p className="text-sm text-gray-600">{departamento.ubicacion}</p>
+                                            )}
+                                        </div>
                                         <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                                            Disponible
+                                            {departamento.estado === 'disponible' ? 'Disponible' : 
+                                             departamento.estado === 'reservado' ? 'Reservado' : 
+                                             departamento.estado === 'vendido' ? 'Vendido' : 'No disponible'}
                                         </span>
                                     </div>
 
                                     <div className="space-y-2 mb-4">
                                         <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Tipo:</span> {tiposPropiedad[departamento.tipo_propiedad] || departamento.tipo_propiedad}
+                                            <span className="font-medium">Tipo:</span> Departamento
                                         </p>
-                                        <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Habitaciones:</span> {departamento.habitaciones}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Baños:</span> {departamento.banos}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Área:</span> {departamento.area_construida} m²
-                                        </p>
+                                        {departamento.dormitorios && (
+                                            <p className="text-sm text-gray-600">
+                                                <span className="font-medium">Habitaciones:</span> {departamento.dormitorios}
+                                            </p>
+                                        )}
+                                        {departamento.banos && (
+                                            <p className="text-sm text-gray-600">
+                                                <span className="font-medium">Baños:</span> {departamento.banos}
+                                            </p>
+                                        )}
+                                        {departamento.area_total && (
+                                            <p className="text-sm text-gray-600">
+                                                <span className="font-medium">Área:</span> {departamento.area_total} m²
+                                            </p>
+                                        )}
                                         <p className="text-lg font-bold text-blue-600">
                                             {formatCurrency(departamento.precio)}
                                         </p>

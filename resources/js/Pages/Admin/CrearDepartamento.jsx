@@ -18,6 +18,7 @@ export default function CrearDepartamento({ auth, propietarios }) {
         destacado: false
     });
 
+    const [imagen, setImagen] = useState(null);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
@@ -37,13 +38,26 @@ export default function CrearDepartamento({ auth, propietarios }) {
         }
     };
 
+    const handleImagenChange = (e) => {
+        setImagen(e.target.files[0]);
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
         setErrors({});
 
-        router.post('/admin/departamentos', formData, {
+        const form = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+            form.append(key, value);
+        });
+        if (imagen) {
+            form.append('imagen', imagen);
+        }
+
+        router.post('/admin/departamentos', form, {
             preserveState: false,
+            forceFormData: true,
             onSuccess: () => {
                 router.visit('/admin/departamentos');
             },
@@ -91,7 +105,7 @@ export default function CrearDepartamento({ auth, propietarios }) {
                             </div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-6">
+                        <form onSubmit={handleSubmit} encType="multipart/form-data" className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Título */}
                                 <div>
@@ -275,6 +289,18 @@ export default function CrearDepartamento({ auth, propietarios }) {
                                         />
                                         <span className="ml-2 text-sm text-gray-700">Destacar esta propiedad</span>
                                     </label>
+                                </div>
+
+                                {/* Imagen Principal */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700">Imagen Principal</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImagenChange}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                    {errors.imagen && <p className="mt-1 text-sm text-red-600">{errors.imagen}</p>}
                                 </div>
                             </div>
 

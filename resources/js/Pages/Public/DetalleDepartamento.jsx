@@ -72,7 +72,7 @@ export default function DetalleDepartamento({
                                         <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                                     </svg>
                                     <span className="ml-4 text-gray-500 font-medium">
-                                        {departamento.codigo}
+                                        {departamento.titulo || departamento.codigo}
                                     </span>
                                 </li>
                             </ol>
@@ -90,8 +90,10 @@ export default function DetalleDepartamento({
                                         <>
                                             <div className="aspect-w-16 aspect-h-9">
                                                 <img
-                                                    src={`/storage/${departamento.imagenes[imagenActual].ruta}`}
-                                                    alt={`${departamento.codigo} - Imagen ${imagenActual + 1}`}
+                                                    src={departamento.imagenes[imagenActual].url.startsWith('http') ? 
+                                                        departamento.imagenes[imagenActual].url : 
+                                                        `/storage/${departamento.imagenes[imagenActual].url}`}
+                                                    alt={`${departamento.titulo || departamento.codigo} - Imagen ${imagenActual + 1}`}
                                                     className="w-full h-96 object-cover"
                                                 />
                                             </div>
@@ -151,7 +153,9 @@ export default function DetalleDepartamento({
                                                     }`}
                                                 >
                                                     <img
-                                                        src={`/storage/${imagen.ruta}`}
+                                                        src={imagen.url.startsWith('http') ? 
+                                                            imagen.url : 
+                                                            `/storage/${imagen.url}`}
                                                         alt={`Miniatura ${index + 1}`}
                                                         className="w-full h-full object-cover"
                                                     />
