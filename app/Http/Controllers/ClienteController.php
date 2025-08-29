@@ -20,19 +20,59 @@ class ClienteController extends Controller
                            ->with('message', 'Por favor completa tu perfil de cliente primero.');
         }
 
-        // Obtener estadísticas del cliente
-        $stats = [
+        $stats = $this->obtenerEstadisticasCliente($cliente);
+        $actividades = $this->obtenerActividadesRecientes($cliente);
+
+        return view('cliente.dashboard', compact('cliente', 'stats', 'actividades'));
+    }
+
+    /**
+     * Obtener estadísticas del cliente.
+     *
+     * @param Cliente $cliente
+     * @return array
+     */
+    private function obtenerEstadisticasCliente(Cliente $cliente): array
+    {
+        return [
             'total_solicitudes' => $cliente->cotizaciones()->count(),
             'total_favoritos' => $cliente->favoritos()->count(),
             'total_cotizaciones' => $cliente->cotizaciones()->where('estado', '!=', 'cancelada')->count(),
             'total_reservas' => $cliente->reservas()->count(),
         ];
+    }
 
-        // Obtener actividades recientes
-        $actividades = [];
+    /**
+     * Obtener actividades recientes del cliente.
+     *
+     * @param Cliente $cliente
+     * @return \Illuminate\Support\Collection
+     */
+    private function obtenerActividadesRecientes(Cliente $cliente)
+    {
+        $actividades = collect();
         
-        // Últimas solicitudes
-        $ultimasSolicitudes = $cliente->cotizaciones()
+        // Agregar solicitudes recientes
+        $actividades = $actividades->concat($this->obtenerSolicitudesRecientes($cliente));
+        
+        // Agregar favoritos recientes
+        $actividades = $actividades->concat($this->obtenerFavoritosRecientes($cliente));
+        
+        // Agregar reservas recientes
+        $actividades = $actividades->concat($this->obtenerReservasRecientes($cliente));
+        
+        return $actividades->sortByDesc('fecha')->take(10);
+    }
+
+    /**
+     * Obtener solicitudes recientes del cliente.
+     *
+     * @param Cliente $cliente
+     * @return \Illuminate\Support\Collection
+     */
+    private function obtenerSolicitudesRecientes(Cliente $cliente)
+    {
+        return $cliente->cotizaciones()
             ->with(['departamento'])
             ->latest()
             ->take(3)
@@ -44,9 +84,17 @@ class ClienteController extends Controller
                     'fecha' => $cotizacion->created_at
                 ];
             });
+    }
 
-        // Últimos favoritos
-        $ultimosFavoritos = $cliente->favoritos()
+    /**
+     * Obtener favoritos recientes del cliente.
+     *
+     * @param Cliente $cliente
+     * @return \Illuminate\Support\Collection
+     */
+    private function obtenerFavoritosRecientes(Cliente $cliente)
+    {
+        return $cliente->favoritos()
             ->with(['departamento'])
             ->latest()
             ->take(3)
@@ -58,9 +106,17 @@ class ClienteController extends Controller
                     'fecha' => $favorito->created_at
                 ];
             });
+    }
 
-        // Últimas reservas
-        $ultimasReservas = $cliente->reservas()
+    /**
+     * Obtener reservas recientes del cliente.
+     *
+     * @param Cliente $cliente
+     * @return \Illuminate\Support\Collection
+     */
+    private function obtenerReservasRecientes(Cliente $cliente)
+    {
+        return $cliente->reservas()
             ->with(['departamento'])
             ->latest()
             ->take(3)
@@ -72,22 +128,6 @@ class ClienteController extends Controller
                     'fecha' => $reserva->created_at
                 ];
             });
-
-        // Combinar y ordenar actividades
-        $actividades = collect()
-            ->merge($ultimasSolicitudes)
-            ->merge($ultimosFavoritos)
-            ->merge($ultimasReservas)
-            ->sortByDesc('fecha')
-            ->take(10)
-            ->values()
-            ->all();
-
-        return inertia('Cliente/Dashboard', [
-            'stats' => $stats,
-            'actividades' => $actividades,
-            'cliente' => $cliente
-        ]);
     }
 
     public function perfil()
@@ -106,28 +146,24 @@ class ClienteController extends Controller
             'telefono' => 'required|string|max:20',
             'direccion' => 'required|string|max:255',
             'fecha_nacimiento' => 'nullable|date',
-            'preferencias' => 'nullable|json'
+            'preferencias' => 'nullable|array',
+            'preferencias.rango_precios' => 'nullable|array',
+            'preferencias.zonas_interes' => 'nullable|array',
+            'preferencias.caracteristicas' => 'nullable|array',
         ]);
 
         $user = Auth::user();
-        $cliente = Cliente::where('usuario_id', $user->id)->first();
-
-        if (!$cliente) {
-            $cliente = Cliente::create([
-                'usuario_id' => $user->id,
+        
+        // Buscar o crear cliente
+        $cliente = Cliente::updateOrCreate(
+            ['usuario_id' => $user->id],
+            [
                 'telefono' => $request->telefono,
                 'direccion' => $request->direccion,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'preferencias' => $request->preferencias,
-            ]);
-        } else {
-            $cliente->update([
-                'telefono' => $request->telefono,
-                'direccion' => $request->direccion,
-                'fecha_nacimiento' => $request->fecha_nacimiento,
-                'preferencias' => $request->preferencias,
-            ]);
-        }
+            ]
+        );
 
         return back()->with('message', 'Perfil actualizado exitosamente.');
     }

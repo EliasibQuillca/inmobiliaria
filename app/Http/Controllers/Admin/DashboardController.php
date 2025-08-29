@@ -24,117 +24,58 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Obtener estadísticas principales
-        $totalUsuarios = User::count();
-        $propiedadesActivas = Departamento::where('estado', 'disponible')->count();
+        $estadisticas = $this->obtenerEstadisticasPrincipales();
+        $crecimiento = $this->calcularCrecimiento();
+        $actividadesRecientes = $this->obtenerActividadesRecientes();
+        $infoDebug = $this->obtenerInfoDepuracion();
         
-        // Ventas del mes actual
-        $ventasDelMes = Venta::whereMonth('fecha_venta', Carbon::now()->month)
-                           ->whereYear('fecha_venta', Carbon::now()->year)
-                           ->count();
-        
-        // Ingresos del mes actual
-        $ingresosDelMes = Venta::whereMonth('fecha_venta', Carbon::now()->month)
-                            ->whereYear('fecha_venta', Carbon::now()->year)
-                            ->sum('monto_final');
-        
-        // Estadísticas secundarias
-        $asesoresActivos = Asesor::where('estado', 'activo')->count();
-        $clientesNuevos = Cliente::whereMonth('created_at', Carbon::now()->month)
-                               ->whereYear('created_at', Carbon::now()->year)
-                               ->count();
-        $reservasActivas = Reserva::where('estado', 'confirmada')->count();
-        
-        // Comisiones pendientes
-        // TODO: Agregar columnas comision_asesor y comision_pagada a la tabla ventas
-        // $comisionesPendientes = Venta::whereNull('comision_pagada')
-        //                           ->orWhere('comision_pagada', false)
-        //                           ->sum('comision_asesor');
-        $comisionesPendientes = 0; // Valor temporal hasta implementar funcionalidad de comisiones
-        
-        // Actividades recientes
-        $actividadesRecientes = collect();
-        
-        // Agregar ventas recientes
-        $ventasRecientes = Venta::with(['reserva.departamento', 'reserva.asesor.usuario'])
-                                ->orderBy('created_at', 'desc')
-                                ->take(3)
-                                ->get();
-        
-        foreach ($ventasRecientes as $venta) {
-            $actividadesRecientes->push([
-                'tipo' => 'venta',
-                'titulo' => 'Nueva venta completada',
-                'descripcion' => $venta->reserva->departamento->codigo ?? 'Departamento',
-                'usuario' => $venta->reserva->asesor->usuario->name ?? 'N/A',
-                'tiempo' => $venta->created_at->diffForHumans(),
-                'fecha_orden' => $venta->created_at,
-                'tag' => 'venta',
-                'monto' => $venta->monto_final ?? 0
-            ]);
-        }
-        
-        // Agregar nuevos asesores
-        $asesoresRecientes = Asesor::with('usuario')
-                                  ->orderBy('created_at', 'desc')
-                                  ->take(2)
-                                  ->get();
-        
-        foreach ($asesoresRecientes as $asesor) {
-            $actividadesRecientes->push([
-                'tipo' => 'usuario',
-                'titulo' => 'Nuevo asesor registrado',
-                'descripcion' => $asesor->usuario->name . ' se unió al equipo',
-                'usuario' => $asesor->usuario->name,
-                'tiempo' => $asesor->created_at->diffForHumans(),
-                'fecha_orden' => $asesor->created_at,
-                'tag' => 'usuario'
-            ]);
-        }
-        
-        // Agregar nuevas propiedades
-        $propiedadesRecientes = Departamento::orderBy('created_at', 'desc')
-                                          ->take(2)
-                                          ->get();
-        
-        foreach ($propiedadesRecientes as $propiedad) {
-            $actividadesRecientes->push([
-                'tipo' => 'propiedad',
-                'titulo' => 'Propiedad agregada',
-                'descripcion' => $propiedad->codigo ?? 'Nueva propiedad',
-                'usuario' => 'Sistema',
-                'tiempo' => $propiedad->created_at->diffForHumans(),
-                'fecha_orden' => $propiedad->created_at,
-                'tag' => 'propiedad'
-            ]);
-        }
+        return Inertia::render('Admin/Dashboard', [
+            'estadisticas' => $estadisticas,
+            'crecimiento' => $crecimiento,
+            'actividadesRecientes' => $actividadesRecientes,
+            'rendimiento' => 'Excelente',
+            'debug' => $infoDebug,
+        ]);
+    }
 
-        // Información de depuración del sistema
-        $infoDebug = [
-            'queries_ejecutadas' => DB::getQueryLog() ? count(DB::getQueryLog()) : 0,
-            'memoria_usada_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
-            'tiempo_respuesta' => round((microtime(true) - LARAVEL_START) * 1000, 2),
-            'cache_activo' => config('cache.default') !== 'array',
-            'debug_mode' => config('app.debug'),
-            'ambiente' => config('app.env'),
-            'version_php' => PHP_VERSION,
-            'version_laravel' => app()->version(),
+    /**
+     * Obtener estadísticas principales del dashboard.
+     *
+     * @return array
+     */
+    private function obtenerEstadisticasPrincipales(): array
+    {
+        $mesActual = Carbon::now();
+        
+        return [
+            'totalUsuarios' => User::count(),
+            'propiedadesActivas' => Departamento::where('estado', 'disponible')->count(),
+            'ventasDelMes' => Venta::whereMonth('fecha_venta', $mesActual->month)
+                                  ->whereYear('fecha_venta', $mesActual->year)
+                                  ->count(),
+            'ingresosDelMes' => Venta::whereMonth('fecha_venta', $mesActual->month)
+                                   ->whereYear('fecha_venta', $mesActual->year)
+                                   ->sum('monto_final'),
+            'asesoresActivos' => Asesor::where('estado', 'activo')->count(),
+            'clientesNuevos' => Cliente::whereMonth('created_at', $mesActual->month)
+                                     ->whereYear('created_at', $mesActual->year)
+                                     ->count(),
+            'reservasActivas' => Reserva::where('estado', 'confirmada')->count(),
+            'comisionesPendientes' => 0, // Valor temporal hasta implementar funcionalidad de comisiones
         ];
-        
-        // Ordenar actividades por fecha
-        $actividadesRecientes = $actividadesRecientes->sortByDesc(function($item) {
-            return $item['fecha_orden'];
-        })->take(6)->values();
-        
-        // Limpiar campo temporal usado para ordenamiento
-        $actividadesRecientes = $actividadesRecientes->map(function($item) {
-            unset($item['fecha_orden']);
-            return $item;
-        });
-        
-        // Calcular porcentajes de crecimiento (comparado con el mes anterior)
+    }
+
+    /**
+     * Calcular porcentajes de crecimiento comparado con el mes anterior.
+     *
+     * @return array
+     */
+    private function calcularCrecimiento(): array
+    {
         $mesAnterior = Carbon::now()->subMonth();
+        $mesActual = Carbon::now();
         
+        // Datos del mes anterior
         $usuariosMesAnterior = User::whereMonth('created_at', $mesAnterior->month)
                                  ->whereYear('created_at', $mesAnterior->year)
                                  ->count();
@@ -151,40 +92,160 @@ class DashboardController extends Controller
                                  ->whereYear('fecha_venta', $mesAnterior->year)
                                  ->sum('monto_final');
         
-        // Calcular porcentajes
-        $crecimientoUsuarios = $usuariosMesAnterior > 0 ? 
-            round((($totalUsuarios - $usuariosMesAnterior) / $usuariosMesAnterior) * 100, 1) : 0;
+        // Datos del mes actual
+        $totalUsuarios = User::count();
+        $propiedadesActivas = Departamento::where('estado', 'disponible')->count();
+        $ventasDelMes = Venta::whereMonth('fecha_venta', $mesActual->month)
+                           ->whereYear('fecha_venta', $mesActual->year)
+                           ->count();
+        $ingresosDelMes = Venta::whereMonth('fecha_venta', $mesActual->month)
+                            ->whereYear('fecha_venta', $mesActual->year)
+                            ->sum('monto_final');
         
-        $crecimientoPropiedades = $propiedadesMesAnterior > 0 ? 
-            round((($propiedadesActivas - $propiedadesMesAnterior) / $propiedadesMesAnterior) * 100, 1) : 0;
+        return [
+            'usuarios' => $this->calcularPorcentajeCrecimiento($totalUsuarios, $usuariosMesAnterior),
+            'propiedades' => $this->calcularPorcentajeCrecimiento($propiedadesActivas, $propiedadesMesAnterior),
+            'ventas' => $this->calcularPorcentajeCrecimiento($ventasDelMes, $ventasMesAnterior),
+            'ingresos' => $this->calcularPorcentajeCrecimiento($ingresosDelMes, $ingresosMesAnterior),
+        ];
+    }
+
+    /**
+     * Calcular porcentaje de crecimiento entre dos valores.
+     *
+     * @param float $valorActual
+     * @param float $valorAnterior
+     * @return float
+     */
+    private function calcularPorcentajeCrecimiento(float $valorActual, float $valorAnterior): float
+    {
+        if ($valorAnterior <= 0) {
+            return 0;
+        }
         
-        $crecimientoVentas = $ventasMesAnterior > 0 ? 
-            round((($ventasDelMes - $ventasMesAnterior) / $ventasMesAnterior) * 100, 1) : 0;
+        return round((($valorActual - $valorAnterior) / $valorAnterior) * 100, 1);
+    }
+
+    /**
+     * Obtener actividades recientes del sistema.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    private function obtenerActividadesRecientes()
+    {
+        $actividades = collect();
         
-        $crecimientoIngresos = $ingresosMesAnterior > 0 ? 
-            round((($ingresosDelMes - $ingresosMesAnterior) / $ingresosMesAnterior) * 100, 1) : 0;
+        // Agregar ventas recientes
+        $actividades = $actividades->concat($this->obtenerVentasRecientes());
         
-        return Inertia::render('Admin/Dashboard', [
-            'estadisticas' => [
-                'totalUsuarios' => $totalUsuarios,
-                'propiedadesActivas' => $propiedadesActivas,
-                'ventasDelMes' => $ventasDelMes,
-                'ingresosDelMes' => $ingresosDelMes,
-                'asesoresActivos' => $asesoresActivos,
-                'clientesNuevos' => $clientesNuevos,
-                'reservasActivas' => $reservasActivas,
-                'comisionesPendientes' => $comisionesPendientes,
-            ],
-            'crecimiento' => [
-                'usuarios' => $crecimientoUsuarios,
-                'propiedades' => $crecimientoPropiedades,
-                'ventas' => $crecimientoVentas,
-                'ingresos' => $crecimientoIngresos,
-            ],
-            'actividadesRecientes' => $actividadesRecientes,
-            'rendimiento' => 'Excelente',
-            'debug' => $infoDebug, // Información de depuración
-        ]);
+        // Agregar asesores recientes
+        $actividades = $actividades->concat($this->obtenerAsesoresRecientes());
+        
+        // Agregar propiedades recientes
+        $actividades = $actividades->concat($this->obtenerPropiedadesRecientes());
+        
+        // Ordenar por fecha y tomar las 6 más recientes
+        return $actividades->sortByDesc('fecha_orden')
+                          ->take(6)
+                          ->map(function($item) {
+                              unset($item['fecha_orden']);
+                              return $item;
+                          })
+                          ->values();
+    }
+
+    /**
+     * Obtener ventas recientes para el dashboard.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    private function obtenerVentasRecientes()
+    {
+        $ventas = Venta::with(['reserva.departamento', 'reserva.asesor.usuario'])
+                      ->orderBy('created_at', 'desc')
+                      ->take(3)
+                      ->get();
+        
+        return $ventas->map(function($venta) {
+            return [
+                'tipo' => 'venta',
+                'titulo' => 'Nueva venta completada',
+                'descripcion' => $venta->reserva->departamento->codigo ?? 'Departamento',
+                'usuario' => $venta->reserva->asesor->usuario->name ?? 'N/A',
+                'tiempo' => $venta->created_at->diffForHumans(),
+                'fecha_orden' => $venta->created_at,
+                'tag' => 'venta',
+                'monto' => $venta->monto_final ?? 0
+            ];
+        });
+    }
+
+    /**
+     * Obtener asesores recientes para el dashboard.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    private function obtenerAsesoresRecientes()
+    {
+        $asesores = Asesor::with('usuario')
+                         ->orderBy('created_at', 'desc')
+                         ->take(2)
+                         ->get();
+        
+        return $asesores->map(function($asesor) {
+            return [
+                'tipo' => 'usuario',
+                'titulo' => 'Nuevo asesor registrado',
+                'descripcion' => $asesor->usuario->name . ' se unió al equipo',
+                'usuario' => $asesor->usuario->name,
+                'tiempo' => $asesor->created_at->diffForHumans(),
+                'fecha_orden' => $asesor->created_at,
+                'tag' => 'usuario'
+            ];
+        });
+    }
+
+    /**
+     * Obtener propiedades recientes para el dashboard.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    private function obtenerPropiedadesRecientes()
+    {
+        $propiedades = Departamento::orderBy('created_at', 'desc')
+                                 ->take(2)
+                                 ->get();
+        
+        return $propiedades->map(function($propiedad) {
+            return [
+                'tipo' => 'propiedad',
+                'titulo' => 'Propiedad agregada',
+                'descripcion' => $propiedad->codigo ?? 'Nueva propiedad',
+                'usuario' => 'Sistema',
+                'tiempo' => $propiedad->created_at->diffForHumans(),
+                'fecha_orden' => $propiedad->created_at,
+                'tag' => 'propiedad'
+            ];
+        });
+    }
+
+    /**
+     * Obtener información de depuración del sistema.
+     *
+     * @return array
+     */
+    private function obtenerInfoDepuracion(): array
+    {
+        return [
+            'queries_ejecutadas' => DB::getQueryLog() ? count(DB::getQueryLog()) : 0,
+            'memoria_usada_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
+            'tiempo_respuesta' => round((microtime(true) - LARAVEL_START) * 1000, 2),
+            'cache_activo' => config('cache.default') !== 'array',
+            'debug_mode' => config('app.debug'),
+            'ambiente' => config('app.env'),
+            'version_php' => PHP_VERSION,
+            'version_laravel' => app()->version(),
+        ];
     }
     
     /**

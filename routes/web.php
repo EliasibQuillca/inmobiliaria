@@ -1,6 +1,26 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\CatalogoController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\AsesorController as AdminAsesorController;
+use App\Http\Controllers\Admin\DepartamentoController as AdminDepartamentoController;
+use App\Http\Controllers\Admin\VentaController as AdminVentaController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\ReporteController as AdminReporteController;
+use App\Http\Controllers\Asesor\ConfiguracionController as AsesorConfiguracionController;
+use App\Http\Controllers\Asesor\DashboardController as AsesorDashboardController;
+use App\Http\Controllers\Asesor\ClienteController as AsesorClienteController;
+use App\Http\Controllers\Asesor\CotizacionController as AsesorCotizacionController;
+use App\Http\Controllers\Asesor\ReservaController as AsesorReservaController;
+use App\Http\Controllers\Asesor\PerfilController as AsesorPerfilController;
+use App\Http\Controllers\Asesor\SolicitudController as AsesorSolicitudController;
+use App\Http\Controllers\Asesor\VentaController as AsesorVentaController;
+use App\Http\Controllers\Cliente\DashboardController as ClienteDashboardController;
+use App\Http\Controllers\Cliente\DepartamentoController as ClienteDepartamentoController;
+use App\Http\Controllers\Cliente\SolicitudController as ClienteSolicitudController;
+use App\Http\Controllers\Cliente\ComentarioController as ClienteComentarioController;
+use App\Http\Controllers\ClienteController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -38,10 +58,10 @@ Route::get('/', function () {
 });
 
 // Catálogo público de propiedades
-Route::get('/catalogo', [App\Http\Controllers\Public\CatalogoController::class, 'index'])->name('catalogo.index');
-Route::get('/catalogo/{departamento}', [App\Http\Controllers\Public\CatalogoController::class, 'show'])->name('catalogo.show');
-Route::post('/catalogo/contacto', [App\Http\Controllers\Public\CatalogoController::class, 'solicitudContacto'])->name('catalogo.contacto');
-Route::post('/catalogo/registro-rapido', [App\Http\Controllers\Public\CatalogoController::class, 'registroRapido'])->name('catalogo.registro');
+Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo.index');
+Route::get('/catalogo/{departamento}', [CatalogoController::class, 'show'])->name('catalogo.show');
+Route::post('/catalogo/contacto', [CatalogoController::class, 'solicitudContacto'])->name('catalogo.contacto');
+Route::post('/catalogo/registro-rapido', [CatalogoController::class, 'registroRapido'])->name('catalogo.registro');
 
 // Páginas informativas
 Route::get('/about', function () {
@@ -77,7 +97,7 @@ Route::get('/properties', function () {
 */
 
 Route::get('/dashboard', function () {
-    $user = \Illuminate\Support\Facades\Auth::user();
+    $user = Auth::user();
 
     if (!$user) {
         return redirect()->route('login');
@@ -103,35 +123,35 @@ Route::get('/dashboard', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:cliente'])->prefix('cliente')->name('cliente.')->group(function () {
     // === DASHBOARD SIMPLIFICADO ===
-    Route::get('/dashboard', [App\Http\Controllers\Cliente\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [ClienteDashboardController::class, 'index'])->name('dashboard');
 
     // === FAVORITOS ===
-    Route::get('/favoritos', [App\Http\Controllers\Cliente\DepartamentoController::class, 'favoritos'])->name('favoritos.index');
-    Route::post('/favoritos/toggle', [App\Http\Controllers\Cliente\DepartamentoController::class, 'toggleFavorito'])->name('favoritos.toggle');
+    Route::get('/favoritos', [ClienteDepartamentoController::class, 'favoritos'])->name('favoritos.index');
+    Route::post('/favoritos/toggle', [ClienteDepartamentoController::class, 'toggleFavorito'])->name('favoritos.toggle');
 
     // === SOLICITUDES ===
-    Route::get('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('solicitudes.index');
-    Route::get('/solicitudes/crear', [App\Http\Controllers\Cliente\SolicitudController::class, 'create'])->name('solicitudes.create');
-    Route::post('/solicitudes', [App\Http\Controllers\Cliente\SolicitudController::class, 'store'])->name('solicitudes.store');
+    Route::get('/solicitudes', [ClienteController::class, 'solicitudes'])->name('solicitudes.index');
+    Route::get('/solicitudes/crear', [ClienteSolicitudController::class, 'create'])->name('solicitudes.create');
+    Route::post('/solicitudes', [ClienteSolicitudController::class, 'store'])->name('solicitudes.store');
     
     // === COTIZACIONES Y RESERVAS ===
-    Route::get('/cotizaciones', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('cotizaciones.index');
-    Route::get('/reservas', [App\Http\Controllers\Cliente\SolicitudController::class, 'index'])->name('reservas.index');
+    Route::get('/cotizaciones', [ClienteController::class, 'cotizaciones'])->name('cotizaciones.index');
+    Route::get('/reservas', [ClienteController::class, 'reservas'])->name('reservas.index');
     
     // === COMENTARIOS Y CHAT ===
-    Route::get('/solicitudes/{cotizacion}/comentarios', [App\Http\Controllers\Cliente\ComentarioController::class, 'show'])->name('solicitudes.comentarios');
-    Route::post('/solicitudes/{cotizacion}/comentarios', [App\Http\Controllers\Cliente\ComentarioController::class, 'store'])->name('solicitudes.comentarios.store');
-    Route::get('/comentarios/no-leidos', [App\Http\Controllers\Cliente\ComentarioController::class, 'contarNoLeidos'])->name('comentarios.no-leidos');
-    Route::post('/comentarios/marcar-leidos', [App\Http\Controllers\Cliente\ComentarioController::class, 'marcarTodosLeidos'])->name('comentarios.marcar-leidos');
+    Route::get('/solicitudes/{cotizacion}/comentarios', [ClienteComentarioController::class, 'show'])->name('solicitudes.comentarios');
+    Route::post('/solicitudes/{cotizacion}/comentarios', [ClienteComentarioController::class, 'store'])->name('solicitudes.comentarios.store');
+    Route::get('/comentarios/no-leidos', [ClienteComentarioController::class, 'contarNoLeidos'])->name('comentarios.no-leidos');
+    Route::post('/comentarios/marcar-leidos', [ClienteComentarioController::class, 'marcarTodosLeidos'])->name('comentarios.marcar-leidos');
 
     // === ASESORES ===
-    Route::get('/asesores', [App\Http\Controllers\Cliente\DashboardController::class, 'asesores'])->name('asesores');
+    Route::get('/asesores', [ClienteDashboardController::class, 'asesores'])->name('asesores');
 
     // === PERFIL ===
-    Route::get('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'perfil'])->name('perfil.index');
-    Route::patch('/perfil', [App\Http\Controllers\Cliente\DashboardController::class, 'actualizarPerfil'])->name('perfil.update');
+    Route::get('/perfil', [ClienteController::class, 'perfil'])->name('perfil.index');
+    Route::patch('/perfil', [ClienteController::class, 'updatePerfil'])->name('perfil.update');
 
     // === CATÁLOGO - REDIRIGE AL PÚBLICO ===
     Route::get('/catalogo', function () {
@@ -147,49 +167,49 @@ Route::middleware(['auth', 'verified'])->prefix('cliente')->name('cliente.')->gr
 
 Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
     // Dashboard del asesor
-    Route::get('/dashboard', [\App\Http\Controllers\Asesor\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [AsesorDashboardController::class, 'index'])->name('dashboard');
 
     // === PERFIL ===
-    Route::get('/perfil', [\App\Http\Controllers\Asesor\PerfilController::class, 'index'])->name('perfil');
-    Route::patch('/perfil', [\App\Http\Controllers\Asesor\PerfilController::class, 'update'])->name('perfil.update');
-    Route::patch('/perfil/password', [\App\Http\Controllers\Asesor\PerfilController::class, 'updatePassword'])->name('perfil.password.update');
+    Route::get('/perfil', [AsesorPerfilController::class, 'index'])->name('perfil');
+    Route::patch('/perfil', [AsesorPerfilController::class, 'update'])->name('perfil.update');
+    Route::patch('/perfil/password', [AsesorPerfilController::class, 'updatePassword'])->name('perfil.password.update');
 
     // === GESTIÓN DE CLIENTES ===
-    Route::resource('clientes', \App\Http\Controllers\Asesor\ClienteController::class);
+    Route::resource('clientes', AsesorClienteController::class);
 
     // === SOLICITUDES DE CONTACTO ===
-    Route::get('/solicitudes', [\App\Http\Controllers\Asesor\SolicitudController::class, 'index'])->name('solicitudes');
-    Route::post('/solicitudes/contacto', [\App\Http\Controllers\Asesor\SolicitudController::class, 'registrarContacto'])->name('solicitudes.contacto');
-    Route::patch('/solicitudes/{cliente}/seguimiento', [\App\Http\Controllers\Asesor\SolicitudController::class, 'actualizarSeguimiento'])->name('solicitudes.seguimiento');
-    Route::get('/solicitudes/{cliente}/historial', [\App\Http\Controllers\Asesor\SolicitudController::class, 'historialCliente'])->name('solicitudes.historial');
-    Route::post('/solicitudes/{cliente}/cita', [\App\Http\Controllers\Asesor\SolicitudController::class, 'agendarCita'])->name('solicitudes.cita');
-    Route::get('/solicitudes/buscar-departamentos', [\App\Http\Controllers\Asesor\SolicitudController::class, 'buscarDepartamentos'])->name('solicitudes.buscar');
+    Route::get('/solicitudes', [AsesorSolicitudController::class, 'index'])->name('solicitudes');
+    Route::post('/solicitudes/contacto', [AsesorSolicitudController::class, 'registrarContacto'])->name('solicitudes.contacto');
+    Route::patch('/solicitudes/{cliente}/seguimiento', [AsesorSolicitudController::class, 'actualizarSeguimiento'])->name('solicitudes.seguimiento');
+    Route::get('/solicitudes/{cliente}/historial', [AsesorSolicitudController::class, 'historialCliente'])->name('solicitudes.historial');
+    Route::post('/solicitudes/{cliente}/cita', [AsesorSolicitudController::class, 'agendarCita'])->name('solicitudes.cita');
+    Route::get('/solicitudes/buscar-departamentos', [AsesorSolicitudController::class, 'buscarDepartamentos'])->name('solicitudes.buscar');
 
     // === COTIZACIONES ===
-    Route::get('/cotizaciones', [\App\Http\Controllers\Asesor\CotizacionController::class, 'index'])->name('cotizaciones');
-    Route::get('/cotizaciones/create', [\App\Http\Controllers\Asesor\CotizacionController::class, 'create'])->name('cotizaciones.create');
-    Route::post('/cotizaciones', [\App\Http\Controllers\Asesor\CotizacionController::class, 'store'])->name('cotizaciones.store');
-    Route::patch('/cotizaciones/{cotizacion}/estado', [\App\Http\Controllers\Asesor\CotizacionController::class, 'updateEstado'])->name('cotizaciones.estado');
-    Route::get('/cotizaciones/{cotizacion}/edit', [\App\Http\Controllers\Asesor\CotizacionController::class, 'edit'])->name('cotizaciones.edit');
-    Route::patch('/cotizaciones/{cotizacion}', [\App\Http\Controllers\Asesor\CotizacionController::class, 'update'])->name('cotizaciones.update');
+    Route::get('/cotizaciones', [AsesorCotizacionController::class, 'index'])->name('cotizaciones');
+    Route::get('/cotizaciones/create', [AsesorCotizacionController::class, 'create'])->name('cotizaciones.create');
+    Route::post('/cotizaciones', [AsesorCotizacionController::class, 'store'])->name('cotizaciones.store');
+    Route::patch('/cotizaciones/{cotizacion}/estado', [AsesorCotizacionController::class, 'updateEstado'])->name('cotizaciones.estado');
+    Route::get('/cotizaciones/{cotizacion}/edit', [AsesorCotizacionController::class, 'edit'])->name('cotizaciones.edit');
+    Route::patch('/cotizaciones/{cotizacion}', [AsesorCotizacionController::class, 'update'])->name('cotizaciones.update');
 
     // === RESERVAS ===
-    Route::get('/reservas', [\App\Http\Controllers\Asesor\ReservaController::class, 'index'])->name('reservas');
-    Route::get('/reservas/crear', [\App\Http\Controllers\Asesor\ReservaController::class, 'create'])->name('reservas.create');
-    Route::post('/reservas', [\App\Http\Controllers\Asesor\ReservaController::class, 'store'])->name('reservas.store');
-    Route::patch('/reservas/{reserva}/confirmar', [\App\Http\Controllers\Asesor\ReservaController::class, 'confirmar'])->name('reservas.confirmar');
-    Route::patch('/reservas/{reserva}/cancelar', [\App\Http\Controllers\Asesor\ReservaController::class, 'cancelar'])->name('reservas.cancelar');
-    Route::patch('/reservas/{reserva}/revertir', [\App\Http\Controllers\Asesor\ReservaController::class, 'revertir'])->name('reservas.revertir');
-    Route::patch('/reservas/{reserva}', [\App\Http\Controllers\Asesor\ReservaController::class, 'update'])->name('reservas.update');
+    Route::get('/reservas', [AsesorReservaController::class, 'index'])->name('reservas');
+    Route::get('/reservas/crear', [AsesorReservaController::class, 'create'])->name('reservas.create');
+    Route::post('/reservas', [AsesorReservaController::class, 'store'])->name('reservas.store');
+    Route::patch('/reservas/{reserva}/confirmar', [AsesorReservaController::class, 'confirmar'])->name('reservas.confirmar');
+    Route::patch('/reservas/{reserva}/cancelar', [AsesorReservaController::class, 'cancelar'])->name('reservas.cancelar');
+    Route::patch('/reservas/{reserva}/revertir', [AsesorReservaController::class, 'revertir'])->name('reservas.revertir');
+    Route::patch('/reservas/{reserva}', [AsesorReservaController::class, 'update'])->name('reservas.update');
 
     // === VENTAS ===
-    Route::get('/ventas', [\App\Http\Controllers\Asesor\VentaController::class, 'index'])->name('ventas');
-    Route::get('/ventas/create', [\App\Http\Controllers\Asesor\VentaController::class, 'create'])->name('ventas.create');
-    Route::post('/ventas', [\App\Http\Controllers\Asesor\VentaController::class, 'store'])->name('ventas.store');
-    Route::get('/ventas/{venta}', [\App\Http\Controllers\Asesor\VentaController::class, 'show'])->name('ventas.show');
-    Route::get('/ventas/{venta}/edit', [\App\Http\Controllers\Asesor\VentaController::class, 'edit'])->name('ventas.edit');
-    Route::patch('/ventas/{venta}', [\App\Http\Controllers\Asesor\VentaController::class, 'update'])->name('ventas.update');
-    Route::patch('/ventas/{venta}/documentos', [\App\Http\Controllers\Asesor\VentaController::class, 'actualizarDocumentos'])->name('ventas.documentos');
+    Route::get('/ventas', [AsesorVentaController::class, 'index'])->name('ventas');
+    Route::get('/ventas/create', [AsesorVentaController::class, 'create'])->name('ventas.create');
+    Route::post('/ventas', [AsesorVentaController::class, 'store'])->name('ventas.store');
+    Route::get('/ventas/{venta}', [AsesorVentaController::class, 'show'])->name('ventas.show');
+    Route::get('/ventas/{venta}/edit', [AsesorVentaController::class, 'edit'])->name('ventas.edit');
+    Route::patch('/ventas/{venta}', [AsesorVentaController::class, 'update'])->name('ventas.update');
+    Route::patch('/ventas/{venta}/documentos', [AsesorVentaController::class, 'actualizarDocumentos'])->name('ventas.documentos');
 });
 
 /*
@@ -200,52 +220,52 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor')->name('
 
 Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard del administrador
-    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/estadisticas', [\App\Http\Controllers\Admin\DashboardController::class, 'estadisticas'])->name('estadisticas');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/estadisticas', [AdminDashboardController::class, 'estadisticas'])->name('estadisticas');
 
     // === GESTIÓN DE USUARIOS ===
-    Route::get('/usuarios', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('usuarios');
-    Route::get('/usuarios/crear', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('usuarios.crear');
-    Route::post('/usuarios', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('usuarios.store');
-    Route::get('/usuarios/{id}/editar', [\App\Http\Controllers\Admin\UserController::class, 'edit'])->name('usuarios.editar');
-    Route::put('/usuarios/{id}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('usuarios.update');
+    Route::get('/usuarios', [AdminUserController::class, 'index'])->name('usuarios');
+    Route::get('/usuarios/crear', [AdminUserController::class, 'create'])->name('usuarios.crear');
+    Route::post('/usuarios', [AdminUserController::class, 'store'])->name('usuarios.store');
+    Route::get('/usuarios/{id}/editar', [AdminUserController::class, 'edit'])->name('usuarios.editar');
+    Route::put('/usuarios/{id}', [AdminUserController::class, 'update'])->name('usuarios.update');
 
     // Rutas para operaciones CRUD
-    Route::patch('/usuarios/{id}/estado', [\App\Http\Controllers\Admin\UserController::class, 'cambiarEstado'])->name('usuarios.cambiar-estado');
-    Route::delete('/usuarios/{id}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('usuarios.eliminar');
+    Route::patch('/usuarios/{id}/estado', [AdminUserController::class, 'cambiarEstado'])->name('usuarios.cambiar-estado');
+    Route::delete('/usuarios/{id}', [AdminUserController::class, 'destroy'])->name('usuarios.eliminar');
 
     // === GESTIÓN DE ASESORES ===
-    Route::get('/asesores', [\App\Http\Controllers\Admin\AsesorController::class, 'index'])->name('asesores');
-    Route::get('/asesores/crear', [\App\Http\Controllers\Admin\AsesorController::class, 'create'])->name('asesores.crear');
-    Route::post('/asesores', [\App\Http\Controllers\Admin\AsesorController::class, 'store'])->name('asesores.store');
-    Route::get('/asesores/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'show'])->name('asesores.ver');
-    Route::get('/asesores/{id}/editar', [\App\Http\Controllers\Admin\AsesorController::class, 'edit'])->name('asesores.editar');
-    Route::put('/asesores/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'update'])->name('asesores.update');
-    Route::patch('/asesores/{id}/estado', [\App\Http\Controllers\Admin\AsesorController::class, 'cambiarEstado'])->name('asesores.cambiar-estado');
-    Route::delete('/asesores/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'destroy'])->name('asesores.eliminar');
+    Route::get('/asesores', [AdminAsesorController::class, 'index'])->name('asesores');
+    Route::get('/asesores/crear', [AdminAsesorController::class, 'create'])->name('asesores.crear');
+    Route::post('/asesores', [AdminAsesorController::class, 'store'])->name('asesores.store');
+    Route::get('/asesores/{id}', [AdminAsesorController::class, 'show'])->name('asesores.ver');
+    Route::get('/asesores/{id}/editar', [AdminAsesorController::class, 'edit'])->name('asesores.editar');
+    Route::put('/asesores/{id}', [AdminAsesorController::class, 'update'])->name('asesores.update');
+    Route::patch('/asesores/{id}/estado', [AdminAsesorController::class, 'cambiarEstado'])->name('asesores.cambiar-estado');
+    Route::delete('/asesores/{id}', [AdminAsesorController::class, 'destroy'])->name('asesores.eliminar');
 
     // === GESTIÓN DE DEPARTAMENTOS ===
-    Route::get('/departamentos', [\App\Http\Controllers\Admin\DepartamentoController::class, 'index'])->name('departamentos');
+    Route::get('/departamentos', [AdminDepartamentoController::class, 'index'])->name('departamentos');
 
-    Route::get('/departamentos/crear', [\App\Http\Controllers\Admin\DepartamentoController::class, 'create'])->name('departamentos.crear');
-    Route::post('/departamentos', [\App\Http\Controllers\Admin\DepartamentoController::class, 'store'])->name('departamentos.store');
+    Route::get('/departamentos/crear', [AdminDepartamentoController::class, 'create'])->name('departamentos.crear');
+    Route::post('/departamentos', [AdminDepartamentoController::class, 'store'])->name('departamentos.store');
 
-    Route::get('/departamentos/{id}', [\App\Http\Controllers\Admin\DepartamentoController::class, 'show'])->name('departamentos.ver');
+    Route::get('/departamentos/{id}', [AdminDepartamentoController::class, 'show'])->name('departamentos.ver');
 
-    Route::get('/departamentos/{id}/editar', [\App\Http\Controllers\Admin\DepartamentoController::class, 'edit'])->name('departamentos.editar');
-    Route::put('/departamentos/{id}', [\App\Http\Controllers\Admin\DepartamentoController::class, 'update'])->name('departamentos.update');
+    Route::get('/departamentos/{id}/editar', [AdminDepartamentoController::class, 'edit'])->name('departamentos.editar');
+    Route::put('/departamentos/{id}', [AdminDepartamentoController::class, 'update'])->name('departamentos.update');
 
     // Rutas para operaciones específicas
-    Route::patch('/departamentos/{id}/estado', [\App\Http\Controllers\Admin\DepartamentoController::class, 'cambiarEstado'])->name('departamentos.cambiar-estado');
-    Route::patch('/departamentos/{id}/destacado', [\App\Http\Controllers\Admin\DepartamentoController::class, 'toggleDestacado'])->name('departamentos.toggle-destacado');
-    Route::delete('/departamentos/{id}', [\App\Http\Controllers\Admin\DepartamentoController::class, 'destroy'])->name('departamentos.eliminar');
+    Route::patch('/departamentos/{id}/estado', [AdminDepartamentoController::class, 'cambiarEstado'])->name('departamentos.cambiar-estado');
+    Route::patch('/departamentos/{id}/destacado', [AdminDepartamentoController::class, 'toggleDestacado'])->name('departamentos.toggle-destacado');
+    Route::delete('/departamentos/{id}', [AdminDepartamentoController::class, 'destroy'])->name('departamentos.eliminar');
 
     // Ruta para exportar
-    Route::get('/departamentos/exportar', [\App\Http\Controllers\Admin\DepartamentoController::class, 'exportar'])->name('departamentos.exportar');
+    Route::get('/departamentos/exportar', [AdminDepartamentoController::class, 'exportar'])->name('departamentos.exportar');
 
     // Rutas para gestión de imágenes
-    Route::post('/departamentos/{id}/imagenes', [\App\Http\Controllers\Admin\DepartamentoController::class, 'subirImagenes'])->name('departamentos.subir-imagenes');
-    Route::delete('/departamentos/{id}/imagenes/{imagenId}', [\App\Http\Controllers\Admin\DepartamentoController::class, 'eliminarImagen'])->name('departamentos.eliminar-imagen');
+    Route::post('/departamentos/{id}/imagenes', [AdminDepartamentoController::class, 'subirImagenes'])->name('departamentos.subir-imagenes');
+    Route::delete('/departamentos/{id}/imagenes/{imagenId}', [AdminDepartamentoController::class, 'eliminarImagen'])->name('departamentos.eliminar-imagen');
 
     // === GESTIÓN DE PROPIEDADES ===
     // Redireccionar /propiedades a /departamentos para mantener consistencia
@@ -270,17 +290,17 @@ Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->
     })->name('propiedades.editar');
 
     // === GESTIÓN DE VENTAS ===
-    Route::get('/ventas', [\App\Http\Controllers\Admin\VentaController::class, 'index'])->name('ventas');
-    Route::get('/ventas/crear', [\App\Http\Controllers\Admin\VentaController::class, 'create'])->name('ventas.crear');
-    Route::post('/ventas', [\App\Http\Controllers\Admin\VentaController::class, 'store'])->name('ventas.store');
-    Route::get('/ventas/{id}', [\App\Http\Controllers\Admin\VentaController::class, 'show'])->name('ventas.ver');
-    Route::get('/ventas/{id}/edit', [\App\Http\Controllers\Admin\VentaController::class, 'edit'])->name('ventas.editar');
-    Route::put('/ventas/{id}', [\App\Http\Controllers\Admin\VentaController::class, 'update'])->name('ventas.update');
-    Route::post('/ventas/reporte', [\App\Http\Controllers\Admin\VentaController::class, 'generarReporte'])->name('ventas.reporte');
-    Route::delete('/ventas/{id}/cancelar', [\App\Http\Controllers\Admin\VentaController::class, 'cancelar'])->name('ventas.cancelar');
+    Route::get('/ventas', [AdminVentaController::class, 'index'])->name('ventas');
+    Route::get('/ventas/crear', [AdminVentaController::class, 'create'])->name('ventas.crear');
+    Route::post('/ventas', [AdminVentaController::class, 'store'])->name('ventas.store');
+    Route::get('/ventas/{id}', [AdminVentaController::class, 'show'])->name('ventas.ver');
+    Route::get('/ventas/{id}/edit', [AdminVentaController::class, 'edit'])->name('ventas.editar');
+    Route::put('/ventas/{id}', [AdminVentaController::class, 'update'])->name('ventas.update');
+    Route::post('/ventas/reporte', [AdminVentaController::class, 'generarReporte'])->name('ventas.reporte');
+    Route::delete('/ventas/{id}/cancelar', [AdminVentaController::class, 'cancelar'])->name('ventas.cancelar');
 
     // === REPORTES ===
-    Route::get('/reportes', [\App\Http\Controllers\Admin\ReporteController::class, 'index'])->name('reportes');
+    Route::get('/reportes', [AdminReporteController::class, 'index'])->name('reportes');
 
     Route::get('/reportes/generar', function () {
         return Inertia::render('Admin/GenerarReporte');
@@ -311,8 +331,8 @@ Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin')->
 Route::middleware(['auth', 'verified', 'role:cliente'])->prefix('cliente/api')->name('cliente.api.')->group(function () {
     // API para búsquedas y favoritos
     Route::prefix('departamentos')->name('departamentos.')->group(function () {
-        Route::get('/buscar', [App\Http\Controllers\Cliente\DepartamentoController::class, 'search'])->name('search');
-        Route::get('/favoritos', [App\Http\Controllers\Cliente\DepartamentoController::class, 'getFavoritos'])->name('favoritos');
+        Route::get('/buscar', [ClienteDepartamentoController::class, 'search'])->name('search');
+        Route::get('/favoritos', [ClienteDepartamentoController::class, 'getFavoritos'])->name('favoritos');
     });
 });
 
@@ -325,8 +345,8 @@ Route::middleware(['auth', 'verified', 'role:cliente'])->prefix('cliente/api')->
 Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor/api')->name('asesor.api.')->group(function () {
     // API para búsquedas y estadísticas
     Route::prefix('estadisticas')->name('estadisticas.')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\Asesor\DashboardController::class, 'getEstadisticas'])->name('dashboard');
-        Route::get('/comisiones', [\App\Http\Controllers\Asesor\ConfiguracionController::class, 'getComisiones'])->name('comisiones');
+        Route::get('/dashboard', [AsesorDashboardController::class, 'getEstadisticas'])->name('dashboard');
+        Route::get('/comisiones', [AsesorConfiguracionController::class, 'getComisiones'])->name('comisiones');
     });
 });
 
@@ -339,9 +359,9 @@ Route::middleware(['auth', 'verified', 'role:asesor'])->prefix('asesor/api')->na
 Route::middleware(['auth', 'verified', 'role:administrador'])->prefix('admin/api')->name('admin.api.')->group(function () {
     // API para reportes
     Route::prefix('reportes')->name('reportes.')->group(function () {
-        Route::get('/ventas', [\App\Http\Controllers\Admin\ReporteController::class, 'reporteVentas'])->name('ventas');
-        Route::get('/asesores', [\App\Http\Controllers\Admin\ReporteController::class, 'reporteAsesores'])->name('asesores');
-        Route::get('/propiedades', [\App\Http\Controllers\Admin\ReporteController::class, 'reportePropiedades'])->name('propiedades');
+        Route::get('/ventas', [AdminReporteController::class, 'reporteVentas'])->name('ventas');
+        Route::get('/asesores', [AdminReporteController::class, 'reporteAsesores'])->name('asesores');
+        Route::get('/propiedades', [AdminReporteController::class, 'reportePropiedades'])->name('propiedades');
     });
 });
 

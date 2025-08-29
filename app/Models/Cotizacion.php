@@ -5,6 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Cotizacion
+ * 
+ * @property int $id
+ * @property int $asesor_id
+ * @property int $departamento_id
+ * @property int $cliente_id
+ * @property \Illuminate\Support\Carbon|null $fecha
+ * @property float $monto
+ * @property float|null $descuento
+ * @property \Illuminate\Support\Carbon|null $fecha_validez
+ * @property string $estado
+ * @property string|null $notas
+ * @property string|null $condiciones
+ * @property string|null $tipo_solicitud
+ * @property string|null $mensaje_solicitud
+ * @property string|null $telefono_contacto
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Cotizacion extends Model
 {
     use HasFactory;

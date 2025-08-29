@@ -5,6 +5,35 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Departamento
+ * 
+ * @property int $id
+ * @property string $codigo
+ * @property string $titulo
+ * @property string|null $descripcion
+ * @property string|null $ubicacion
+ * @property string|null $direccion
+ * @property float $precio
+ * @property float|null $precio_anterior
+ * @property int|null $dormitorios
+ * @property int|null $banos
+ * @property float|null $area_total
+ * @property int|null $estacionamientos
+ * @property string $estado
+ * @property bool $disponible
+ * @property int $propietario_id
+ * @property bool $destacado
+ * @property string|null $imagen_principal
+ * @property string|null $imagen_galeria_1
+ * @property string|null $imagen_galeria_2
+ * @property string|null $imagen_galeria_3
+ * @property string|null $imagen_galeria_4
+ * @property string|null $imagen_galeria_5
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $creado_en
+ */
 class Departamento extends Model
 {
     use HasFactory;

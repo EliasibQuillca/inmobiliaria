@@ -108,10 +108,10 @@ class AuthController extends Controller
                 'token' => $token,
                 'user' => [
                     'id' => $user->id,
-                    'nombre' => $user->nombre,
+                    'nombre' => $user->name,
                     'email' => $user->email,
                     'telefono' => $user->telefono,
-                    'rol' => $user->rol,
+                    'rol' => $user->role,
                 ],
             ], 201);
 

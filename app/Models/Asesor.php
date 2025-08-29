@@ -6,6 +6,26 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
+/**
+ * Class Asesor
+ * 
+ * @property int $id
+ * @property int $usuario_id
+ * @property \Illuminate\Support\Carbon|null $fecha_contrato
+ * @property string $nombre
+ * @property string|null $apellidos
+ * @property string|null $telefono
+ * @property string|null $documento
+ * @property string|null $direccion
+ * @property \Illuminate\Support\Carbon|null $fecha_nacimiento
+ * @property string|null $especialidad
+ * @property string|null $experiencia
+ * @property string|null $biografia
+ * @property string $estado
+ * @property float|null $comision_porcentaje
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Asesor extends Model
 {
     use HasFactory;

@@ -6,6 +6,25 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
+/**
+ * Class Reserva
+ * 
+ * @property int $id
+ * @property int $cotizacion_id
+ * @property int $cliente_id
+ * @property int $asesor_id
+ * @property int $departamento_id
+ * @property \Illuminate\Support\Carbon|null $fecha_reserva
+ * @property \Illuminate\Support\Carbon|null $fecha_inicio
+ * @property \Illuminate\Support\Carbon|null $fecha_fin
+ * @property float $monto_reserva
+ * @property float $monto_total
+ * @property string $estado
+ * @property string|null $notas
+ * @property string|null $condiciones
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Reserva extends Model
 {
     use HasFactory;

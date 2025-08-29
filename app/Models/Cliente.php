@@ -5,6 +5,35 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Cliente
+ * 
+ * @property int $id
+ * @property int|null $usuario_id
+ * @property int|null $asesor_id
+ * @property string|null $dni
+ * @property string|null $direccion
+ * @property \Illuminate\Support\Carbon|null $fecha_registro
+ * @property string $nombre
+ * @property string|null $telefono
+ * @property string $email
+ * @property string|null $departamento_interes
+ * @property string|null $notas_contacto
+ * @property string|null $medio_contacto
+ * @property string $estado
+ * @property string|null $notas_seguimiento
+ * @property \Illuminate\Support\Carbon|null $fecha_cita
+ * @property string|null $tipo_cita
+ * @property string|null $ubicacion_cita
+ * @property string|null $notas_cita
+ * @property string|null $tipo_propiedad
+ * @property int|null $habitaciones_deseadas
+ * @property float|null $presupuesto_min
+ * @property float|null $presupuesto_max
+ * @property string|null $zona_preferida
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Cliente extends Model
 {
     use HasFactory;
