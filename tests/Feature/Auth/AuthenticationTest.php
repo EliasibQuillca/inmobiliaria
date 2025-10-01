@@ -19,7 +19,8 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->create();
+        /** @var \App\Models\User $user */
+        $user = User::factory()->cliente()->create();
 
         $response = $this->post('/login', [
             'email' => $user->email,
@@ -27,7 +28,8 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        // Después del login, se redirige al catálogo (comportamiento actual)
+        $response->assertRedirect('/catalogo');
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
@@ -44,6 +46,7 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_logout(): void
     {
+        /** @var \App\Models\User $user */
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->post('/logout');

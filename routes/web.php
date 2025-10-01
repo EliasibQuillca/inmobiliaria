@@ -124,8 +124,13 @@ Route::get('/dashboard', function () {
 */
 
 Route::middleware(['auth', 'verified', 'role:cliente'])->prefix('cliente')->name('cliente.')->group(function () {
-    // === DASHBOARD SIMPLIFICADO ===
-    Route::get('/dashboard', [ClienteDashboardController::class, 'index'])->name('dashboard');
+    // === DASHBOARD PRINCIPAL ===
+    Route::get('/dashboard', [ClienteController::class, 'dashboard'])->name('dashboard');
+    
+    // === RUTA DE PRUEBA ===
+    Route::get('/test', function () {
+        return inertia('Cliente/Test');
+    })->name('test');
 
     // === FAVORITOS ===
     Route::get('/favoritos', [ClienteDepartamentoController::class, 'favoritos'])->name('favoritos.index');

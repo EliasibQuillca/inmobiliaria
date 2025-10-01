@@ -29,6 +29,9 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role' => 'cliente', // Rol por defecto para pruebas
+            'telefono' => fake()->phoneNumber(),
+            'estado' => 'activo',
         ];
     }
 
@@ -39,6 +42,36 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Create a user with admin role.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
+    }
+
+    /**
+     * Create a user with asesor role.
+     */
+    public function asesor(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'asesor',
+        ]);
+    }
+
+    /**
+     * Create a user with cliente role.
+     */
+    public function cliente(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'cliente',
         ]);
     }
 }

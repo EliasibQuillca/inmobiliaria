@@ -14,6 +14,16 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
+        $response->assertRedirect('/catalogo');
+    }
+
+    /**
+     * Test catalogo page loads correctly.
+     */
+    public function test_catalogo_page_loads_successfully(): void
+    {
+        $response = $this->get('/catalogo');
+
         $response->assertStatus(200);
     }
 }
