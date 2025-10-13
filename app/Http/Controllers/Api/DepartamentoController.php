@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class DepartamentoController extends Controller
 {
@@ -18,7 +19,11 @@ class DepartamentoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Departamento::with(['propietario', 'atributos', 'imagenes'])
+        $query = Departamento::with(['propietario', 'atributos', 
+            'imagenes' => function($query) {
+                $query->where('estado', 'activo')->orderBy('orden');
+            }
+        ])
             ->where('estado', 'disponible');
 
         // Filtro para destacados
@@ -135,7 +140,7 @@ class DepartamentoController extends Controller
             'direccion' => 'nullable|string|max:200',
             'ubicacion' => 'required|string|max:200',
             'precio' => 'required|numeric|min:0',
-            'dormitorios' => 'required|integer|min:1',
+                            'habitaciones' => 'required|integer|min:1',
             'banos' => 'required|integer|min:1',
             'area_total' => 'required|numeric|min:0',
             'estacionamientos' => 'integer|min:0',
@@ -182,65 +187,114 @@ class DepartamentoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $departamento = Departamento::find($id);
-
-        if (!$departamento) {
-            return response()->json([
-                'message' => 'Departamento no encontrado',
-            ], 404);
-        }
-
         $user = Auth::user();
-
         if (!$user || $user->role !== 'administrador') {
             return response()->json([
                 'message' => 'Solo los administradores pueden actualizar departamentos',
             ], 403);
         }
 
-        $request->validate([
-            'codigo' => 'sometimes|string|max:50|unique:departamentos,codigo,' . $id,
-            'titulo' => 'sometimes|string|max:100',
-            'descripcion' => 'sometimes|string',
-            'direccion' => 'sometimes|string|max:200',
-            'ubicacion' => 'sometimes|string|max:200',
-            'precio' => 'sometimes|numeric|min:0',
-            'precio_anterior' => 'nullable|numeric|min:0',
-            'habitaciones' => 'sometimes|integer|min:0',
-            'banos' => 'sometimes|integer|min:0',
-            'area_total' => 'sometimes|numeric|min:0',
-            'estacionamientos' => 'sometimes|integer|min:0',
-            'estado' => 'sometimes|in:disponible,reservado,vendido,inactivo',
-            'propietario_id' => 'sometimes|exists:propietarios,id',
-            'destacado' => 'sometimes|boolean',
-            // Campos para URLs de imágenes
-            'imagen_principal' => 'sometimes|string|max:500',
-            'imagen_galeria_1' => 'sometimes|string|max:500',
-            'imagen_galeria_2' => 'sometimes|string|max:500',
-            'imagen_galeria_3' => 'sometimes|string|max:500',
-            'imagen_galeria_4' => 'sometimes|string|max:500',
-            'imagen_galeria_5' => 'sometimes|string|max:500',
-        ]);
-
         try {
-            $departamento->update($request->only([
-                'codigo', 'titulo', 'descripcion', 'direccion', 'ubicacion',
-                'precio', 'precio_anterior', 'habitaciones', 'banos',
-                'area_total', 'estacionamientos', 'estado', 'propietario_id', 'destacado'
-            ]));
-
-            // Manejar imágenes por URL
-            $this->procesarImagenesURL($departamento, $request);
-
-            return response()->json([
-                'message' => 'Departamento actualizado exitosamente',
-                'departamento' => $departamento->load(['propietario', 'atributos', 'imagenes']),
+            Log::info('API DepartamentoController update called', [
+                'id' => $id,
+                'request_data' => $request->all(),
+                'user' => $user->email
             ]);
 
+            $departamento = Departamento::findOrFail($id);
+
+            $validated = $request->validate([
+                'titulo' => 'required|string|max:150',
+                'descripcion' => 'required|string',
+                'ubicacion' => 'required|string|max:200',
+                'precio' => 'required|numeric|min:0',
+                'habitaciones' => 'required|integer|min:0',
+                'banos' => 'required|integer|min:0',
+                'area' => 'required|numeric|min:0',
+                'piso' => 'required|integer|min:0',
+                'año_construccion' => 'required|integer|min:1900',
+                'estado' => 'required|in:disponible,reservado,vendido,inactivo',
+                'propietario_id' => 'required|exists:propietarios,id',
+                'destacado' => 'boolean',
+                'garage' => 'boolean',
+                'balcon' => 'boolean',
+                'amueblado' => 'boolean',
+                'mascotas_permitidas' => 'boolean',
+                'gastos_comunes' => 'nullable|numeric|min:0',
+                'estacionamientos' => 'nullable|integer|min:0',
+                'direccion' => 'nullable|string|max:200',
+            ]);
+
+            // Actualizar departamento
+            // Actualizar el departamento con los datos validados
+            $departamento->fill([
+                'titulo' => $validated['titulo'],
+                'descripcion' => $validated['descripcion'],
+                'ubicacion' => $validated['ubicacion'],
+                'direccion' => $validated['direccion'] ?? $departamento->direccion,
+                'precio' => $validated['precio'],
+                'habitaciones' => $validated['habitaciones'],
+                'banos' => $validated['banos'],
+                'area' => $validated['area'],
+                'piso' => $validated['piso'],
+                'año_construccion' => $validated['año_construccion'],
+                'estado' => $validated['estado'],
+                'propietario_id' => $validated['propietario_id'],
+                'estacionamientos' => $validated['estacionamientos'] ?? $departamento->estacionamientos,
+                'destacado' => $validated['destacado'] ?? false,
+                'garage' => $validated['garage'] ?? false,
+                'balcon' => $validated['balcon'] ?? false,
+                'amueblado' => $validated['amueblado'] ?? false,
+                'mascotas_permitidas' => $validated['mascotas_permitidas'] ?? false,
+                'gastos_comunes' => $validated['gastos_comunes'] ?? null
+            ]);
+            
+            if (!$departamento->save()) {
+                throw new \Exception('Error al guardar los cambios del departamento');
+            }
+
+            // Procesar imágenes si existen
+            $imagenes = [
+                'imagen_principal' => $request->input('imagen_principal'),
+                'galeria_1' => $request->input('imagen_galeria_1'),
+                'galeria_2' => $request->input('imagen_galeria_2'),
+                'galeria_3' => $request->input('imagen_galeria_3'),
+                'galeria_4' => $request->input('imagen_galeria_4'),
+                'galeria_5' => $request->input('imagen_galeria_5')
+            ];
+
+            // Filtrar URLs nulas o vacías
+            $imagenes = array_filter($imagenes);
+
+            // Actualizar o crear imágenes
+            foreach ($imagenes as $tipo => $url) {
+                $departamento->imagenes()->updateOrCreate(
+                    ['tipo' => $tipo],
+                    [
+                        'url' => $url,
+                        'estado' => 'activo',
+                        'orden' => $tipo === 'imagen_principal' ? 0 : null
+                    ]
+                );
+            }
+
+                return response()->json([
+                'message' => 'Departamento actualizado correctamente',
+                'data' => $departamento->load(['propietario', 'atributos', 'imagenes'])
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
+            Log::error('Error al actualizar departamento', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'message' => 'Error al actualizar departamento',
-                'error' => $e->getMessage(),
+                'error' => $e->getMessage()
             ], 500);
         }
     }

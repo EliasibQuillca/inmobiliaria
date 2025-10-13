@@ -1,6 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { usePage } from '@inertiajs/react';
+
+// Componente de alerta para mensajes flash
+const FlashMessage = ({ message, type }) => {
+    if (!message) return null;
+    
+    const bgColor = type === 'success' ? 'bg-green-100 border-green-500 text-green-700' 
+                 : type === 'error' ? 'bg-red-100 border-red-500 text-red-700'
+                 : 'bg-blue-100 border-blue-500 text-blue-700';
+                 
+    return (
+        <div className={`p-4 mb-4 rounded-lg border ${bgColor}`}>
+            {message}
+        </div>
+    );
+};
 
 // Componente para edición rápida en modal
 const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel }) => {
@@ -10,7 +26,7 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
         ubicacion: departamento.ubicacion || '',
         direccion: departamento.direccion || '',
         precio: departamento.precio || '',
-        dormitorios: departamento.dormitorios || 1,
+        habitaciones: departamento.habitaciones || 1,
         banos: departamento.banos || 1,
         area_total: departamento.area_total || '',
         estacionamientos: departamento.estacionamientos || 0,
@@ -104,10 +120,10 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Dormitorios</label>
+                    <label className="block text-sm font-medium text-gray-700">Habitaciones</label>
                     <select
-                        name="dormitorios"
-                        value={formData.dormitorios}
+                        name="habitaciones"
+                        value={formData.habitaciones}
                         onChange={handleChange}
                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     >
@@ -336,7 +352,11 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
     );
 };
 
-export default function Departamentos({ auth, departamentos, pagination, filters, error, propietarios }) {
+export default function Departamentos({ auth, departamentos, pagination, filters, error, propietarios, flash }) {
+    const { flash: pageFlash } = usePage().props;
+    // Combinar flash messages del prop y de usePage
+    const activeFlash = flash || pageFlash;
+    
     // Estado para los filtros
     const [filtros, setFiltros] = useState(filters || {
         busqueda: '',
@@ -520,25 +540,39 @@ export default function Departamentos({ auth, departamentos, pagination, filters
     };
 
     // Función para ver departamento
-    const verDepartamento = (departamento) => {
-        console.log('Ver departamento:', departamento);
-        setDepartamentoSeleccionado(departamento);
-        setShowVerModal(true);
+    const verDepartamento = async (departamento) => {
+        try {
+            setDepartamentoSeleccionado(null); // Limpiamos el estado anterior
+            await new Promise(resolve => setTimeout(resolve, 0)); // Micropause para el estado
+            setDepartamentoSeleccionado(departamento);
+            setShowVerModal(true);
+        } catch (error) {
+            console.error('Error al mostrar departamento:', error);
+        }
     };
 
     // Función para editar departamento
-    const editarDepartamento = (departamento) => {
-        console.log('Editar departamento:', departamento);
-        console.log('Propietarios disponibles:', listaPropietarios);
-        setDepartamentoSeleccionado(departamento);
-        setShowEditarModal(true);
+    const editarDepartamento = async (departamento) => {
+        try {
+            setDepartamentoSeleccionado(null); // Limpiamos el estado anterior
+            await new Promise(resolve => setTimeout(resolve, 0)); // Micropause para el estado
+            setDepartamentoSeleccionado(departamento);
+            setShowEditarModal(true);
+        } catch (error) {
+            console.error('Error al editar departamento:', error);
+        }
     };
 
     // Función para cerrar modales
-    const cerrarModales = () => {
-        setShowVerModal(false);
-        setShowEditarModal(false);
-        setDepartamentoSeleccionado(null);
+    const cerrarModales = async () => {
+        try {
+            setShowVerModal(false);
+            setShowEditarModal(false);
+            await new Promise(resolve => setTimeout(resolve, 100)); // Dar tiempo para la animación
+            setDepartamentoSeleccionado(null);
+        } catch (error) {
+            console.error('Error al cerrar modales:', error);
+        }
     };
 
     // Funciones para selección múltiple
@@ -665,6 +699,14 @@ export default function Departamentos({ auth, departamentos, pagination, filters
             }
         >
             <Head title="Gestión de Propiedades - Inmobiliaria" />
+            
+            <div className="py-6">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    {activeFlash?.message && (
+                        <FlashMessage message={activeFlash.message} type={activeFlash.error ? 'error' : 'success'} />
+                    )}
+                </div>
+            </div>
 
             <div className="py-12 bg-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -933,7 +975,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                                             {formatearPrecio(departamento.precio)}
                                                         </div>
                                                         <div className="text-sm text-gray-500">
-                                                            {departamento.dormitorios} hab, {departamento.banos} baños
+                                                            {departamento.habitaciones} hab, {departamento.banos} baños
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -941,7 +983,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                                             {departamento.area_total} m²
                                                         </div>
                                                         <div className="text-sm text-gray-500">
-                                                            {departamento.dormitorios} hab, {departamento.banos} baños
+                                                            {departamento.habitaciones} hab, {departamento.banos} baños
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -1173,8 +1215,8 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                             <p className="text-sm text-gray-900">S/ {parseFloat(departamentoSeleccionado.precio).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</p>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700">Dormitorios</label>
-                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.dormitorios}</p>
+                                            <label className="block text-sm font-medium text-gray-700">Habitaciones</label>
+                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.habitaciones}</p>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Baños</label>

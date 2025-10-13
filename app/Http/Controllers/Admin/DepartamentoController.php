@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class DepartamentoController extends Controller
@@ -164,30 +165,55 @@ class DepartamentoController extends Controller
     /**
      * Actualizar un departamento existente
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $departamento)
     {
         try {
             Log::info('Admin DepartamentoController update called', [
-                'id' => $id,
-                'request_data' => $request->all(),
+                'id' => $departamento,
+                'request_data' => $request->except(['imagen_principal', 'imagen_galeria_1', 'imagen_galeria_2', 'imagen_galeria_3', 'imagen_galeria_4', 'imagen_galeria_5']),
                 'user' => Auth::user() ? Auth::user()->email : 'no user',
                 'csrf_token' => $request->header('X-CSRF-TOKEN') ?: 'no token'
             ]);
-            
-            $response = $this->apiController->update($request, $id);
-            $data = json_decode($response->getContent(), true);
 
-            if ($response->getStatusCode() === 200) {
-                return redirect()->route('admin.departamentos')->with('success', 'Departamento actualizado correctamente');
+            Log::info('Route exists?', [
+                'route' => route('admin.departamentos', [], false),
+                'exists' => app('router')->has('admin.departamentos')
+            ]);
+
+            Log::info('Route exists?', [
+                'route' => route('admin.departamentos', [], false),
+                'exists' => \Route::has('admin.departamentos')
+            ]);
+
+            $response = $this->apiController->update($request, $departamento);
+            $data = json_decode($response->getContent(), true);
+            $statusCode = $response->getStatusCode();
+
+            // Verificar el código de estado y la presencia de errores
+            if ($statusCode === 200) {
+                session()->flash('success', 'Departamento actualizado correctamente');
+                return redirect()->route('admin.departamentos');
+            } elseif ($statusCode === 422) {
+                $errors = $data['errors'] ?? [];
+                return redirect()->back()
+                    ->withErrors($errors)
+                    ->withInput()
+                    ->with('error', 'Por favor corrija los errores en el formulario');
             } else {
-                return redirect()->back()->withInput()->with('error', $data['message'] ?? 'Error al actualizar el departamento');
+                $message = $data['message'] ?? 'Error al actualizar el departamento';
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', $message);
             }
         } catch (\Exception $e) {
             Log::error('Error en Admin DepartamentoController update', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return redirect()->back()->withInput()->with('error', 'Error al actualizar departamento: ' . $e->getMessage());
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al actualizar departamento: ' . $e->getMessage());
         }
     }
 

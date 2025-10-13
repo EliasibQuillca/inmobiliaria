@@ -9,30 +9,26 @@ use Illuminate\Database\Eloquent\Model;
  * Class Departamento
  * 
  * @property int $id
- * @property string $codigo
  * @property string $titulo
- * @property string|null $descripcion
- * @property string|null $ubicacion
- * @property string|null $direccion
+ * @property string $descripcion
+ * @property string $ubicacion
  * @property float $precio
- * @property float|null $precio_anterior
- * @property int|null $dormitorios
- * @property int|null $banos
- * @property float|null $area_total
- * @property int|null $estacionamientos
- * @property string $estado
+ * @property int $habitaciones
+ * @property int $banos
+ * @property float $area
  * @property bool $disponible
- * @property int $propietario_id
+ * @property string $estado
+ * @property int $piso
+ * @property bool $garage
+ * @property bool $balcon
+ * @property bool $amueblado
+ * @property bool $mascotas_permitidas
+ * @property float|null $gastos_comunes
+ * @property int $año_construccion
  * @property bool $destacado
- * @property string|null $imagen_principal
- * @property string|null $imagen_galeria_1
- * @property string|null $imagen_galeria_2
- * @property string|null $imagen_galeria_3
- * @property string|null $imagen_galeria_4
- * @property string|null $imagen_galeria_5
+ * @property int $propietario_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $creado_en
  */
 class Departamento extends Model
 {
@@ -41,32 +37,35 @@ class Departamento extends Model
     protected $table = 'departamentos';
 
     protected $fillable = [
-        'codigo',
         'titulo',
         'descripcion',
         'ubicacion',
-        'direccion',
         'precio',
-        'precio_anterior',
-        'dormitorios',
+        'habitaciones',
         'banos',
-        'area_total',
-        'estacionamientos',
-        'estado',
+        'area',
         'disponible',
-        'propietario_id',
+        'estado',
+        'piso',
+        'garage',
+        'balcon',
+        'amueblado',
+        'mascotas_permitidas',
+        'gastos_comunes',
+        'año_construccion',
         'destacado',
-        'imagen_principal',
-        'imagen_galeria_1',
-        'imagen_galeria_2',
-        'imagen_galeria_3',
-        'imagen_galeria_4',
-        'imagen_galeria_5',
+        'propietario_id',
     ];
 
     protected $casts = [
         'precio' => 'decimal:2',
-        'creado_en' => 'datetime',
+        'area' => 'decimal:2',
+        'gastos_comunes' => 'decimal:2',
+        'disponible' => 'boolean',
+        'garage' => 'boolean',
+        'balcon' => 'boolean',
+        'amueblado' => 'boolean',
+        'mascotas_permitidas' => 'boolean',
         'destacado' => 'boolean',
     ];
 
@@ -139,7 +138,17 @@ class Departamento extends Model
 
     public function imagenPrincipal()
     {
-        return $this->hasOne(Imagen::class, 'departamento_id')->where('tipo', 'principal')->where('activa', true);
+        return $this->hasOne(Imagen::class, 'departamento_id')
+            ->where('tipo', 'principal')
+            ->where('activa', true)
+            ->orWhereNotExists(function ($query) {
+                $query->from('imagenes')
+                    ->where('departamento_id', $this->id)
+                    ->where('tipo', 'principal')
+                    ->where('activa', true);
+            })
+            ->orderBy('orden')
+            ->orderBy('tipo', 'desc'); // 'principal' viene después de 'galeria' en orden alfabético
     }
 
     public function galeriaImagenes()
@@ -192,5 +201,14 @@ class Departamento extends Model
     public function marcarComoDisponible()
     {
         $this->update(['estado' => 'disponible']);
+    }
+
+    // Getter para calcular el precio por metro cuadrado
+    public function getPrecioPorMetroAttribute()
+    {
+        if ($this->area > 0) {
+            return round($this->precio / $this->area, 2);
+        }
+        return 0;
     }
 }

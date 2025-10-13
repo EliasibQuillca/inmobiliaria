@@ -20,14 +20,19 @@ class CatalogoController extends Controller
     public function index(Request $request)
     {
         // Construcción de la consulta base - incluyendo todos los campos necesarios
-        $query = Departamento::with(['imagenes'])
-            ->where('estado', 'disponible')
-            ->select([
-                'id', 'codigo', 'titulo', 'descripcion', 'ubicacion', 'direccion', 
-                'precio', 'precio_anterior', 'dormitorios', 'banos', 'area_total', 
-                'estacionamientos', 'estado', 'destacado', 'propietario_id', 
-                'created_at', 'updated_at'
-            ]);
+        $query = Departamento::with(['imagenes', 'propietario', 'atributos'])
+            ->where('estado', 'disponible');
+        
+        // Obtener estadísticas básicas para los filtros
+        $estadisticas = [
+            'total' => Departamento::where('estado', 'disponible')->count(),
+            'precio_min' => Departamento::where('estado', 'disponible')->min('precio'),
+            'precio_max' => Departamento::where('estado', 'disponible')->max('precio'),
+            'ubicaciones' => Departamento::where('estado', 'disponible')
+                ->distinct()
+                ->pluck('ubicacion')
+                ->toArray()
+        ];
 
         // Filtros básicos - ahora usando todas las columnas disponibles
         if ($request->filled('precio_min')) {
@@ -38,17 +43,23 @@ class CatalogoController extends Controller
             $query->where('precio', '<=', $request->precio_max);
         }
 
+        if ($request->filled('ubicacion')) {
+            $query->where('ubicacion', $request->ubicacion);
+        }
+
         if ($request->filled('busqueda')) {
             $busqueda = $request->busqueda;
             $query->where(function($q) use ($busqueda) {
-                $q->where('codigo', 'like', "%{$busqueda}%")
-                  ->orWhere('titulo', 'like', "%{$busqueda}%")
-                  ->orWhere('ubicacion', 'like', "%{$busqueda}%")
-                  ->orWhere('direccion', 'like', "%{$busqueda}%");
+                $q->where('titulo', 'like', "%{$busqueda}%")
+                  ->orWhere('descripcion', 'like', "%{$busqueda}%")
+                  ->orWhere('ubicacion', 'like', "%{$busqueda}%");
             });
         }
 
-        // Ordenamiento básico
+        // Ordenar siempre primero por destacados y luego por otros criterios
+        $query->orderBy('destacado', 'desc');
+
+        // Ordenamiento adicional
         $ordenamiento = $request->get('orden', 'recientes');
         switch ($ordenamiento) {
             case 'precio_asc':
@@ -82,10 +93,30 @@ class CatalogoController extends Controller
             'precio_max' => Departamento::where('estado', 'disponible')->max('precio'),
         ];
 
+        $tiposPropiedad = [
+            'departamento' => 'Departamento',
+            'casa' => 'Casa',
+            'oficina' => 'Oficina',
+            'local_comercial' => 'Local Comercial',
+            'terreno' => 'Terreno',
+            'otros' => 'Otros'
+        ];
+
         return Inertia::render('Public/Catalogo', [
             'departamentos' => $departamentos,
             'estadisticas' => $estadisticas,
-            'filtros' => $request->only(['precio_min', 'precio_max', 'busqueda', 'orden']),
+            'filtros' => array_merge([
+                'tipo_propiedad' => '',
+                'habitaciones' => '',
+                'precio_min' => '',
+                'precio_max' => '',
+                'busqueda' => '',
+                'orden' => 'recientes'
+            ], $request->all()),
+            'tiposPropiedad' => $tiposPropiedad,
+            'auth' => [
+                'user' => Auth::user()
+            ]
         ]);
     }
 
@@ -94,23 +125,27 @@ class CatalogoController extends Controller
      */
     public function show(Departamento $departamento)
     {
-        // Solo mostrar si está disponible
-        if ($departamento->estado !== 'disponible') {
-            abort(404, 'Departamento no disponible');
-        }
-
-        // Cargar relaciones necesarias
+        // Cargar las relaciones necesarias
         $departamento->load(['imagenes', 'atributos', 'propietario']);
 
-        // Obtener departamentos similares basados solo en precio
-        $departamentosSimilares = Departamento::with('imagenes')
+        // Si el departamento no está disponible, redireccionar al catálogo
+        if ($departamento->estado !== 'disponible') {
+            return redirect()->route('catalogo.index')
+                ->with('error', 'El departamento no está disponible actualmente.');
+        }
+
+        // Obtener departamentos similares basados en precio y ubicación
+        $departamentosSimilares = Departamento::with(['imagenes'])
             ->where('id', '!=', $departamento->id)
             ->where('estado', 'disponible')
-            ->whereBetween('precio', [
-                $departamento->precio * 0.8,
-                $departamento->precio * 1.2
-            ])
-            ->limit(6)
+            ->where(function($query) use ($departamento) {
+                $query->where('ubicacion', $departamento->ubicacion)
+                    ->orWhereBetween('precio', [
+                        $departamento->precio * 0.8,
+                        $departamento->precio * 1.2
+                    ]);
+            })
+            ->limit(4)
             ->get();
 
         return Inertia::render('Public/DetalleDepartamento', [

@@ -22,21 +22,23 @@ class DepartamentoFactory extends Factory
         return [
             'titulo' => $this->faker->sentence(4),
             'descripcion' => $this->faker->paragraph(3),
-            'ubicacion' => $this->faker->address(),
+            'ubicacion' => $this->faker->randomElement(['Los Olivos', 'San Borja', 'Miraflores', 'San Isidro']),
             'precio' => $this->faker->randomFloat(2, 50000, 500000),
             'habitaciones' => $this->faker->numberBetween(1, 5),
             'banos' => $this->faker->numberBetween(1, 3),
             'area' => $this->faker->randomFloat(2, 30, 200),
-            'disponible' => $this->faker->boolean(80), // 80% disponibles
-            'estado' => $this->faker->randomElement(['disponible', 'reservado', 'vendido']),
-            'piso' => $this->faker->numberBetween(1, 20),
+            'estado' => $this->faker->randomElement(['disponible', 'reservado', 'vendido', 'inactivo']),
+            'destacado' => $this->faker->boolean(20),
             'garage' => $this->faker->boolean(60),
             'balcon' => $this->faker->boolean(70),
             'amueblado' => $this->faker->boolean(40),
             'mascotas_permitidas' => $this->faker->boolean(50),
             'gastos_comunes' => $this->faker->randomFloat(2, 50, 300),
             'año_construccion' => $this->faker->numberBetween(1990, 2024),
-            'destacado' => $this->faker->boolean(20), // 20% destacados
+            'piso' => $this->faker->numberBetween(1, 20),
+            'propietario_id' => function () {
+                return \App\Models\Propietario::factory()->create()->id;
+            },
         ];
     }
 
