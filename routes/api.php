@@ -75,7 +75,7 @@ Route::prefix('v1')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('v1/admin')->middleware(['auth:web'])->group(function () {
+Route::prefix('v1/admin')->middleware(['auth:sanctum'])->group(function () {
     // === GESTIÓN DE USUARIOS ===
     Route::prefix('usuarios')->group(function () {
         Route::get('/', [UserController::class, 'index']);

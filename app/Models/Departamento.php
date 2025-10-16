@@ -128,7 +128,10 @@ class Departamento extends Model
 
     public function imagenes()
     {
-        return $this->hasMany(Imagen::class, 'departamento_id');
+        return $this->hasMany(Imagen::class, 'departamento_id')
+                    ->orderByRaw("CASE WHEN tipo = 'principal' THEN 0 ELSE 1 END")
+                    ->orderBy('orden')
+                    ->orderBy('id');
     }
 
     public function imagenesActivas()
