@@ -168,50 +168,73 @@ class DepartamentoController extends Controller
     public function update(Request $request, $departamento)
     {
         try {
-            Log::info('Admin DepartamentoController update called', [
+            // Log información básica de la actualización
+            Log::info('Actualización de departamento iniciada', [
                 'id' => $departamento,
-                'request_data' => $request->except(['imagen_principal', 'imagen_galeria_1', 'imagen_galeria_2', 'imagen_galeria_3', 'imagen_galeria_4', 'imagen_galeria_5']),
-                'user' => Auth::user() ? Auth::user()->email : 'no user',
-                'csrf_token' => $request->header('X-CSRF-TOKEN') ?: 'no token'
-            ]);
-
-            Log::info('Route exists?', [
-                'route' => route('admin.departamentos', [], false),
-                'exists' => app('router')->has('admin.departamentos')
-            ]);
-
-            Log::info('Route exists?', [
-                'route' => route('admin.departamentos', [], false),
-                'exists' => \Route::has('admin.departamentos')
+                'user' => Auth::user() ? Auth::user()->email : 'no user'
             ]);
 
             $response = $this->apiController->update($request, $departamento);
             $data = json_decode($response->getContent(), true);
-            $statusCode = $response->getStatusCode();
-
-            // Verificar el código de estado y la presencia de errores
-            if ($statusCode === 200) {
+            
+            // Log detallado de la respuesta
+            Log::debug('Respuesta completa del API', [
+                'status_code' => $response->getStatusCode(),
+                'content' => $response->getContent(),
+                'data' => $data,
+                'headers' => $response->headers->all()
+            ]);
+            Log::info('Respuesta del API', [
+                'status' => $response->getStatusCode(),
+                'data' => $data,
+                'content' => $response->getContent()
+            ]);
+            
+            if ($response->getStatusCode() === 200) {
+                Log::info('Departamento actualizado correctamente', ['id' => $departamento]);
+                
+                // Para solicitudes AJAX/API
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'Departamento actualizado correctamente',
+                        'data' => $data['data'] ?? null
+                    ]);
+                }
+                
+                // Para solicitudes web normales
                 session()->flash('success', 'Departamento actualizado correctamente');
-                return redirect()->route('admin.departamentos');
-            } elseif ($statusCode === 422) {
-                $errors = $data['errors'] ?? [];
-                return redirect()->back()
-                    ->withErrors($errors)
-                    ->withInput()
-                    ->with('error', 'Por favor corrija los errores en el formulario');
-            } else {
-                $message = $data['message'] ?? 'Error al actualizar el departamento';
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', $message);
+                return redirect()->route('admin.departamentos.index');
             }
+
+            if ($response->getStatusCode() === 422) {
+                Log::warning('Error de validación al actualizar departamento', [
+                    'id' => $departamento,
+                    'errors' => $data['errors'] ?? []
+                ]);
+                return redirect()->back()
+                    ->withErrors($data['errors'] ?? [])
+                    ->withInput();
+            }
+
+            Log::error('Error inesperado al actualizar departamento', [
+                'id' => $departamento,
+                'status' => $response->getStatusCode(),
+                'message' => $data['message'] ?? 'Error desconocido'
+            ]);
+            return redirect()->back()
+                ->with('error', $data['message'] ?? 'Error al actualizar departamento')
+                ->withInput();
         } catch (\Exception $e) {
-            Log::error('Error en Admin DepartamentoController update', [
+            Log::error('Error en actualización de departamento', [
+                'id' => $departamento,
                 'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return redirect()->back()
+            return redirect()
+                ->back()
                 ->withInput()
                 ->with('error', 'Error al actualizar departamento: ' . $e->getMessage());
         }

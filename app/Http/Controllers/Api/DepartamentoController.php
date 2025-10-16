@@ -19,11 +19,8 @@ class DepartamentoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Departamento::with(['propietario', 'atributos', 
-            'imagenes' => function($query) {
-                $query->where('estado', 'activo')->orderBy('orden');
-            }
-        ])
+        $query = Departamento::with(['propietario', 'atributos', 'imagenes'])
+            ->orderBy('updated_at', 'desc')
             ->where('estado', 'disponible');
 
         // Filtro para destacados
@@ -195,14 +192,40 @@ class DepartamentoController extends Controller
         }
 
         try {
+            // Log detallado al inicio de la actualización
             Log::info('API DepartamentoController update called', [
                 'id' => $id,
                 'request_data' => $request->all(),
-                'user' => $user->email
+                'user' => $user->email,
+                'user_role' => $user->role,
+                'method' => $request->method()
             ]);
 
             $departamento = Departamento::findOrFail($id);
 
+            // Log antes de la validación
+            Log::info('Iniciando validación de datos', [
+                'id' => $id,
+                'request_all' => $request->all(),
+                'rules' => [
+                    'titulo' => 'required|string|max:150',
+                    'descripcion' => 'required|string',
+                    'ubicacion' => 'required|string|max:200',
+                    'precio' => 'required|numeric|min:0',
+                    'habitaciones' => 'required|integer|min:0',
+                    'banos' => 'required|integer|min:0',
+                    'area' => 'required|numeric|min:0',
+                    'piso' => 'required|integer|min:0',
+                    'año_construccion' => 'required|integer|min:1900',
+                    'estado' => 'required|in:disponible,reservado,vendido,inactivo',
+                    'propietario_id' => 'required|exists:propietarios,id'
+                ]
+            ]);
+
+            Log::info('Antes de la validación', [
+                'request_data' => $request->all()
+            ]);
+            
             $validated = $request->validate([
                 'titulo' => 'required|string|max:150',
                 'descripcion' => 'required|string',
@@ -248,37 +271,46 @@ class DepartamentoController extends Controller
                 'mascotas_permitidas' => $validated['mascotas_permitidas'] ?? false,
                 'gastos_comunes' => $validated['gastos_comunes'] ?? null
             ]);
-            
+
             if (!$departamento->save()) {
                 throw new \Exception('Error al guardar los cambios del departamento');
             }
 
             // Procesar imágenes si existen
-            $imagenes = [
-                'imagen_principal' => $request->input('imagen_principal'),
-                'galeria_1' => $request->input('imagen_galeria_1'),
-                'galeria_2' => $request->input('imagen_galeria_2'),
-                'galeria_3' => $request->input('imagen_galeria_3'),
-                'galeria_4' => $request->input('imagen_galeria_4'),
-                'galeria_5' => $request->input('imagen_galeria_5')
-            ];
-
-            // Filtrar URLs nulas o vacías
-            $imagenes = array_filter($imagenes);
-
-            // Actualizar o crear imágenes
-            foreach ($imagenes as $tipo => $url) {
-                $departamento->imagenes()->updateOrCreate(
-                    ['tipo' => $tipo],
-                    [
-                        'url' => $url,
-                        'estado' => 'activo',
-                        'orden' => $tipo === 'imagen_principal' ? 0 : null
-                    ]
-                );
+            $imagenes = [];
+            
+            // Imagen principal
+            if ($request->has('imagen_principal')) {
+                $imagenes[] = [
+                    'tipo' => 'principal',
+                    'url' => $request->input('imagen_principal'),
+                    'orden' => 0
+                ];
+            }
+            
+            // Imágenes de galería
+            for ($i = 1; $i <= 5; $i++) {
+                if ($request->has("imagen_galeria_{$i}")) {
+                    $imagenes[] = [
+                        'tipo' => 'galeria',
+                        'url' => $request->input("imagen_galeria_{$i}"),
+                        'orden' => $i
+                    ];
+                }
             }
 
-                return response()->json([
+            // Crear o actualizar imágenes
+            foreach ($imagenes as $imagen) {
+                $departamento->imagenes()->updateOrCreate(
+                    ['tipo' => $imagen['tipo'], 'orden' => $imagen['orden']],
+                    [
+                    'url' => $imagen['url'],
+                    'estado' => 'activo',
+                    'orden' => $imagen['orden']
+                ]);
+            }
+
+            return response()->json([
                 'message' => 'Departamento actualizado correctamente',
                 'data' => $departamento->load(['propietario', 'atributos', 'imagenes'])
             ], 200);
