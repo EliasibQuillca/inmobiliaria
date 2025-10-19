@@ -35,8 +35,22 @@ class Departamento extends Model
     use HasFactory;
 
     protected $table = 'departamentos';
+    
+    /**
+     * Los eventos del modelo.
+     */
+    protected static function booted()
+    {
+        // Asignar código automáticamente al crear un nuevo departamento
+        static::creating(function ($departamento) {
+            if (empty($departamento->codigo)) {
+                $departamento->codigo = static::generarCodigo();
+            }
+        });
+    }
 
     protected $fillable = [
+        'codigo',
         'titulo',
         'descripcion',
         'ubicacion',
@@ -213,5 +227,17 @@ class Departamento extends Model
             return round($this->precio / $this->area, 2);
         }
         return 0;
+    }
+    
+    /**
+     * Genera un código único para un nuevo departamento
+     * 
+     * @return string
+     */
+    public static function generarCodigo()
+    {
+        $ultimoDepartamento = self::orderBy('id', 'desc')->first();
+        $numero = $ultimoDepartamento ? (intval(substr($ultimoDepartamento->codigo ?? 'DEPT-0000', 5)) + 1) : 1;
+        return 'DEPT-' . str_pad($numero, 4, '0', STR_PAD_LEFT);
     }
 }

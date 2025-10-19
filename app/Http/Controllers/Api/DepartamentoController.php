@@ -137,18 +137,24 @@ class DepartamentoController extends Controller
             'direccion' => 'nullable|string|max:200',
             'ubicacion' => 'required|string|max:200',
             'precio' => 'required|numeric|min:0',
-                            'habitaciones' => 'required|integer|min:1',
+            'habitaciones' => 'required|integer|min:1',
             'banos' => 'required|integer|min:1',
-            'area_total' => 'required|numeric|min:0',
+            'area' => 'required|numeric|min:0',
+            'piso' => 'required|integer|min:0',
             'estacionamientos' => 'integer|min:0',
             'propietario_id' => 'required|exists:propietarios,id',
             'estado' => 'nullable|string|in:disponible,reservado,vendido,inactivo',
             'destacado' => 'nullable|boolean',
+            'año_construccion' => 'required|integer|min:1900',
+            'garage' => 'nullable|boolean',
+            'balcon' => 'nullable|boolean',
+            'amueblado' => 'nullable|boolean',
+            'mascotas_permitidas' => 'nullable|boolean',
         ]);
 
         try {
             // Generar código automáticamente
-            $codigo = 'DEPT-' . str_pad(Departamento::count() + 1, 4, '0', STR_PAD_LEFT);
+            $codigo = Departamento::generarCodigo();
 
             $departamento = Departamento::create([
                 'codigo' => $codigo,
@@ -157,18 +163,26 @@ class DepartamentoController extends Controller
                 'direccion' => $request->input('direccion'),
                 'ubicacion' => $request->input('ubicacion'),
                 'precio' => $request->input('precio'),
-                'dormitorios' => $request->input('dormitorios'),
+                'habitaciones' => $request->input('habitaciones'),
                 'banos' => $request->input('banos'),
-                'area_total' => $request->input('area_total'),
+                'area' => $request->input('area'),
+                'piso' => $request->input('piso'),
+                'año_construccion' => $request->input('año_construccion'),
                 'estacionamientos' => $request->input('estacionamientos', 0),
                 'estado' => $request->input('estado', 'disponible'),
                 'propietario_id' => $request->input('propietario_id'),
+                'garage' => $request->input('garage', false),
+                'balcon' => $request->input('balcon', false),
+                'amueblado' => $request->input('amueblado', false),
+                'mascotas_permitidas' => $request->input('mascotas_permitidas', false),
                 'destacado' => $request->input('destacado', false),
             ]);
-
+        
+            $departamento->load('propietario');
+            
             return response()->json([
-                'message' => 'Departamento creado exitosamente',
-                'data' => $departamento->load(['propietario']),
+                'message' => 'Departamento creado correctamente. Ahora puede agregar imágenes y más detalles.',
+                'data' => $departamento
             ], 201);
 
         } catch (\Exception $e) {

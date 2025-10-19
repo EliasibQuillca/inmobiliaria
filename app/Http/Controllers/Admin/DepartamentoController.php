@@ -83,14 +83,14 @@ class DepartamentoController extends Controller
                     'departamento' => $data['data']
                 ]);
             } else {
-                return redirect()->route('admin.departamentos')->with('error', 'Departamento no encontrado');
+                return redirect()->route('departamentos.index')->with('error', 'Departamento no encontrado');
             }
         } catch (\Exception $e) {
             Log::error('Error en show departamento', [
                 'id' => $id,
                 'error' => $e->getMessage()
             ]);
-            return redirect()->route('admin.departamentos')->with('error', 'Error al cargar departamento');
+            return redirect()->route('departamentos.index')->with('error', 'Error al cargar departamento');
         }
     }
 
@@ -124,10 +124,11 @@ class DepartamentoController extends Controller
                 $departamentoId = $data['data']['id'] ?? null;
 
                 if ($departamentoId) {
-                    return redirect()->route('admin.departamentos.editar', $departamentoId)
+                    return redirect()->route('admin.departamentos.edit', $departamentoId)
                         ->with('success', 'Departamento creado correctamente. Ahora puede agregar imágenes y más detalles.');
                 } else {
-                    return redirect()->route('admin.departamentos')->with('success', 'Departamento creado correctamente');
+                    return redirect()->route('admin.departamentos.index')
+                        ->with('success', 'Departamento creado correctamente. Ahora puede agregar imágenes y más detalles.');
                 }
             } else {
                 return redirect()->back()->withInput()->with('error', $data['message'] ?? 'Error al crear el departamento');

@@ -28,12 +28,20 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
         precio: departamento.precio || '',
         habitaciones: departamento.habitaciones || 1,
         banos: departamento.banos || 1,
-        area_total: departamento.area_total || '',
+        area: departamento.area || '',  // Corregido: era area_total pero debe ser area
+        piso: departamento.piso || 1,   // Añadido: campo piso obligatorio
+        año_construccion: departamento.año_construccion || new Date().getFullYear(), // Añadido: año de construcción
         estacionamientos: departamento.estacionamientos || 0,
         propietario_id: departamento.propietario_id || '',
         estado: departamento.estado || 'disponible',
         destacado: departamento.destacado || false,
-        // Nuevos campos de imágenes
+        // Campos opcionales con valor por defecto
+        garage: departamento.garage || false,
+        balcon: departamento.balcon || false,
+        amueblado: departamento.amueblado || false,
+        mascotas_permitidas: departamento.mascotas_permitidas || false,
+        gastos_comunes: departamento.gastos_comunes || 0,
+        // Campos de imágenes
         imagen_principal: departamento.imagen_principal || '',
         imagen_galeria_1: departamento.imagen_galeria_1 || '',
         imagen_galeria_2: departamento.imagen_galeria_2 || '',
@@ -110,8 +118,8 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                     <label className="block text-sm font-medium text-gray-700">Área Total (m²)</label>
                     <input
                         type="number"
-                        name="area_total"
-                        value={formData.area_total}
+                        name="area"
+                        value={formData.area}
                         onChange={handleChange}
                         step="0.01"
                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
@@ -145,6 +153,35 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                             <option key={num} value={num}>{num}</option>
                         ))}
                     </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Piso</label>
+                    <select
+                        name="piso"
+                        value={formData.piso}
+                        onChange={handleChange}
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    >
+                        {[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(num => (
+                            <option key={num} value={num}>{num === 0 ? 'Planta baja' : num}</option>
+                        ))}
+                    </select>
+                </div>
+                
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Año de Construcción</label>
+                    <input
+                        type="number"
+                        name="año_construccion"
+                        value={formData.año_construccion}
+                        onChange={handleChange}
+                        min="1900"
+                        max="2100"
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    />
                 </div>
 
                 <div>
@@ -192,6 +229,73 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                             </option>
                         ))}
                     </select>
+                </div>
+
+                <div className="md:col-span-2">
+                    <h4 className="text-md font-semibold text-gray-900 mb-2">🏠 Características</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name="garage"
+                                checked={formData.garage}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label className="ml-2 block text-sm text-gray-900">Garage</label>
+                        </div>
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name="balcon"
+                                checked={formData.balcon}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label className="ml-2 block text-sm text-gray-900">Balcón</label>
+                        </div>
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name="amueblado"
+                                checked={formData.amueblado}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label className="ml-2 block text-sm text-gray-900">Amueblado</label>
+                        </div>
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name="mascotas_permitidas"
+                                checked={formData.mascotas_permitidas}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label className="ml-2 block text-sm text-gray-900">Mascotas permitidas</label>
+                        </div>
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name="destacado"
+                                checked={formData.destacado}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label className="ml-2 block text-sm text-gray-900">Destacado</label>
+                        </div>
+                        <div className="col-span-1 md:col-span-3">
+                            <label className="block text-sm font-medium text-gray-700">Gastos Comunes (S/)</label>
+                            <input
+                                type="number"
+                                name="gastos_comunes"
+                                value={formData.gastos_comunes}
+                                onChange={handleChange}
+                                step="0.01"
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 <div className="md:col-span-2">
@@ -1337,6 +1441,8 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                         },
                                         onError: (errors) => {
                                             console.error('Error al actualizar:', errors);
+                                            // Mostrar mensajes de error
+                                            alert('Hay errores en el formulario. Por favor, verifica que todos los campos obligatorios estén completos.');
                                         },
                                         onFinish: () => {
                                             setLoading(false);

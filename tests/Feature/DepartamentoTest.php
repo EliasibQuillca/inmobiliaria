@@ -61,6 +61,63 @@ class DepartamentoTest extends TestCase
     }
 
     #[Test]
+    public function un_administrador_puede_crear_un_departamento()
+    {
+        $this->actingAs($this->admin);
+
+                $nuevosDatos = [
+            'titulo' => 'Nuevo Departamento Test',
+            'descripcion' => 'Descripción del nuevo departamento',
+            'ubicacion' => 'Nueva ubicación test',
+            'direccion' => 'Av. Test 456',
+            'precio' => 150000.00,
+            'habitaciones' => 3,
+            'banos' => 2,
+            'area' => 90.00,
+            'piso' => 5,
+            'año_construccion' => 2023,
+            'estacionamientos' => 1,
+            'estado' => 'disponible',
+            'propietario_id' => $this->propietario->id,
+            'garage' => false,
+            'balcon' => false,
+            'amueblado' => false,
+            'mascotas_permitidas' => false,
+            'destacado' => false
+        ];
+
+        // Hacer la petición de creación
+        $response = $this->post('/admin/departamentos', $nuevosDatos);
+        
+        // Verificar redirección
+        $response->assertRedirect();
+        
+        // Verificar mensaje de éxito (este mensaje puede variar según la configuración)
+        $response->assertSessionHasNoErrors();
+
+        // Verificar que los datos se guardaron en la base de datos
+        $this->assertDatabaseHas('departamentos', [
+            'titulo' => 'Nuevo Departamento Test',
+            'descripcion' => 'Descripción del nuevo departamento',
+            'ubicacion' => 'Nueva ubicación test',
+            'precio' => 150000.00,
+            'habitaciones' => 3,
+            'banos' => 2,
+            'area' => 90.00,
+            'piso' => 5
+        ]);
+
+        // Verificar que se puede acceder al nuevo departamento
+        $departamento = Departamento::where('titulo', 'Nuevo Departamento Test')->first();
+        $this->assertNotNull($departamento, 'El departamento no fue creado correctamente');
+        
+        if ($departamento) {
+            // Solo verificamos que el departamento existe en la base de datos
+            $this->assertTrue(true);
+        }
+    }
+
+    #[Test]
     public function un_administrador_puede_editar_un_departamento()
     {
         $this->actingAs($this->admin);

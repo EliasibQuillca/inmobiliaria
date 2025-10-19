@@ -1,0 +1,43 @@
+    /**
+     * Almacenar un nuevo departamento
+     */
+    public function store(Request $request)
+    {
+        try {
+            $request->validate([
+                'codigo' => 'required|string|unique:departamentos,codigo',
+                'titulo' => 'required|string|max:255',
+                'descripcion' => 'required|string',
+                'ubicacion' => 'required|string',
+                'direccion' => 'required|string',
+                'precio' => 'required|numeric|min:0',
+                'habitaciones' => 'required|integer|min:0',
+                'banos' => 'required|integer|min:0',
+                'area' => 'required|numeric|min:0',
+                'piso' => 'required|integer|min:0',
+                'estacionamientos' => 'required|integer|min:0',
+                'estado' => 'required|string|in:disponible,reservado,vendido',
+                'año_construccion' => 'required|integer|min:1900',
+                'propietario_id' => 'required|exists:propietarios,id'
+            ]);
+
+            $departamento = Departamento::create($request->all());
+
+            return response()->json([
+                'message' => 'Departamento creado correctamente',
+                'data' => $departamento
+            ], 201);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error al crear departamento: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error al crear departamento',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }

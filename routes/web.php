@@ -66,9 +66,35 @@ Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     
     // Rutas para departamentos
-    Route::resource('departamentos', AdminDepartamentoController::class);
-    Route::patch('/departamentos/{id}/estado', [AdminDepartamentoController::class, 'cambiarEstado'])->name('departamentos.cambiar-estado');
-    Route::patch('/departamentos/{id}/destacado', [AdminDepartamentoController::class, 'toggleDestacado'])->name('departamentos.toggle-destacado');
+    Route::prefix('departamentos')->name('departamentos.')->group(function () {
+        Route::get('/crear', [AdminDepartamentoController::class, 'create'])->name('create');
+        Route::get('/', [AdminDepartamentoController::class, 'index'])->name('index');
+        Route::post('/', [AdminDepartamentoController::class, 'store'])->name('store');
+        Route::get('/{id}', [AdminDepartamentoController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [AdminDepartamentoController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [AdminDepartamentoController::class, 'update'])->name('update');
+        Route::delete('/{id}', [AdminDepartamentoController::class, 'destroy'])->name('destroy');
+        Route::patch('/{id}/estado', [AdminDepartamentoController::class, 'cambiarEstado'])->name('cambiar-estado');
+        Route::patch('/{id}/destacado', [AdminDepartamentoController::class, 'toggleDestacado'])->name('toggle-destacado');
+    });
+    
+    // Rutas para usuarios
+    Route::get('/usuarios/crear', [AdminUserController::class, 'create'])->name('usuarios.create');
+    Route::resource('usuarios', AdminUserController::class)->except(['create']);
+    Route::patch('/usuarios/{id}/estado', [AdminUserController::class, 'cambiarEstado'])->name('usuarios.cambiar-estado');
+    
+    // Rutas para ventas
+    Route::resource('ventas', AdminVentaController::class);
+    Route::get('/ventas/{id}/pdf', [AdminVentaController::class, 'generarPDF'])->name('ventas.pdf');
+    Route::patch('/ventas/{id}/estado', [AdminVentaController::class, 'cambiarEstado'])->name('ventas.cambiar-estado');
+    
+    // Rutas para reportes
+    Route::get('/reportes', [AdminReporteController::class, 'index'])->name('reportes.index');
+    Route::get('/reportes/crear', [AdminReporteController::class, 'create'])->name('reportes.create');
+    Route::get('/reportes/{id}', [AdminReporteController::class, 'show'])->name('reportes.show');
+    Route::post('/reportes/ventas', [AdminReporteController::class, 'reporteVentas'])->name('reportes.ventas');
+    Route::post('/reportes/exportar-excel', [AdminReporteController::class, 'exportarExcel'])->name('reportes.exportar-excel');
+    Route::post('/reportes/exportar-pdf', [AdminReporteController::class, 'exportarPdf'])->name('reportes.exportar-pdf');
     
     // Otras rutas de administrador...
 });
