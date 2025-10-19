@@ -7,12 +7,23 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Cotizacion;
 use App\Models\Reserva;
 use App\Models\Cliente;
+use App\Models\Departamento;
 
 class ClienteController extends Controller
 {
+    /**
+     * Dashboard del cliente (privado - requiere autenticación).
+     */
     public function dashboard()
     {
         $user = Auth::user();
+        
+        // Si no está autenticado, redirigir al login
+        if (!$user) {
+            return redirect()->route('login')
+                           ->with('message', 'Por favor inicia sesión para acceder a tu dashboard.');
+        }
+        
         $cliente = Cliente::where('usuario_id', $user->id)->first();
         
         if (!$cliente) {
@@ -20,31 +31,126 @@ class ClienteController extends Controller
                            ->with('message', 'Por favor completa tu perfil de cliente primero.');
         }
 
-        $estadisticas = $this->obtenerEstadisticasCliente($cliente);
-        $actividades_recientes = $this->obtenerActividadesRecientes($cliente);
-        $notificaciones = $this->obtenerNotificaciones($cliente);
-
         return inertia('Cliente/Dashboard', [
-            'estadisticas' => $estadisticas,
-            'actividades_recientes' => $actividades_recientes,
-            'notificaciones' => $notificaciones,
-            'propiedades_recomendadas' => []
+            // Estadísticas principales
+            'estadisticas' => $this->obtenerEstadisticasCliente($cliente),
+            
+            // Preferencias del cliente
+            'preferencias' => [
+                'tipo_propiedad' => $cliente->tipo_propiedad,
+                'zona_preferida' => $cliente->zona_preferida,
+                'presupuesto_min' => $cliente->presupuesto_min,
+                'presupuesto_max' => $cliente->presupuesto_max,
+                'habitaciones_deseadas' => $cliente->habitaciones_deseadas,
+                'resultados_en_rango' => Departamento::enRangoCliente($cliente)->count(),
+            ],
+            
+            // Propiedades destacadas con match score
+            'destacados' => $this->obtenerDestacadosConMatch($cliente),
+            
+            // Progreso de búsqueda
+            'progreso' => $this->calcularProgresoBusqueda($cliente),
+            
+            // Actividades recientes
+            'actividades' => $this->obtenerActividadesRecientes($cliente),
+            
+            // Notificaciones
+            'notificaciones' => $this->obtenerNotificaciones($cliente),
+            
+            // Asesor asignado
+            'asesor' => $cliente->asesor ? $cliente->asesor->load('usuario') : null,
+            
+            // Datos del cliente
+            'cliente' => $cliente,
         ]);
     }
 
     /**
      * Obtener estadísticas del cliente.
-     *
-     * @param Cliente $cliente
-     * @return array
      */
     private function obtenerEstadisticasCliente(Cliente $cliente): array
     {
         return [
-            'solicitudes_activas' => $cliente->cotizaciones()->where('estado', 'pendiente')->count(),
-            'cotizaciones_pendientes' => $cliente->cotizaciones()->where('estado', 'en_proceso')->count(),
-            'reservas_vigentes' => $cliente->reservas()->where('estado', 'activa')->count(),
             'favoritos_total' => $cliente->favoritos()->count(),
+            'solicitudes_activas' => $cliente->cotizaciones()
+                ->whereIn('estado', ['pendiente', 'en_proceso'])
+                ->count(),
+            'solicitudes_respondidas' => $cliente->cotizaciones()
+                ->where('estado', 'respondida')
+                ->count(),
+            'reservas_activas' => $cliente->reservas()
+                ->where('estado', 'activa')
+                ->count(),
+        ];
+    }
+
+    /**
+     * Obtener propiedades destacadas con match score.
+     */
+    private function obtenerDestacadosConMatch(Cliente $cliente)
+    {
+        return Departamento::recomendadosPara($cliente, 6);
+    }
+
+    /**
+     * Calcular progreso de búsqueda del cliente.
+     */
+    private function calcularProgresoBusqueda(Cliente $cliente)
+    {
+        $progreso = 0;
+        $tareas = [];
+        
+        // Perfil completo (20%)
+        if ($cliente->isDatosCompletos()) {
+            $progreso += 20;
+            $tareas[] = ['completada' => true, 'texto' => 'Perfil completo'];
+        } else {
+            $tareas[] = ['completada' => false, 'texto' => 'Completar perfil'];
+        }
+        
+        // Preferencias definidas (20%)
+        if ($cliente->tienePreferencias()) {
+            $progreso += 20;
+            $tareas[] = ['completada' => true, 'texto' => 'Preferencias definidas'];
+        } else {
+            $tareas[] = ['completada' => false, 'texto' => 'Definir preferencias de búsqueda'];
+        }
+        
+        // Al menos 3 favoritos (15%)
+        if ($cliente->favoritos()->count() >= 3) {
+            $progreso += 15;
+            $tareas[] = ['completada' => true, 'texto' => 'Has guardado favoritos'];
+        } else {
+            $tareas[] = ['completada' => false, 'texto' => 'Guardar al menos 3 favoritos'];
+        }
+        
+        // Al menos 1 solicitud enviada (15%)
+        if ($cliente->cotizaciones()->count() >= 1) {
+            $progreso += 15;
+            $tareas[] = ['completada' => true, 'texto' => 'Solicitud enviada'];
+        } else {
+            $tareas[] = ['completada' => false, 'texto' => 'Enviar primera solicitud'];
+        }
+        
+        // Tiene asesor asignado (15%)
+        if ($cliente->asesor_id) {
+            $progreso += 15;
+            $tareas[] = ['completada' => true, 'texto' => 'Asesor asignado'];
+        } else {
+            $tareas[] = ['completada' => false, 'texto' => 'Contactar con asesor'];
+        }
+        
+        // Tiene cita agendada (15%)
+        if ($cliente->tieneCitaProgramada()) {
+            $progreso += 15;
+            $tareas[] = ['completada' => true, 'texto' => 'Cita agendada'];
+        } else {
+            $tareas[] = ['completada' => false, 'texto' => 'Agendar visita presencial'];
+        }
+        
+        return [
+            'porcentaje' => $progreso,
+            'tareas' => $tareas,
         ];
     }
 
@@ -61,16 +167,18 @@ class ClienteController extends Controller
         // Agregar notificaciones de cotizaciones actualizadas
         $cotizacionesActualizadas = $cliente->cotizaciones()
             ->where('updated_at', '>', now()->subDays(7))
-            ->where('created_at', '<', 'updated_at')
+            ->whereColumn('created_at', '<', 'updated_at')
             ->get();
             
-        foreach ($cotizacionesActualizadas as $cotizacion) {
-            $notificaciones[] = [
-                'titulo' => 'Cotización actualizada',
-                'descripcion' => 'Tu cotización #' . $cotizacion->id . ' ha sido actualizada',
-                'fecha' => $cotizacion->updated_at->format('d/m/Y H:i'),
-                'tipo' => 'cotizacion'
-            ];
+        if ($cotizacionesActualizadas->isNotEmpty()) {
+            foreach ($cotizacionesActualizadas as $cotizacion) {
+                $notificaciones[] = [
+                    'titulo' => 'Cotización actualizada',
+                    'descripcion' => 'Tu cotización #' . $cotizacion->id . ' ha sido actualizada',
+                    'fecha' => $cotizacion->updated_at->format('d/m/Y H:i'),
+                    'tipo' => 'cotizacion'
+                ];
+            }
         }
         
         // Agregar notificaciones de reservas próximas a vencer
@@ -79,13 +187,15 @@ class ClienteController extends Controller
             ->where('fecha_vencimiento', '<=', now()->addDays(3))
             ->get();
             
-        foreach ($reservasProximas as $reserva) {
-            $notificaciones[] = [
-                'titulo' => 'Reserva próxima a vencer',
-                'descripcion' => 'Tu reserva vence el ' . $reserva->fecha_vencimiento->format('d/m/Y'),
-                'fecha' => now()->format('d/m/Y H:i'),
-                'tipo' => 'reserva'
-            ];
+        if ($reservasProximas->isNotEmpty()) {
+            foreach ($reservasProximas as $reserva) {
+                $notificaciones[] = [
+                    'titulo' => 'Reserva próxima a vencer',
+                    'descripcion' => 'Tu reserva vence el ' . $reserva->fecha_vencimiento->format('d/m/Y'),
+                    'fecha' => now()->format('d/m/Y H:i'),
+                    'tipo' => 'reserva'
+                ];
+            }
         }
         
         return array_slice($notificaciones, 0, 5);

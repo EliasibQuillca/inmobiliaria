@@ -48,7 +48,7 @@ class ClienteController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'dni' => 'required|string|max:20|unique:clientes,dni',
-            'telefono' => 'required|string|max:20|unique:clientes,telefono',
+            'telefono' => 'required|string|max:20',
             'email' => 'nullable|email|unique:users,email',
             'direccion' => 'nullable|string|max:500',
             'medio_contacto' => 'required|in:whatsapp,telefono,presencial,email,referido',

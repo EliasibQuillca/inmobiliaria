@@ -21,33 +21,86 @@ class ClienteFactory extends Factory
      */
     public function definition(): array
     {
+        $presupuestoMin = $this->faker->numberBetween(80000, 150000);
+        
         return [
             'usuario_id' => User::factory()->cliente(),
             'asesor_id' => Asesor::factory(),
             'nombre' => $this->faker->name(),
             'telefono' => $this->faker->phoneNumber(),
             'email' => $this->faker->unique()->safeEmail(),
-            'documento' => $this->faker->numerify('########'),
-            'fecha_nacimiento' => $this->faker->dateTimeBetween('-60 years', '-18 years'),
-            'ocupacion' => $this->faker->jobTitle(),
-            'estado_civil' => $this->faker->randomElement(['soltero', 'casado', 'divorciado', 'viudo']),
-            'ingresos_mensuales' => $this->faker->randomFloat(2, 1000, 10000),
-            'preferencias' => json_encode([
-                'precio_min' => $this->faker->numberBetween(50000, 100000),
-                'precio_max' => $this->faker->numberBetween(100000, 500000),
-                'habitaciones' => $this->faker->numberBetween(1, 4),
-                'ubicacion_preferida' => $this->faker->city(),
+            'dni' => $this->faker->unique()->numerify('########'),
+            'direccion' => $this->faker->address(),
+            'fecha_registro' => now(),
+            'medio_contacto' => $this->faker->randomElement(['whatsapp', 'telefono', 'presencial']),
+            'estado' => $this->faker->randomElement(['contactado', 'interesado', 'cita_agendada']),
+            'notas_contacto' => $this->faker->optional()->sentence(),
+            'notas_seguimiento' => $this->faker->optional()->paragraph(),
+            'tipo_propiedad' => $this->faker->randomElement(['apartamento', 'casa', 'penthouse', 'estudio', 'duplex']),
+            'habitaciones_deseadas' => $this->faker->numberBetween(1, 5),
+            'presupuesto_min' => $presupuestoMin,
+            'presupuesto_max' => $this->faker->numberBetween($presupuestoMin + 50000, 500000),
+            'zona_preferida' => $this->faker->randomElement([
+                'San Isidro', 
+                'Miraflores', 
+                'Surco', 
+                'La Molina', 
+                'San Borja',
+                'Jesús María',
+                'Pueblo Libre',
+                'Magdalena'
             ]),
         ];
     }
 
     /**
-     * Indicate that the cliente has no asesor assigned.
+     * Cliente sin usuario asociado (solo prospecto)
      */
-    public function sinAsesor(): static
+    public function sinUsuario(): static
     {
         return $this->state(fn (array $attributes) => [
-            'asesor_id' => null,
+            'usuario_id' => null,
+        ]);
+    }
+
+    /**
+     * Cliente con cita agendada
+     */
+    public function conCita(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'estado' => 'cita_agendada',
+            'fecha_cita' => $this->faker->dateTimeBetween('now', '+7 days'),
+            'tipo_cita' => $this->faker->randomElement(['presencial', 'virtual', 'telefonica']),
+            'ubicacion_cita' => $this->faker->randomElement([
+                'Oficina Central',
+                'Zoom Meeting',
+                'Departamento modelo',
+                'Cafetería'
+            ]),
+            'notas_cita' => $this->faker->optional()->sentence(),
+        ]);
+    }
+
+    /**
+     * Cliente interesado activamente
+     */
+    public function interesado(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'estado' => 'interesado',
+            'notas_seguimiento' => 'Cliente muy interesado. ' . $this->faker->sentence(),
+        ]);
+    }
+
+    /**
+     * Cliente sin interés actual
+     */
+    public function sinInteres(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'estado' => 'sin_interes',
+            'notas_seguimiento' => 'Cliente no interesado por el momento. ' . $this->faker->sentence(),
         ]);
     }
 }

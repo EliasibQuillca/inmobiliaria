@@ -26,12 +26,12 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-// Rutas públicas
-Route::get('/', function () {
-    return redirect()->route('catalogo.index');
-});
+// ============================================
+// PÁGINA PRINCIPAL PÚBLICA (Catálogo Híbrido)
+// ============================================
+Route::get('/', [CatalogoController::class, 'index'])->name('home');
 
-// Rutas de catálogo
+// Rutas de catálogo público
 Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo.index');
 Route::get('/catalogo/{departamento}', [CatalogoController::class, 'show'])->name('catalogo.show');
 
@@ -56,9 +56,42 @@ Route::get('/dashboard', function () {
     } elseif ($user->role === 'asesor') {
         return redirect()->route('asesor.dashboard');
     } else {
-        return redirect()->route('catalogo.index');
+        return redirect()->route('cliente.dashboard');
     }
 })->middleware(['auth'])->name('dashboard');
+
+// Rutas protegidas de cliente
+Route::middleware(['auth', 'role:cliente'])->prefix('cliente')->name('cliente.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [ClienteController::class, 'dashboard'])->name('dashboard');
+    
+    // Perfil
+    Route::get('/perfil', [ClienteController::class, 'perfil'])->name('perfil.index');
+    Route::patch('/perfil', [ClienteController::class, 'updatePerfil'])->name('perfil.update');
+    
+    // Solicitudes
+    Route::get('/solicitudes', [ClienteController::class, 'solicitudes'])->name('solicitudes.index');
+    Route::get('/solicitudes/{id}', [ClienteSolicitudController::class, 'show'])->name('solicitudes.show');
+    Route::post('/solicitudes', [ClienteSolicitudController::class, 'store'])->name('solicitudes.store');
+    
+    // Favoritos
+    Route::get('/favoritos', [ClienteDepartamentoController::class, 'favoritos'])->name('favoritos.index');
+    Route::post('/favoritos/{departamento_id}', [ClienteDepartamentoController::class, 'agregarFavorito'])->name('favoritos.agregar');
+    Route::delete('/favoritos/{departamento_id}', [ClienteDepartamentoController::class, 'eliminarFavorito'])->name('favoritos.eliminar');
+    
+    // Asesores
+    Route::get('/asesores', [ClienteDepartamentoController::class, 'asesores'])->name('asesores.index');
+    
+    // Cotizaciones
+    Route::get('/cotizaciones', [ClienteController::class, 'cotizaciones'])->name('cotizaciones.index');
+    
+    // Reservas
+    Route::get('/reservas', [ClienteController::class, 'reservas'])->name('reservas.index');
+    Route::get('/reservas/{id}', [ClienteController::class, 'reservaDetalle'])->name('reservas.show');
+    
+    // Comentarios en solicitudes
+    Route::post('/solicitudes/{id}/comentarios', [ClienteComentarioController::class, 'store'])->name('solicitudes.comentarios.store');
+});
 
 // Rutas protegidas de administrador
 Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
