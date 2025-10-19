@@ -9,16 +9,17 @@ export default function CrearDepartamento({ auth, propietarios }) {
         ubicacion: '',
         direccion: '',
         precio: '',
-        dormitorios: 1,
+        habitaciones: 1, // Cambiado de dormitorios a habitaciones
         banos: 1,
-        area_total: '',
+        area: '', // Cambiado de area_total a area
+        piso: 1, // Campo requerido agregado
+        año_construccion: new Date().getFullYear(), // Campo requerido agregado
         estacionamientos: 0,
         propietario_id: '',
         estado: 'disponible',
         destacado: false
     });
 
-    const [imagen, setImagen] = useState(null);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
@@ -38,28 +39,21 @@ export default function CrearDepartamento({ auth, propietarios }) {
         }
     };
 
-    const handleImagenChange = (e) => {
-        setImagen(e.target.files[0]);
-    };
-
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
         setErrors({});
 
-        const form = new FormData();
-        Object.entries(formData).forEach(([key, value]) => {
-            form.append(key, value);
-        });
-        if (imagen) {
-            form.append('imagen', imagen);
-        }
-
-        router.post('/admin/departamentos', form, {
+        // Utilizamos objeto JSON en lugar de FormData ya que no enviamos archivos
+        router.post('/admin/departamentos', formData, {
             preserveState: false,
-            forceFormData: true,
-            onSuccess: () => {
-                router.visit('/admin/departamentos');
+            onSuccess: (page) => {
+                // Usamos router.get para forzar una recarga completa de la página de departamentos
+                // Esto asegura que los datos se actualicen correctamente desde el servidor
+                router.get('/admin/departamentos', {}, {
+                    preserveScroll: false,
+                    preserveState: false,
+                });
             },
             onError: (validationErrors) => {
                 setErrors(validationErrors);
@@ -105,7 +99,7 @@ export default function CrearDepartamento({ auth, propietarios }) {
                             </div>
                         </div>
 
-                        <form onSubmit={handleSubmit} encType="multipart/form-data" className="p-6">
+                        <form onSubmit={handleSubmit} className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Título */}
                                 <div>
@@ -179,28 +173,28 @@ export default function CrearDepartamento({ auth, propietarios }) {
                                     {errors.precio && <p className="mt-1 text-sm text-red-600">{errors.precio}</p>}
                                 </div>
 
-                                {/* Área Total */}
+                                {/* Área */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Área Total (m²) *</label>
+                                    <label className="block text-sm font-medium text-gray-700">Área (m²) *</label>
                                     <input
                                         type="number"
-                                        name="area_total"
-                                        value={formData.area_total}
+                                        name="area"
+                                        value={formData.area}
                                         onChange={handleChange}
                                         step="0.01"
-                                        className={`mt-1 block w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${errors.area_total ? 'border-red-300' : 'border-gray-300'
+                                        className={`mt-1 block w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${errors.area ? 'border-red-300' : 'border-gray-300'
                                             }`}
                                         required
                                     />
-                                    {errors.area_total && <p className="mt-1 text-sm text-red-600">{errors.area_total}</p>}
+                                    {errors.area && <p className="mt-1 text-sm text-red-600">{errors.area}</p>}
                                 </div>
 
-                                {/* Dormitorios */}
+                                {/* Habitaciones */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Dormitorios</label>
+                                    <label className="block text-sm font-medium text-gray-700">Habitaciones</label>
                                     <select
-                                        name="dormitorios"
-                                        value={formData.dormitorios}
+                                        name="habitaciones"
+                                        value={formData.habitaciones}
                                         onChange={handleChange}
                                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                     >
@@ -291,36 +285,60 @@ export default function CrearDepartamento({ auth, propietarios }) {
                                     </label>
                                 </div>
 
-                                {/* Imagen Principal */}
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700">Imagen Principal</label>
+                                {/* Piso */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Piso *</label>
                                     <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImagenChange}
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                        type="number"
+                                        name="piso"
+                                        value={formData.piso}
+                                        onChange={handleChange}
+                                        className={`mt-1 block w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${errors.piso ? 'border-red-300' : 'border-gray-300'}`}
+                                        required
+                                        min="0"
                                     />
-                                    {errors.imagen && <p className="mt-1 text-sm text-red-600">{errors.imagen}</p>}
+                                    {errors.piso && <p className="mt-1 text-sm text-red-600">{errors.piso}</p>}
+                                </div>
+
+                                {/* Año Construcción */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Año de Construcción *</label>
+                                    <input
+                                        type="number"
+                                        name="año_construccion"
+                                        value={formData.año_construccion}
+                                        onChange={handleChange}
+                                        className={`mt-1 block w-full border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${errors.año_construccion ? 'border-red-300' : 'border-gray-300'}`}
+                                        required
+                                        min="1900"
+                                        max={new Date().getFullYear()}
+                                    />
+                                    {errors.año_construccion && <p className="mt-1 text-sm text-red-600">{errors.año_construccion}</p>}
                                 </div>
                             </div>
 
                             {/* Botones */}
-                            <div className="mt-8 flex justify-end space-x-3">
-                                <button
-                                    type="button"
-                                    onClick={cancelar}
-                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                                    disabled={loading}
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Creando...' : 'Crear Propiedad'}
-                                </button>
+                            <div className="mt-8 flex justify-between">
+                                <div className="text-sm text-gray-500">
+                                    * Las imágenes podrán ser agregadas después de crear la propiedad, en la vista de edición.
+                                </div>
+                                <div className="flex space-x-3">
+                                    <button
+                                        type="button"
+                                        onClick={cancelar}
+                                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                                        disabled={loading}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Creando...' : 'Crear Propiedad'}
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>

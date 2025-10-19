@@ -514,37 +514,36 @@ class DepartamentoController extends Controller
         try {
             Log::info('Intentando eliminar departamento', ['id' => $id, 'codigo' => $departamento->codigo]);
 
-            // COMENTADO TEMPORALMENTE PARA DEBUGGING
-            // Log::info('Verificando reservas');
-            // $tieneReservas = false;
-            // try {
-            //     $tieneReservas = $departamento->reservas()->where('estado', '!=', 'cancelada')->exists();
-            //     Log::info('Reservas verificadas', ['tiene_reservas' => $tieneReservas]);
-            // } catch (\Exception $e) {
-            //     Log::error('Error verificando reservas', ['error' => $e->getMessage()]);
-            // }
+            Log::info('Verificando reservas');
+            $tieneReservas = false;
+            try {
+                $tieneReservas = $departamento->reservas()->where('estado', '!=', 'cancelada')->exists();
+                Log::info('Reservas verificadas', ['tiene_reservas' => $tieneReservas]);
+            } catch (\Exception $e) {
+                Log::error('Error verificando reservas', ['error' => $e->getMessage()]);
+            }
 
-            // Log::info('Verificando ventas');
-            // $tieneVentas = false;
-            // try {
-            //     $tieneVentas = $departamento->ventas()->exists();
-            //     Log::info('Ventas verificadas', ['tiene_ventas' => $tieneVentas]);
-            // } catch (\Exception $e) {
-            //     Log::error('Error verificando ventas', ['error' => $e->getMessage()]);
-            // }
+            Log::info('Verificando ventas');
+            $tieneVentas = false;
+            try {
+                $tieneVentas = $departamento->ventas()->exists();
+                Log::info('Ventas verificadas', ['tiene_ventas' => $tieneVentas]);
+            } catch (\Exception $e) {
+                Log::error('Error verificando ventas', ['error' => $e->getMessage()]);
+            }
 
-            // if ($tieneReservas || $tieneVentas) {
-            //     Log::warning('No se puede eliminar departamento por tener relaciones activas', [
-            //         'id' => $id,
-            //         'tiene_reservas' => $tieneReservas,
-            //         'tiene_ventas' => $tieneVentas
-            //     ]);
-            //     return response()->json([
-            //         'message' => 'No se puede eliminar el departamento porque tiene reservas o ventas asociadas',
-            //     ], 422);
-            // }
+            if ($tieneReservas || $tieneVentas) {
+                Log::warning('No se puede eliminar departamento por tener relaciones activas', [
+                    'id' => $id,
+                    'tiene_reservas' => $tieneReservas,
+                    'tiene_ventas' => $tieneVentas
+                ]);
+                return response()->json([
+                    'message' => 'No se puede eliminar el departamento porque tiene reservas o ventas asociadas',
+                ], 422);
+            }
 
-            Log::info('Saltando verificaciones - eliminando directamente');
+            Log::info('Verificaciones completadas - procediendo a eliminar');
 
             // Eliminar imágenes asociadas si existen
             if ($departamento->imagenes()->count() > 0) {

@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { usePage } from '@inertiajs/react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Componente de alerta para mensajes flash
 const FlashMessage = ({ message, type }) => {
     if (!message) return null;
-    
-    const bgColor = type === 'success' ? 'bg-green-100 border-green-500 text-green-700' 
-                 : type === 'error' ? 'bg-red-100 border-red-500 text-red-700'
-                 : 'bg-blue-100 border-blue-500 text-blue-700';
-                 
+
+    const bgColor = type === 'success' ? 'bg-green-100 border-green-500 text-green-700'
+        : type === 'error' ? 'bg-red-100 border-red-500 text-red-700'
+            : 'bg-blue-100 border-blue-500 text-blue-700';
+
     return (
         <div className={`p-4 mb-4 rounded-lg border ${bgColor}`}>
             {message}
@@ -28,9 +30,9 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
         precio: departamento.precio || '',
         habitaciones: departamento.habitaciones || 1,
         banos: departamento.banos || 1,
-        area: departamento.area || '',  // Corregido: era area_total pero debe ser area
-        piso: departamento.piso || 1,   // Añadido: campo piso obligatorio
-        año_construccion: departamento.año_construccion || new Date().getFullYear(), // Añadido: año de construcción
+        area: departamento.area || '',
+        piso: departamento.piso || 1,
+        año_construccion: departamento.año_construccion || new Date().getFullYear(),
         estacionamientos: departamento.estacionamientos || 0,
         propietario_id: departamento.propietario_id || '',
         estado: departamento.estado || 'disponible',
@@ -42,12 +44,12 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
         mascotas_permitidas: departamento.mascotas_permitidas || false,
         gastos_comunes: departamento.gastos_comunes || 0,
         // Campos de imágenes
-        imagen_principal: departamento.imagen_principal || '',
-        imagen_galeria_1: departamento.imagen_galeria_1 || '',
-        imagen_galeria_2: departamento.imagen_galeria_2 || '',
-        imagen_galeria_3: departamento.imagen_galeria_3 || '',
-        imagen_galeria_4: departamento.imagen_galeria_4 || '',
-        imagen_galeria_5: departamento.imagen_galeria_5 || ''
+        imagen_principal: '',
+        imagen_galeria_1: '',
+        imagen_galeria_2: '',
+        imagen_galeria_3: '',
+        imagen_galeria_4: '',
+        imagen_galeria_5: ''
     });
 
     const handleChange = (e) => {
@@ -64,8 +66,9 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Título y Ubicación */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Título</label>
                     <input
@@ -135,7 +138,7 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                         onChange={handleChange}
                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     >
-                        {[1,2,3,4,5,6].map(num => (
+                        {[1, 2, 3, 4, 5, 6].map(num => (
                             <option key={num} value={num}>{num}</option>
                         ))}
                     </select>
@@ -149,7 +152,7 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                         onChange={handleChange}
                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     >
-                        {[1,2,3,4,5,6].map(num => (
+                        {[1, 2, 3, 4, 5, 6].map(num => (
                             <option key={num} value={num}>{num}</option>
                         ))}
                     </select>
@@ -164,12 +167,12 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         required
                     >
-                        {[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(num => (
+                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(num => (
                             <option key={num} value={num}>{num === 0 ? 'Planta baja' : num}</option>
                         ))}
                     </select>
                 </div>
-                
+
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Año de Construcción</label>
                     <input
@@ -192,7 +195,7 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                         onChange={handleChange}
                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     >
-                        {[0,1,2,3,4].map(num => (
+                        {[0, 1, 2, 3, 4].map(num => (
                             <option key={num} value={num}>{num}</option>
                         ))}
                     </select>
@@ -232,7 +235,7 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                 </div>
 
                 <div className="md:col-span-2">
-                    <h4 className="text-md font-semibold text-gray-900 mb-2">🏠 Características</h4>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Características</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <div className="flex items-center">
                             <input
@@ -299,7 +302,7 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                 </div>
 
                 <div className="md:col-span-2">
-                    <h4 className="text-md font-semibold text-gray-900 mb-4">📸 Imágenes del Departamento</h4>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Imágenes del Departamento</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Imagen Principal (URL)</label>
@@ -452,6 +455,20 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
                     Guardar Cambios
                 </button>
             </div>
+
+            {/* Opción para destacar departamento */}
+            <div className="mt-4">
+                <label className="flex items-center">
+                    <input
+                        type="checkbox"
+                        name="destacar_este_departamento"
+                        checked={formData.destacado}
+                        onChange={(e) => setFormData(prev => ({ ...prev, destacado: e.target.checked }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Destacar este departamento</span>
+                </label>
+            </div>
         </form>
     );
 };
@@ -460,7 +477,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
     const { flash: pageFlash } = usePage().props;
     // Combinar flash messages del prop y de usePage
     const activeFlash = flash || pageFlash;
-    
+
     // Estado para los filtros
     const [filtros, setFiltros] = useState(filters || {
         busqueda: '',
@@ -487,6 +504,14 @@ export default function Departamentos({ auth, departamentos, pagination, filters
     const [showVerModal, setShowVerModal] = useState(false);
     const [showEditarModal, setShowEditarModal] = useState(false);
     const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState(null);
+    const [loadingVisualizacion, setLoadingVisualizacion] = useState(false);
+    const [imagenCargando, setImagenCargando] = useState({});
+    
+    // Función para verificar si una imagen existe
+    const verificarImagen = (url) => {
+        if (!url) return false;
+        return true;
+    };
 
     // Lista de propietarios que viene del backend
     const listaPropietarios = propietarios || [];
@@ -550,58 +575,48 @@ export default function Departamentos({ auth, departamentos, pagination, filters
 
     // Eliminar departamento (simplificado con más debug)
     const eliminarDepartamento = (departamento) => {
-        console.log('=== INICIO ELIMINACIÓN ===');
-        console.log('Departamento a eliminar:', departamento);
-
-        const confirmacion = confirm(`¿Está seguro de que desea eliminar permanentemente la propiedad ${departamento.codigo}? Esta acción no se puede deshacer.`);
+        // Mostrar diálogo de confirmación más informativo
+        const confirmacion = confirm(`¿Está seguro de que desea eliminar permanentemente la propiedad ${departamento.codigo}?\n\nTítulo: ${departamento.titulo}\nUbicación: ${departamento.ubicacion}\n\nEsta acción no se puede deshacer.`);
 
         if (!confirmacion) {
-            console.log('Eliminación cancelada por el usuario');
-            return;
+            return; // Usuario canceló la eliminación
         }
 
-        console.log('Usuario confirmó eliminación');
-        console.log('URL a llamar:', `/admin/departamentos/${departamento.id}`);
-
+        // Activar indicador de carga
         setLoading(true);
 
+        // Realizar solicitud de eliminación
         router.delete(`/admin/departamentos/${departamento.id}`, {
-            preserveState: false,
-            preserveScroll: false,
+            preserveState: true, // Mantener el estado para evitar parpadeos
+            preserveScroll: true, // Mantener la posición del scroll
             replace: true,
-            onBefore: (visit) => {
-                console.log('onBefore - URL de visita:', visit.url);
-                console.log('onBefore - Método:', visit.method);
-                return true;
-            },
-            onStart: (visit) => {
-                console.log('onStart - Comenzando eliminación');
-            },
-            onProgress: (progress) => {
-                console.log('onProgress - Progreso:', progress);
-            },
             onSuccess: (page) => {
-                console.log('onSuccess - Departamento eliminado exitosamente');
-                console.log('Página de respuesta:', page);
-                alert('Departamento eliminado correctamente');
+                // Mostrar notificación de éxito
+                alert('El departamento ha sido eliminado correctamente');
+
+                // Simplemente recargar la página para obtener los datos actualizados
+                router.reload();
             },
             onError: (errors) => {
-                console.error('onError - Error al eliminar departamento:', errors);
-                console.error('Tipo de errores:', typeof errors);
-                console.error('Keys de errores:', Object.keys(errors));
-                alert('Error al eliminar el departamento: ' + JSON.stringify(errors));
+                // Extraer mensaje de error y mostrarlo
+                let mensajeError = 'Ocurrió un error al eliminar el departamento';
+
+                if (typeof errors === 'object') {
+                    if (errors.message) {
+                        mensajeError = errors.message;
+                    } else if (errors[0]) {
+                        mensajeError = errors[0];
+                    }
+                }
+
+                // Mostrar error al usuario
+                alert(`No se pudo eliminar el departamento: ${mensajeError}`);
+                console.error('Error al eliminar departamento:', errors);
             },
-            onCancel: () => {
-                console.log('onCancel - Eliminación cancelada');
-            },
-            onFinish: (visit) => {
-                console.log('onFinish - Finalizando eliminación');
-                console.log('Visit final:', visit);
+            onFinish: () => {
                 setLoading(false);
             }
         });
-
-        console.log('=== LLAMADA router.delete EJECUTADA ===');
     };    // Cambiar estado del departamento (activar/desactivar)
     const cambiarEstadoDepartamento = (departamento) => {
         const nuevoEstado = departamento.estado === 'inactivo' ? 'disponible' : 'inactivo';
@@ -646,10 +661,26 @@ export default function Departamentos({ auth, departamentos, pagination, filters
     // Función para ver departamento
     const verDepartamento = async (departamento) => {
         try {
+            setLoadingVisualizacion(true);
             setDepartamentoSeleccionado(null); // Limpiamos el estado anterior
-            await new Promise(resolve => setTimeout(resolve, 0)); // Micropause para el estado
+            
+            // Pre-cargar imágenes si es posible
+            const imagenesPrecargar = [
+                departamento.imagen_principal,
+                departamento.imagen_galeria_1,
+                departamento.imagen_galeria_2,
+                departamento.imagen_galeria_3,
+                departamento.imagen_galeria_4,
+                departamento.imagen_galeria_5
+            ].filter(url => url); // Filtrar URLs vacías
+            
+            // Tiempo corto de carga para mejor experiencia visual
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
             setDepartamentoSeleccionado(departamento);
             setShowVerModal(true);
+            // Dejamos el estado de carga un poco más para que la animación se vea bien
+            setTimeout(() => setLoadingVisualizacion(false), 300);
         } catch (error) {
             console.error('Error al mostrar departamento:', error);
         }
@@ -803,7 +834,8 @@ export default function Departamentos({ auth, departamentos, pagination, filters
             }
         >
             <Head title="Gestión de Propiedades - Inmobiliaria" />
-            
+            <ToastContainer />
+
             <div className="py-6">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {activeFlash?.message && (
@@ -1111,21 +1143,19 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                                             </button>
                                                             <button
                                                                 onClick={() => cambiarEstadoDepartamento(departamento)}
-                                                                className={`font-medium ${
-                                                                    departamento.estado === 'inactivo'
-                                                                        ? 'text-green-600 hover:text-green-900'
-                                                                        : 'text-orange-600 hover:text-orange-900'
-                                                                }`}
+                                                                className={`font-medium ${departamento.estado === 'inactivo'
+                                                                    ? 'text-green-600 hover:text-green-900'
+                                                                    : 'text-orange-600 hover:text-orange-900'
+                                                                    }`}
                                                             >
                                                                 {departamento.estado === 'inactivo' ? 'Activar' : 'Desactivar'}
                                                             </button>
                                                             <button
                                                                 onClick={() => toggleDestacado(departamento)}
-                                                                className={`font-medium ${
-                                                                    departamento.destacado
-                                                                        ? 'text-yellow-600 hover:text-yellow-900'
-                                                                        : 'text-purple-600 hover:text-purple-900'
-                                                                }`}
+                                                                className={`font-medium ${departamento.destacado
+                                                                    ? 'text-yellow-600 hover:text-yellow-900'
+                                                                    : 'text-purple-600 hover:text-purple-900'
+                                                                    }`}
                                                             >
                                                                 {departamento.destacado ? '⭐ Destacado' : '☆ Destacar'}
                                                             </button>
@@ -1160,22 +1190,20 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                 <button
                                     onClick={() => cambiarPagina(paginacion.current_page - 1)}
                                     disabled={paginacion.current_page === 1}
-                                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                                        paginacion.current_page === 1
-                                            ? 'text-gray-400 bg-gray-100'
-                                            : 'text-gray-700 bg-white hover:bg-gray-50'
-                                    }`}
+                                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${paginacion.current_page === 1
+                                        ? 'text-gray-400 bg-gray-100'
+                                        : 'text-gray-700 bg-white hover:bg-gray-50'
+                                        }`}
                                 >
                                     Anterior
                                 </button>
                                 <button
                                     onClick={() => cambiarPagina(paginacion.current_page + 1)}
                                     disabled={paginacion.current_page === paginacion.last_page}
-                                    className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                                        paginacion.current_page === paginacion.last_page
-                                            ? 'text-gray-400 bg-gray-100'
-                                            : 'text-gray-700 bg-white hover:bg-gray-50'
-                                    }`}
+                                    className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${paginacion.current_page === paginacion.last_page
+                                        ? 'text-gray-400 bg-gray-100'
+                                        : 'text-gray-700 bg-white hover:bg-gray-50'
+                                        }`}
                                 >
                                     Siguiente
                                 </button>
@@ -1193,11 +1221,10 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                         <button
                                             onClick={() => cambiarPagina(paginacion.current_page - 1)}
                                             disabled={paginacion.current_page === 1}
-                                            className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 ${
-                                                paginacion.current_page === 1
-                                                    ? 'text-gray-400 bg-gray-100'
-                                                    : 'bg-white text-gray-500 hover:bg-gray-50'
-                                            }`}
+                                            className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 ${paginacion.current_page === 1
+                                                ? 'text-gray-400 bg-gray-100'
+                                                : 'bg-white text-gray-500 hover:bg-gray-50'
+                                                }`}
                                         >
                                             <span className="sr-only">Anterior</span>
                                             <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1213,8 +1240,8 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                                 (page >= paginacion.current_page - 1 && page <= paginacion.current_page + 1)
                                             )
                                             .map((page, i, array) => {
-                                                const showEllipsisBefore = i > 0 && array[i-1] !== page - 1;
-                                                const showEllipsisAfter = i < array.length - 1 && array[i+1] !== page + 1;
+                                                const showEllipsisBefore = i > 0 && array[i - 1] !== page - 1;
+                                                const showEllipsisAfter = i < array.length - 1 && array[i + 1] !== page + 1;
 
                                                 return (
                                                     <React.Fragment key={page}>
@@ -1225,11 +1252,10 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                                         )}
                                                         <button
                                                             onClick={() => cambiarPagina(page)}
-                                                            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${
-                                                                page === paginacion.current_page
-                                                                    ? 'bg-blue-50 text-blue-600'
-                                                                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                                                            }`}
+                                                            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${page === paginacion.current_page
+                                                                ? 'bg-blue-50 text-blue-600'
+                                                                : 'bg-white text-gray-700 hover:bg-gray-50'
+                                                                }`}
                                                         >
                                                             {page}
                                                         </button>
@@ -1246,11 +1272,10 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                         <button
                                             onClick={() => cambiarPagina(paginacion.current_page + 1)}
                                             disabled={paginacion.current_page === paginacion.last_page}
-                                            className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 ${
-                                                paginacion.current_page === paginacion.last_page
-                                                    ? 'text-gray-400 bg-gray-100'
-                                                    : 'bg-white text-gray-500 hover:bg-gray-50'
-                                            }`}
+                                            className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 ${paginacion.current_page === paginacion.last_page
+                                                ? 'text-gray-400 bg-gray-100'
+                                                : 'bg-white text-gray-500 hover:bg-gray-50'
+                                                }`}
                                         >
                                             <span className="sr-only">Siguiente</span>
                                             <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1265,144 +1290,228 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                 </div>
             </div>
 
-            {/* Modal Ver Departamento */}
-            {showVerModal && departamentoSeleccionado && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900">
-                                    Ver Departamento: {departamentoSeleccionado.codigo}
-                                </h2>
-                                <button
-                                    onClick={cerrarModales}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
+            {/* Modal Ver Departamento - Mejorado con animación */}
+            {showVerModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 animate-fade-in">
+                    <div className={`bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-xl transform transition-all duration-300 ${departamentoSeleccionado && !loadingVisualizacion ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+                        {loadingVisualizacion ? (
+                            <div className="flex flex-col items-center justify-center p-12">
+                                <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                                <p className="text-lg text-gray-600 font-medium">Cargando información del departamento...</p>
                             </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-4">Información General</h3>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Código</label>
-                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.codigo}</p>
+                        ) : departamentoSeleccionado && (
+                            <>
+                                <div className="border-b border-gray-200">
+                                    <div className="p-4 flex justify-between items-center bg-gray-50 rounded-t-lg">
+                                        <div className="flex items-center">
+                                            <svg className="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                            </svg>
+                                            <h2 className="text-xl font-bold text-gray-800">
+                                                Ver Departamento: <span className="text-blue-600">{departamentoSeleccionado.codigo}</span>
+                                            </h2>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Título</label>
-                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.titulo}</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Descripción</label>
-                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.descripcion}</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Ubicación</label>
-                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.ubicacion}</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Dirección</label>
-                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.direccion || 'No especificada'}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-4">Detalles</h3>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Precio</label>
-                                            <p className="text-sm text-gray-900">S/ {parseFloat(departamentoSeleccionado.precio).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Habitaciones</label>
-                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.habitaciones}</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Baños</label>
-                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.banos}</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Área Total</label>
-                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.area_total} m²</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Estacionamientos</label>
-                                            <p className="text-sm text-gray-900">{departamentoSeleccionado.estacionamientos || 0}</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Estado</label>
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                departamentoSeleccionado.estado === 'disponible' ? 'bg-green-100 text-green-800' :
-                                                departamentoSeleccionado.estado === 'reservado' ? 'bg-yellow-100 text-yellow-800' :
-                                                departamentoSeleccionado.estado === 'vendido' ? 'bg-red-100 text-red-800' :
-                                                'bg-gray-100 text-gray-800'
-                                            }`}>
+                                        <div className="flex items-center space-x-3">
+                                            <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${departamentoSeleccionado.estado === 'disponible' ? 'bg-green-100 text-green-800' :
+                                                    departamentoSeleccionado.estado === 'reservado' ? 'bg-yellow-100 text-yellow-800' :
+                                                        departamentoSeleccionado.estado === 'vendido' ? 'bg-red-100 text-red-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                                }`}>
                                                 {getEstadoTexto(departamentoSeleccionado.estado)}
                                             </span>
+                                            <button
+                                                onClick={cerrarModales}
+                                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                                aria-label="Cerrar"
+                                            >
+                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Galería de Imágenes */}
-                            {(departamentoSeleccionado.imagen_principal ||
-                              departamentoSeleccionado.imagen_galeria_1 ||
-                              departamentoSeleccionado.imagen_galeria_2 ||
-                              departamentoSeleccionado.imagen_galeria_3 ||
-                              departamentoSeleccionado.imagen_galeria_4 ||
-                              departamentoSeleccionado.imagen_galeria_5) && (
-                                <div className="mt-8">
-                                    <h3 className="text-lg font-semibold mb-4">📸 Galería de Imágenes</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {departamentoSeleccionado.imagen_principal && (
-                                            <div className="md:col-span-3">
-                                                <p className="text-sm font-medium text-gray-700 mb-2">Imagen Principal</p>
-                                                <img
-                                                    src={departamentoSeleccionado.imagen_principal}
-                                                    alt="Imagen principal del departamento"
-                                                    className="w-full h-64 object-cover rounded-lg border shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-                                                    onClick={() => window.open(departamentoSeleccionado.imagen_principal, '_blank')}
-                                                    onError={(e) => e.target.style.display = "none"}
-                                                />
+                                <div className="p-6">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                                        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                                            <div className="flex items-center mb-4">
+                                                <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <h3 className="text-lg font-semibold text-gray-800">Información General</h3>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-3 border-b border-gray-100 pb-2">
+                                                    <label className="text-sm font-medium text-gray-500">Código</label>
+                                                    <p className="text-sm font-semibold text-gray-800 col-span-2">{departamentoSeleccionado.codigo}</p>
+                                                </div>
+                                                <div className="grid grid-cols-3 border-b border-gray-100 pb-2">
+                                                    <label className="text-sm font-medium text-gray-500">Título</label>
+                                                    <p className="text-sm font-semibold text-gray-800 col-span-2">{departamentoSeleccionado.titulo}</p>
+                                                </div>
+                                                <div className="grid grid-cols-3 border-b border-gray-100 pb-2">
+                                                    <label className="text-sm font-medium text-gray-500">Descripción</label>
+                                                    <p className="text-sm text-gray-800 col-span-2">{departamentoSeleccionado.descripcion || 'Sin descripción'}</p>
+                                                </div>
+                                                <div className="grid grid-cols-3 border-b border-gray-100 pb-2">
+                                                    <label className="text-sm font-medium text-gray-500">Ubicación</label>
+                                                    <p className="text-sm text-gray-800 col-span-2">{departamentoSeleccionado.ubicacion}</p>
+                                                </div>
+                                                <div className="grid grid-cols-3">
+                                                    <label className="text-sm font-medium text-gray-500">Dirección</label>
+                                                    <p className="text-sm text-gray-800 col-span-2">{departamentoSeleccionado.direccion || 'No especificada'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                                            <div className="flex items-center mb-4">
+                                                <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                                                </svg>
+                                                <h3 className="text-lg font-semibold text-gray-800">Detalles</h3>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-3 border-b border-gray-100 pb-2">
+                                                    <label className="text-sm font-medium text-gray-500">Precio</label>
+                                                    <p className="text-sm font-bold text-blue-700 col-span-2">S/ {parseFloat(departamentoSeleccionado.precio).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</p>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <div className="bg-blue-50 p-2 rounded-lg flex flex-col items-center justify-center">
+                                                        <span className="text-sm font-medium text-gray-500">Habitaciones</span>
+                                                        <p className="text-lg font-bold text-blue-700">{departamentoSeleccionado.habitaciones}</p>
+                                                    </div>
+                                                    <div className="bg-blue-50 p-2 rounded-lg flex flex-col items-center justify-center">
+                                                        <span className="text-sm font-medium text-gray-500">Baños</span>
+                                                        <p className="text-lg font-bold text-blue-700">{departamentoSeleccionado.banos}</p>
+                                                    </div>
+                                                    <div className="bg-blue-50 p-2 rounded-lg flex flex-col items-center justify-center">
+                                                        <span className="text-sm font-medium text-gray-500">Estacionam.</span>
+                                                        <p className="text-lg font-bold text-blue-700">{departamentoSeleccionado.estacionamientos || 0}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-3 border-b border-gray-100 py-2">
+                                                    <label className="text-sm font-medium text-gray-500">Área Total</label>
+                                                    <p className="text-sm font-semibold text-gray-800 col-span-2">{departamentoSeleccionado.area_total} m²</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Galería de Imágenes - Más compacta */}
+                                    {(departamentoSeleccionado.imagen_principal ||
+                                        departamentoSeleccionado.imagen_galeria_1 ||
+                                        departamentoSeleccionado.imagen_galeria_2 ||
+                                        departamentoSeleccionado.imagen_galeria_3 ||
+                                        departamentoSeleccionado.imagen_galeria_4 ||
+                                        departamentoSeleccionado.imagen_galeria_5) && (
+                                            <div className="mt-6">
+                                                <div className="flex items-center mb-2">
+                                                    <svg className="w-4 h-4 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                    <h3 className="text-md font-semibold">Imágenes del Departamento</h3>
+                                                </div>
+
+                                                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 max-w-3xl mx-auto">
+                                                    {/* Imagen Principal - Más compacta */}
+                                                    {departamentoSeleccionado.imagen_principal && (
+                                                        <div className="mb-4 animate-slide-up">
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <p className="text-sm font-semibold text-gray-700">Imagen Principal</p>
+                                                                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">Principal</span>
+                                                            </div>
+                                                            <div className="rounded-lg overflow-hidden border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 bg-white max-w-md mx-auto">
+                                                                <div className="relative" style={{ height: '180px' }}>
+                                                                    <img
+                                                                        src={departamentoSeleccionado.imagen_principal}
+                                                                        alt="Imagen principal del departamento"
+                                                                        className="absolute inset-0 w-full h-full object-contain animate-fade-in"
+                                                                        onClick={() => window.open(departamentoSeleccionado.imagen_principal, '_blank')}
+                                                                        onError={(e) => {
+                                                                            e.target.src = 'https://via.placeholder.com/150?text=Imagen+no+disponible';
+                                                                            e.target.onerror = null;
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                                <div className="p-2 bg-white flex justify-end">
+                                                                    <button
+                                                                        onClick={() => window.open(departamentoSeleccionado.imagen_principal, '_blank')}
+                                                                        className="text-blue-600 hover:text-blue-800 text-xs flex items-center"
+                                                                    >
+                                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                                        </svg>
+                                                                        Ver a tamaño completo
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Galería de imágenes secundarias - Más compacta */}
+                                                    <div className="flex flex-wrap justify-center gap-2">
+                                                        {[
+                                                            { key: 'imagen_galeria_1', title: 'Galería 1' },
+                                                            { key: 'imagen_galeria_2', title: 'Galería 2' },
+                                                            { key: 'imagen_galeria_3', title: 'Galería 3' },
+                                                            { key: 'imagen_galeria_4', title: 'Galería 4' },
+                                                            { key: 'imagen_galeria_5', title: 'Galería 5' }
+                                                        ].filter(img => departamentoSeleccionado[img.key]).map((img, index) => (
+                                                            <div
+                                                                key={img.key}
+                                                                className="bg-white rounded overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 animate-slide-up w-[130px]"
+                                                                style={{ animationDelay: `${index * 100}ms` }}
+                                                            >
+                                                                <div className="relative" style={{ height: '100px' }}>
+                                                                    <img
+                                                                        src={departamentoSeleccionado[img.key]}
+                                                                        alt={`Imagen ${index + 1} del departamento`}
+                                                                        className="absolute inset-0 w-full h-full object-cover animate-fade-in"
+                                                                        style={{ animationDelay: `${(index * 100) + 200}ms` }}
+                                                                        onClick={() => window.open(departamentoSeleccionado[img.key], '_blank')}
+                                                                        onError={(e) => {
+                                                                            e.target.src = 'https://via.placeholder.com/100x100?text=No+disponible';
+                                                                            e.target.onerror = null;
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                                <div className="p-1 flex justify-between items-center bg-white">
+                                                                    <p className="text-xs font-medium text-gray-600">{`Imagen ${index + 1}`}</p>
+                                                                    <button
+                                                                        onClick={() => window.open(departamentoSeleccionado[img.key], '_blank')}
+                                                                        className="text-blue-600 hover:text-blue-800"
+                                                                        aria-label="Ver imagen"
+                                                                    >
+                                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                                        </svg>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             </div>
                                         )}
 
-                                        {[
-                                            { key: 'imagen_galeria_1', title: 'Galería 1' },
-                                            { key: 'imagen_galeria_2', title: 'Galería 2' },
-                                            { key: 'imagen_galeria_3', title: 'Galería 3' },
-                                            { key: 'imagen_galeria_4', title: 'Galería 4' },
-                                            { key: 'imagen_galeria_5', title: 'Galería 5' }
-                                        ].filter(img => departamentoSeleccionado[img.key]).map(img => (
-                                            <div key={img.key}>
-                                                <p className="text-xs font-medium text-gray-600 mb-1">{img.title}</p>
-                                                <img
-                                                    src={departamentoSeleccionado[img.key]}
-                                                    alt={img.title}
-                                                    className="w-full h-32 object-cover rounded border hover:shadow-md transition-shadow cursor-pointer"
-                                                    onClick={() => window.open(departamentoSeleccionado[img.key], '_blank')}
-                                                    onError={(e) => e.target.style.display = "none"}
-                                                />
-                                            </div>
-                                        ))}
+                                    <div className="mt-8 flex justify-end border-t border-gray-200 pt-4">
+                                        <button
+                                            onClick={cerrarModales}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center"
+                                        >
+                                            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            Cerrar
+                                        </button>
                                     </div>
                                 </div>
-                            )}
-
-                            <div className="mt-6 flex justify-end">
-                                <button
-                                    onClick={cerrarModales}
-                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                                >
-                                    Cerrar
-                                </button>
-                            </div>
-                        </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
@@ -1410,17 +1519,17 @@ export default function Departamentos({ auth, departamentos, pagination, filters
             {/* Modal Editar Departamento */}
             {showEditarModal && departamentoSeleccionado && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-semibold text-gray-900">
                                     Editar Departamento: {departamentoSeleccionado.codigo}
                                 </h2>
                                 <button
                                     onClick={cerrarModales}
                                     className="text-gray-400 hover:text-gray-600"
                                 >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
@@ -1432,17 +1541,25 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                 onSave={(datos) => {
                                     // Actualizar departamento
                                     setLoading(true);
-                                    
+
                                     router.put(`/admin/departamentos/${departamentoSeleccionado.id}`, datos, {
                                         preserveState: false,
                                         onSuccess: () => {
+                                            // Mostrar mensaje de éxito
+                                            toast.success('¡Departamento actualizado correctamente!', {
+                                                position: "top-right",
+                                                autoClose: 3000
+                                            });
                                             cerrarModales();
                                             router.reload();
                                         },
                                         onError: (errors) => {
                                             console.error('Error al actualizar:', errors);
-                                            // Mostrar mensajes de error
-                                            alert('Hay errores en el formulario. Por favor, verifica que todos los campos obligatorios estén completos.');
+                                            // Mostrar mensaje de error más amigable
+                                            toast.error('Hay errores en el formulario. Verifica los campos requeridos.', {
+                                                position: "top-right",
+                                                autoClose: 4000
+                                            });
                                         },
                                         onFinish: () => {
                                             setLoading(false);

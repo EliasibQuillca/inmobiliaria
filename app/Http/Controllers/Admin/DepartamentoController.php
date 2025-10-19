@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\DepartamentoController as ApiDepartamentoController;
+use App\Models\Departamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -75,6 +76,12 @@ class DepartamentoController extends Controller
     public function show($id)
     {
         try {
+            // La vista VerDepartamento no existe todavía, redireccionar al índice
+            Log::info('Redirigiendo desde show a index porque la vista de detalle no existe', ['id' => $id]);
+            return redirect()->route('admin.departamentos.index')
+                ->with('info', 'La vista de detalle está en desarrollo. Por favor, use la lista para gestionar departamentos.');
+                
+            /* Código original comentado - descomentar cuando se cree la vista
             $response = $this->apiController->show($id);
             $data = json_decode($response->getContent(), true);
 
@@ -83,14 +90,15 @@ class DepartamentoController extends Controller
                     'departamento' => $data['data']
                 ]);
             } else {
-                return redirect()->route('departamentos.index')->with('error', 'Departamento no encontrado');
+                return redirect()->route('admin.departamentos.index')->with('error', 'Departamento no encontrado');
             }
+            */
         } catch (\Exception $e) {
             Log::error('Error en show departamento', [
                 'id' => $id,
                 'error' => $e->getMessage()
             ]);
-            return redirect()->route('departamentos.index')->with('error', 'Error al cargar departamento');
+            return redirect()->route('admin.departamentos.index')->with('error', 'Error al cargar departamento');
         }
     }
 
@@ -122,14 +130,10 @@ class DepartamentoController extends Controller
 
             if ($response->getStatusCode() === 201) {
                 $departamentoId = $data['data']['id'] ?? null;
-
-                if ($departamentoId) {
-                    return redirect()->route('admin.departamentos.edit', $departamentoId)
-                        ->with('success', 'Departamento creado correctamente. Ahora puede agregar imágenes y más detalles.');
-                } else {
-                    return redirect()->route('admin.departamentos.index')
-                        ->with('success', 'Departamento creado correctamente. Ahora puede agregar imágenes y más detalles.');
-                }
+                
+                // Siempre redirigimos a la lista de departamentos
+                return redirect()->route('admin.departamentos.index')
+                    ->with('success', 'Departamento creado correctamente. Ahora puede agregar imágenes y más detalles.');
             } else {
                 return redirect()->back()->withInput()->with('error', $data['message'] ?? 'Error al crear el departamento');
             }
@@ -194,6 +198,11 @@ class DepartamentoController extends Controller
             if ($response->getStatusCode() === 200) {
                 Log::info('Departamento actualizado correctamente', ['id' => $departamento]);
                 
+                // Si hay imágenes nuevas, procesarlas
+                if ($request->hasFile('imagenes')) {
+                    $this->subirImagenes($request, $departamento);
+                }
+                
                 // Para solicitudes AJAX/API
                 if ($request->expectsJson()) {
                     return response()->json([
@@ -204,7 +213,7 @@ class DepartamentoController extends Controller
                 
                 // Para solicitudes web normales
                 session()->flash('success', 'Departamento actualizado correctamente');
-                return redirect()->route('admin.departamentos.index');
+                return redirect()->route('admin.departamentos.edit', $departamento);
             }
 
             if ($response->getStatusCode() === 422) {
@@ -287,15 +296,46 @@ class DepartamentoController extends Controller
         try {
             Log::info('Método destroy llamado', ['id' => $id]);
 
+            // Obtener departamento para incluir información en logs
+            $departamento = Departamento::find($id);
+            if (!$departamento) {
+                Log::warning('Intento de eliminar un departamento inexistente', ['id' => $id]);
+                return response()->json([
+                    'message' => 'Departamento no encontrado'
+                ], 404);
+            }
+
+            Log::info('Eliminando departamento', [
+                'id' => $id,
+                'codigo' => $departamento->codigo,
+                'titulo' => $departamento->titulo
+            ]);
+
+            // Llamar al API Controller para procesar la eliminación
             $response = $this->apiController->destroy($id);
             $data = json_decode($response->getContent(), true);
             $statusCode = $response->getStatusCode();
 
             Log::info('Respuesta del API controller', ['status' => $statusCode, 'data' => $data]);
 
+            // Para solicitudes Ajax/Inertia, devolver respuesta JSON
+            if (request()->wantsJson() || request()->header('X-Inertia')) {
+                if ($statusCode === 200) {
+                    // Para solicitudes Inertia es mejor redireccionar a la página de listado
+                    // en lugar de renderizar directamente
+                    return redirect()->route('admin.departamentos.index')
+                        ->with('success', 'Departamento eliminado correctamente');
+                } else {
+                    return response()->json([
+                        'message' => $data['message'] ?? 'Error al eliminar el departamento'
+                    ], $statusCode);
+                }
+            } 
+            
+            // Para solicitudes normales, redireccionar
             if ($statusCode === 200) {
                 Log::info('Departamento eliminado exitosamente', ['id' => $id]);
-                return redirect()->route('admin.departamentos')->with('success', 'Departamento eliminado correctamente');
+                return redirect()->route('admin.departamentos.index')->with('success', 'Departamento eliminado correctamente');
             } else {
                 Log::warning('Error al eliminar departamento', ['id' => $id, 'data' => $data]);
                 return redirect()->back()->with('error', $data['message'] ?? 'Error al eliminar el departamento');
@@ -307,6 +347,13 @@ class DepartamentoController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
+            
+            if (request()->wantsJson() || request()->header('X-Inertia')) {
+                return response()->json([
+                    'message' => 'Error al eliminar departamento: ' . $e->getMessage()
+                ], 500);
+            }
+            
             return redirect()->back()->with('error', 'Error al eliminar departamento: ' . $e->getMessage());
         }
     }
@@ -396,6 +443,48 @@ class DepartamentoController extends Controller
                 'error' => $e->getMessage()
             ]);
             return response()->json(['error' => 'Error al eliminar imagen'], 500);
+        }
+    }
+    
+    /**
+     * Cambiar el orden de una imagen
+     */
+    public function cambiarOrdenImagen(Request $request, $departamentoId, $imagenId)
+    {
+        try {
+            $request->validate([
+                'orden' => 'required|integer|min:0'
+            ]);
+            
+            $imagen = \App\Models\Imagen::where('departamento_id', $departamentoId)
+                ->where('id', $imagenId)
+                ->firstOrFail();
+                
+            $nuevoOrden = $request->input('orden');
+            
+            // Si el orden es 0, hacer esta imagen la principal
+            if ($nuevoOrden == 0) {
+                // Primero marcar todas como galería
+                \App\Models\Imagen::where('departamento_id', $departamentoId)
+                    ->update(['tipo' => 'galeria']);
+                
+                // Luego marcar esta como principal
+                $imagen->update([
+                    'tipo' => 'principal',
+                    'orden' => $nuevoOrden
+                ]);
+            } else {
+                $imagen->update(['orden' => $nuevoOrden]);
+            }
+            
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Error al cambiar orden de imagen', [
+                'departamento_id' => $departamentoId,
+                'imagen_id' => $imagenId,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['error' => 'Error al cambiar orden de imagen'], 500);
         }
     }
 

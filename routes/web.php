@@ -76,6 +76,11 @@ Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.
         Route::delete('/{id}', [AdminDepartamentoController::class, 'destroy'])->name('destroy');
         Route::patch('/{id}/estado', [AdminDepartamentoController::class, 'cambiarEstado'])->name('cambiar-estado');
         Route::patch('/{id}/destacado', [AdminDepartamentoController::class, 'toggleDestacado'])->name('toggle-destacado');
+        
+        // Rutas para manejo de imágenes
+        Route::post('/{id}/imagenes', [AdminDepartamentoController::class, 'subirImagenes'])->name('subir-imagenes');
+        Route::delete('/{id}/imagenes/{imagen}', [AdminDepartamentoController::class, 'eliminarImagen'])->name('eliminar-imagen');
+        Route::put('/{id}/imagenes/{imagen}/orden', [AdminDepartamentoController::class, 'cambiarOrdenImagen'])->name('cambiar-orden-imagen');
     });
     
     // Rutas para usuarios
