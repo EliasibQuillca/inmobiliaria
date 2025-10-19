@@ -30,9 +30,9 @@ class AdminRedirectMiddleware
                 return redirect()->route('asesor.dashboard');
             }
 
-            // Si es cliente y está en rutas de admin o asesor, redirigir
+            // Si es cliente y está en rutas de admin o asesor, devolver 403
             if ($user->role === 'cliente' && ($request->is('admin/*') || $request->is('asesor/*'))) {
-                return redirect()->route('cliente.dashboard');
+                abort(403, 'No tienes permiso para acceder a esta sección.');
             }
         }
 

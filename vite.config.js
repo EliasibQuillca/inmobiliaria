@@ -16,4 +16,12 @@ export default defineConfig({
             '@': path.resolve(__dirname, 'resources/js'),
         },
     },
+    server: {
+        host: '127.0.0.1', // Forzar IPv4
+        port: 5173,
+        strictPort: false,
+        hmr: {
+            host: '127.0.0.1', // HMR también en IPv4
+        },
+    },
 });

@@ -16,7 +16,7 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
             title: 'Cotizaciones',
             description: 'Crear y gestionar cotizaciones de departamentos',
             icon: '💰',
-            href: route('asesor.cotizaciones'),
+            href: '/asesor/cotizaciones',
             color: 'bg-green-500',
             count: estadisticas.cotizaciones_activas || 0
         },
@@ -48,19 +48,44 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
 
     return (
         <AsesorLayout user={auth.user}>
-            <Head title="Dashboard - Asesor" />
+            <Head title="Dashboard - Asesor Inmobiliaria" />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* Bienvenida */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
+                    {/* Banner de nueva versión */}
+                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 overflow-hidden shadow-lg sm:rounded-lg mb-8 animate-pulse">
+                        <div className="p-6 text-white">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0">
+                                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                        <span className="text-2xl">🌟</span>
+                                    </div>
+                                </div>
+                                <div className="ml-4">
+                                    <h2 className="text-xl font-bold">¡Nueva interfaz actualizada!</h2>
+                                    <p className="text-white text-opacity-80">Hemos mejorado tu experiencia como asesor</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Bienvenida modificada */}
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8 border-l-4 border-green-500">
                         <div className="p-6 text-gray-900">
-                            <h1 className="text-3xl font-bold mb-2">
-                                ¡Bienvenido, {auth.user?.name}!
+                            <h1 className="text-3xl font-bold mb-2 text-green-600">
+                                ¡Bienvenido a tu nuevo panel, {auth.user?.name}! 🎉
                             </h1>
                             <p className="text-gray-600">
-                                Gestiona tus actividades diarias como asesor inmobiliario
+                                Gestiona tus actividades diarias como asesor inmobiliario con nuestra interfaz renovada
                             </p>
+                            <div className="mt-4 flex space-x-4">
+                                <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
+                                    Ver tutorial 📚
+                                </button>
+                                <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                                    Configurar perfil ⚙️
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -194,25 +219,39 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
                         ))}
                     </div>
 
+                    {/* Información de rendimiento */}
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
+                        <div className="p-6">
+                            <h2 className="text-xl font-bold mb-4">Tu rendimiento del mes</h2>
+                            <div className="bg-gray-100 h-4 rounded-full overflow-hidden">
+                                <div className="bg-gradient-to-r from-green-400 to-green-600 h-4 rounded-full" style={{ width: '75%' }}></div>
+                            </div>
+                            <div className="flex justify-between mt-2 text-sm text-gray-600">
+                                <span>Meta mensual: 75%</span>
+                                <span className="font-medium">¡Excelente progreso!</span>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Acciones rápidas */}
                     <div className="mt-8 bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6">
                             <h2 className="text-lg font-medium text-gray-900 mb-4">Acciones Rápidas</h2>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <Link
-                                    href={route('asesor.cotizaciones.create')}
+                                    href="/asesor/cotizaciones/crear"
                                     className="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 transition ease-in-out duration-150"
                                 >
                                     Nueva Cotización
                                 </Link>
                                 <Link
-                                    href={route('asesor.reservas.create')}
+                                    href="/asesor/reservas/crear"
                                     className="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 active:bg-yellow-900 focus:outline-none focus:border-yellow-900 focus:ring ring-yellow-300 transition ease-in-out duration-150"
                                 >
                                     Nueva Reserva
                                 </Link>
                                 <Link
-                                    href={route('asesor.ventas.create')}
+                                    href="/asesor/ventas/crear"
                                     className="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 active:bg-purple-900 focus:outline-none focus:border-purple-900 focus:ring ring-purple-300 transition ease-in-out duration-150"
                                 >
                                     Nueva Venta

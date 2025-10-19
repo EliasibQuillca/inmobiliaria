@@ -103,3 +103,63 @@ Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.
     
     // Otras rutas de administrador...
 });
+
+// Rutas protegidas de asesor
+Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
+    // Dashboard asesor
+    Route::get('/dashboard', [AsesorDashboardController::class, 'index'])->name('dashboard');
+    
+    // Perfil asesor
+    Route::get('/perfil', [AsesorPerfilController::class, 'index'])->name('perfil');
+    Route::patch('/perfil', [AsesorPerfilController::class, 'update'])->name('perfil.update');
+    Route::patch('/password', [AsesorPerfilController::class, 'updatePassword'])->name('password.update');
+    
+    // Configuración
+    Route::get('/configuracion', [AsesorConfiguracionController::class, 'index'])->name('configuracion');
+    Route::patch('/configuracion/notificaciones', [AsesorConfiguracionController::class, 'updateNotificaciones'])->name('configuracion.notificaciones');
+    Route::patch('/configuracion/horarios', [AsesorConfiguracionController::class, 'updateHorarios'])->name('configuracion.horarios');
+    
+    // Clientes
+    Route::get('/clientes', [AsesorClienteController::class, 'index'])->name('clientes.index');
+    Route::get('/clientes/crear', [AsesorClienteController::class, 'create'])->name('clientes.create');
+    Route::post('/clientes', [AsesorClienteController::class, 'store'])->name('clientes.store');
+    Route::get('/clientes/{id}', [AsesorClienteController::class, 'show'])->name('clientes.show');
+    Route::patch('/clientes/{id}', [AsesorClienteController::class, 'update'])->name('clientes.update');
+    
+    // Solicitudes
+    Route::get('/solicitudes', [AsesorSolicitudController::class, 'index'])->name('solicitudes');
+    Route::post('/solicitudes/contacto', [AsesorSolicitudController::class, 'registrarContacto'])->name('solicitudes.contacto');
+    Route::patch('/solicitudes/{id}/seguimiento', [AsesorSolicitudController::class, 'actualizarSeguimiento'])->name('solicitudes.seguimiento');
+    Route::get('/solicitudes/{id}/historial', [AsesorSolicitudController::class, 'historialCliente'])->name('solicitudes.historial');
+    Route::post('/solicitudes/{id}/cita', [AsesorSolicitudController::class, 'agendarCita'])->name('solicitudes.cita');
+    Route::post('/solicitudes/buscar-departamentos', [AsesorSolicitudController::class, 'buscarDepartamentos'])->name('solicitudes.buscar-departamentos');
+    
+    // Cotizaciones
+    Route::get('/cotizaciones', [AsesorCotizacionController::class, 'index'])->name('cotizaciones');
+    Route::get('/cotizaciones/crear/{cliente_id?}', [AsesorCotizacionController::class, 'create'])->name('cotizaciones.crear');
+    Route::post('/cotizaciones', [AsesorCotizacionController::class, 'store'])->name('cotizaciones.store');
+    Route::get('/cotizaciones/{id}', [AsesorCotizacionController::class, 'show'])->name('cotizaciones.show');
+    Route::get('/cotizaciones/{id}/editar', [AsesorCotizacionController::class, 'edit'])->name('cotizaciones.edit');
+    Route::patch('/cotizaciones/{id}', [AsesorCotizacionController::class, 'update'])->name('cotizaciones.update');
+    Route::delete('/cotizaciones/{id}', [AsesorCotizacionController::class, 'destroy'])->name('cotizaciones.destroy');
+    Route::get('/cotizaciones/{id}/pdf', [AsesorCotizacionController::class, 'generarPDF'])->name('cotizaciones.pdf');
+    
+    // Reservas
+    Route::get('/reservas', [AsesorReservaController::class, 'index'])->name('reservas');
+    Route::get('/reservas/crear/{cotizacion_id?}', [AsesorReservaController::class, 'create'])->name('reservas.crear');
+    Route::post('/reservas', [AsesorReservaController::class, 'store'])->name('reservas.store');
+    Route::get('/reservas/{id}', [AsesorReservaController::class, 'show'])->name('reservas.show');
+    Route::patch('/reservas/{id}', [AsesorReservaController::class, 'update'])->name('reservas.update');
+    Route::patch('/reservas/{id}/estado', [AsesorReservaController::class, 'actualizarEstado'])->name('reservas.actualizar-estado');
+    
+    // Ventas
+    Route::get('/ventas', [AsesorVentaController::class, 'index'])->name('ventas');
+    Route::get('/ventas/crear/{reserva_id?}', [AsesorVentaController::class, 'create'])->name('ventas.crear');
+    Route::get('/ventas/create/{reserva_id?}', [AsesorVentaController::class, 'create'])->name('ventas.create'); // Alias para compatibilidad
+    Route::post('/ventas', [AsesorVentaController::class, 'store'])->name('ventas.store');
+    Route::get('/ventas/{id}', [AsesorVentaController::class, 'show'])->name('ventas.show');
+    Route::get('/ventas/{id}/editar', [AsesorVentaController::class, 'edit'])->name('ventas.edit');
+    Route::patch('/ventas/{id}', [AsesorVentaController::class, 'update'])->name('ventas.update');
+    Route::patch('/ventas/{id}/documentos', [AsesorVentaController::class, 'actualizarDocumentos'])->name('ventas.documentos');
+    Route::get('/ventas/{id}/pdf', [AsesorVentaController::class, 'generarPDF'])->name('ventas.pdf');
+});

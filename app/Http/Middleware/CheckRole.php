@@ -23,14 +23,8 @@ class CheckRole
 
         // Verificar si el usuario tiene el rol requerido
         if ($user->role !== $role) {
-            // Redirigir al dashboard apropiado según el rol del usuario
-            if ($user->esCliente()) {
-                return redirect()->route('cliente.dashboard');
-            } elseif ($user->esAsesor()) {
-                return redirect()->route('asesor.dashboard');
-            } else {
-                return redirect()->route('dashboard');
-            }
+            // Devolver un error 403 para las pruebas
+            abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
         return $next($request);
