@@ -13,6 +13,13 @@ class ClienteController extends Controller
 {
     /**
      * Dashboard del cliente (privado - requiere autenticación).
+     * 
+     * Dashboard REALISTA enfocado en la experiencia del usuario:
+     * - Búsqueda de propiedades
+     * - Favoritos y comparativas
+     * - Comunicación con asesores
+     * - Seguimiento de solicitudes
+     * - Progreso hacia la compra
      */
     public function dashboard()
     {
@@ -32,36 +39,67 @@ class ClienteController extends Controller
         }
 
         return inertia('Cliente/Dashboard', [
-            // Estadísticas principales
-            'estadisticas' => $this->obtenerEstadisticasCliente($cliente),
-            
-            // Preferencias del cliente
-            'preferencias' => [
-                'tipo_propiedad' => $cliente->tipo_propiedad,
-                'zona_preferida' => $cliente->zona_preferida,
-                'presupuesto_min' => $cliente->presupuesto_min,
-                'presupuesto_max' => $cliente->presupuesto_max,
-                'habitaciones_deseadas' => $cliente->habitaciones_deseadas,
-                'resultados_en_rango' => Departamento::enRangoCliente($cliente)->count(),
+            // ========================================
+            // ESTADÍSTICAS REALISTAS DEL CLIENTE
+            // ========================================
+            'estadisticas' => [
+                'propiedades_favoritas' => $cliente->favoritos()->count(),
+                'solicitudes_activas' => $cliente->cotizaciones()
+                    ->whereIn('estado', ['pendiente', 'en_proceso'])
+                    ->count(),
+                'mensajes_nuevos' => $this->contarMensajesNuevos($cliente),
+                'citas_programadas' => $this->contarCitasProgramadas($cliente),
             ],
             
-            // Propiedades destacadas con match score
-            'destacados' => $this->obtenerDestacadosConMatch($cliente),
+            // ========================================
+            // BÚSQUEDA INTELIGENTE
+            // ========================================
+            'busqueda' => [
+                'preferencias' => [
+                    'tipo_propiedad' => $cliente->tipo_propiedad ?? 'No definido',
+                    'zona_preferida' => $cliente->zona_preferida ?? 'Cualquier zona',
+                    'presupuesto_min' => $cliente->presupuesto_min,
+                    'presupuesto_max' => $cliente->presupuesto_max,
+                    'habitaciones' => $cliente->habitaciones_deseadas,
+                ],
+                'propiedades_en_rango' => $this->contarPropiedadesEnRango($cliente),
+                'nuevas_propiedades' => $this->contarNuevasPropiedades($cliente),
+            ],
             
-            // Progreso de búsqueda
-            'progreso' => $this->calcularProgresoBusqueda($cliente),
+            // ========================================
+            // PROPIEDADES RECOMENDADAS
+            // ========================================
+            'recomendadas' => $this->obtenerPropiedadesRecomendadas($cliente, 4),
             
-            // Actividades recientes
-            'actividades' => $this->obtenerActividadesRecientes($cliente),
+            // ========================================
+            // FAVORITOS RECIENTES
+            // ========================================
+            'favoritos_recientes' => $this->obtenerFavoritosRecientes($cliente, 3),
             
-            // Notificaciones
-            'notificaciones' => $this->obtenerNotificaciones($cliente),
+            // ========================================
+            // SOLICITUDES ACTIVAS
+            // ========================================
+            'solicitudes' => $this->obtenerSolicitudesActivas($cliente, 5),
             
-            // Asesor asignado
+            // ========================================
+            // ACTIVIDAD RECIENTE (Timeline)
+            // ========================================
+            'actividad_reciente' => $this->obtenerActividadReciente($cliente, 10),
+            
+            // ========================================
+            // ALERTAS Y NOTIFICACIONES
+            // ========================================
+            'alertas' => $this->obtenerAlertas($cliente),
+            
+            // ========================================
+            // ASESOR ASIGNADO
+            // ========================================
             'asesor' => $cliente->asesor ? $cliente->asesor->load('usuario') : null,
             
-            // Datos del cliente
-            'cliente' => $cliente,
+            // ========================================
+            // DATOS DEL CLIENTE
+            // ========================================
+            'cliente' => $cliente->load('usuario'),
         ]);
     }
 
@@ -181,17 +219,18 @@ class ClienteController extends Controller
             }
         }
         
-        // Agregar notificaciones de reservas próximas a vencer
+        // Agregar notificaciones de reservas próximas a finalizar
         $reservasProximas = $cliente->reservas()
-            ->where('fecha_vencimiento', '>', now())
-            ->where('fecha_vencimiento', '<=', now()->addDays(3))
+            ->where('fecha_fin', '>', now())
+            ->where('fecha_fin', '<=', now()->addDays(3))
+            ->where('estado', 'activa')
             ->get();
             
         if ($reservasProximas->isNotEmpty()) {
             foreach ($reservasProximas as $reserva) {
                 $notificaciones[] = [
-                    'titulo' => 'Reserva próxima a vencer',
-                    'descripcion' => 'Tu reserva vence el ' . $reserva->fecha_vencimiento->format('d/m/Y'),
+                    'titulo' => 'Reserva próxima a finalizar',
+                    'descripcion' => 'Tu reserva finaliza el ' . $reserva->fecha_fin->format('d/m/Y'),
                     'fecha' => now()->format('d/m/Y H:i'),
                     'tipo' => 'reserva'
                 ];
@@ -375,5 +414,311 @@ class ClienteController extends Controller
             'reservas' => $reservas,
             'cliente' => $cliente
         ]);
+    }
+
+    // ========================================================
+    // MÉTODOS PRIVADOS PARA DASHBOARD REALISTA
+    // ========================================================
+
+    /**
+     * Contar mensajes nuevos del cliente.
+     */
+    private function contarMensajesNuevos(Cliente $cliente): int
+    {
+        // Por ahora retornar 0 - implementar cuando exista tabla de mensajes
+        return 0;
+    }
+
+    /**
+     * Contar citas programadas activas.
+     */
+    private function contarCitasProgramadas(Cliente $cliente): int
+    {
+        return $cliente->reservas()
+            ->where('estado', 'activa')
+            ->where('fecha_inicio', '>=', now())
+            ->count();
+    }
+
+    /**
+     * Contar propiedades en el rango de preferencias del cliente.
+     */
+    private function contarPropiedadesEnRango(Cliente $cliente): int
+    {
+        $query = Departamento::where('estado', 'disponible');
+
+        if ($cliente->presupuesto_min) {
+            $query->where('precio', '>=', $cliente->presupuesto_min);
+        }
+
+        if ($cliente->presupuesto_max) {
+            $query->where('precio', '<=', $cliente->presupuesto_max);
+        }
+
+        // Nota: La tabla departamentos NO tiene columna 'tipo'
+        // Si el cliente tiene tipo_propiedad, es solo informativo
+
+        if ($cliente->habitaciones_deseadas) {
+            $query->where('habitaciones', '>=', $cliente->habitaciones_deseadas);
+        }
+
+        return $query->count();
+    }
+
+    /**
+     * Contar propiedades nuevas (últimos 7 días).
+     */
+    private function contarNuevasPropiedades(Cliente $cliente): int
+    {
+        $query = Departamento::where('estado', 'disponible')
+            ->where('created_at', '>=', now()->subDays(7));
+
+        if ($cliente->presupuesto_min) {
+            $query->where('precio', '>=', $cliente->presupuesto_min);
+        }
+
+        if ($cliente->presupuesto_max) {
+            $query->where('precio', '<=', $cliente->presupuesto_max);
+        }
+
+        return $query->count();
+    }
+
+    /**
+     * Obtener propiedades recomendadas según preferencias.
+     */
+    /**
+     * Obtener propiedades recomendadas según preferencias.
+     */
+    private function obtenerPropiedadesRecomendadas(Cliente $cliente, int $limit = 4)
+    {
+        $query = Departamento::with(['imagenes' => function($query) {
+                $query->where('tipo', 'principal')->orWhere(function($q) {
+                    $q->orderBy('orden')->limit(1);
+                });
+            }, 'propietario'])
+            ->where('estado', 'disponible');
+
+        // Filtrar por preferencias del cliente
+        if ($cliente->presupuesto_min) {
+            $query->where('precio', '>=', $cliente->presupuesto_min);
+        }
+
+        if ($cliente->presupuesto_max) {
+            $query->where('precio', '<=', $cliente->presupuesto_max);
+        }
+
+        // Nota: La tabla departamentos NO tiene columna 'tipo'
+        // Si el cliente tiene tipo_propiedad, es solo informativo
+
+        if ($cliente->habitaciones_deseadas) {
+            $query->where('habitaciones', '>=', $cliente->habitaciones_deseadas);
+        }
+
+        // Obtener propiedades
+        $propiedades = $query->latest()->limit($limit)->get();
+
+        // Marcar si es favorito
+        foreach ($propiedades as $propiedad) {
+            $propiedad->es_favorito = $cliente->favoritos()
+                ->where('departamento_id', $propiedad->id)
+                ->exists();
+        }
+
+        return $propiedades;
+    }
+
+    /**
+     * Obtener favoritos recientes del cliente.
+     */
+    private function obtenerFavoritosRecientes(Cliente $cliente, int $limit = 3)
+    {
+        return $cliente->favoritos()
+            ->with(['imagenes' => function($query) {
+                $query->where('tipo', 'principal')->orWhere(function($q) {
+                    $q->orderBy('orden')->limit(1);
+                });
+            }, 'propietario'])
+            ->latest('favoritos.created_at')
+            ->limit($limit)
+            ->get()
+            ->map(function($propiedad) {
+                $propiedad->es_favorito = true;
+                return $propiedad;
+            });
+    }
+
+    /**
+     * Obtener solicitudes activas del cliente.
+     */
+    private function obtenerSolicitudesActivas(Cliente $cliente, int $limit = 5)
+    {
+        return $cliente->cotizaciones()
+            ->with(['departamento.imagenes' => function($query) {
+                $query->where('tipo', 'principal')->orWhere(function($q) {
+                    $q->orderBy('orden')->limit(1);
+                });
+            }, 'asesor.usuario'])
+            ->whereIn('estado', ['pendiente', 'en_proceso', 'respondida'])
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Obtener actividad reciente del cliente (timeline).
+     */
+    private function obtenerActividadReciente(Cliente $cliente, int $limit = 10)
+    {
+        $actividades = [];
+
+        // Favoritos agregados recientemente
+        $favoritos = $cliente->favoritos()
+            ->latest('favoritos.created_at')
+            ->limit(5)
+            ->get();
+
+        foreach ($favoritos as $favorito) {
+            $actividades[] = [
+                'tipo' => 'favorito',
+                'icono' => 'heart',
+                'color' => 'red',
+                'titulo' => 'Agregaste a favoritos',
+                'descripcion' => $favorito->direccion,
+                'fecha' => $favorito->pivot->created_at->format('d/m/Y H:i'),
+                'timestamp' => $favorito->pivot->created_at->timestamp,
+            ];
+        }
+
+        // Solicitudes recientes
+        $solicitudes = $cliente->cotizaciones()
+            ->with('departamento')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        foreach ($solicitudes as $solicitud) {
+            $actividades[] = [
+                'tipo' => 'solicitud',
+                'icono' => 'mail',
+                'color' => 'blue',
+                'titulo' => 'Nueva solicitud - ' . ucfirst($solicitud->estado),
+                'descripcion' => $solicitud->departamento->direccion ?? 'Propiedad',
+                'fecha' => $solicitud->created_at->format('d/m/Y H:i'),
+                'timestamp' => $solicitud->created_at->timestamp,
+            ];
+        }
+
+        // Reservas recientes
+        $reservas = $cliente->reservas()
+            ->with('departamento')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        foreach ($reservas as $reserva) {
+            $actividades[] = [
+                'tipo' => 'reserva',
+                'icono' => 'calendar',
+                'color' => 'green',
+                'titulo' => 'Reserva ' . ucfirst($reserva->estado),
+                'descripcion' => $reserva->departamento->direccion ?? 'Propiedad',
+                'fecha' => $reserva->created_at->format('d/m/Y H:i'),
+                'timestamp' => $reserva->created_at->timestamp,
+            ];
+        }
+
+        // Ordenar por timestamp descendente
+        usort($actividades, function($a, $b) {
+            return $b['timestamp'] <=> $a['timestamp'];
+        });
+
+        // Quitar timestamp y devolver solo el límite
+        return array_slice(array_map(function($act) {
+            unset($act['timestamp']);
+            return $act;
+        }, $actividades), 0, $limit);
+    }
+
+    /**
+     * Obtener alertas importantes para el cliente.
+     */
+    private function obtenerAlertas(Cliente $cliente): array
+    {
+        $alertas = [];
+
+        // Alerta: Perfil incompleto
+        if (!$cliente->telefono || !$cliente->direccion) {
+            $alertas[] = [
+                'tipo' => 'warning',
+                'icono' => 'user',
+                'titulo' => 'Completa tu perfil',
+                'descripcion' => 'Agrega tu información de contacto para recibir mejor atención',
+                'accion' => 'Completar ahora',
+                'link' => '/cliente/perfil',
+            ];
+        }
+
+        // Alerta: Sin preferencias definidas
+        if (!$cliente->presupuesto_max || !$cliente->habitaciones_deseadas) {
+            $alertas[] = [
+                'tipo' => 'info',
+                'icono' => 'search',
+                'titulo' => 'Define tus preferencias',
+                'descripcion' => 'Te ayudaremos a encontrar propiedades perfectas para ti',
+                'accion' => 'Configurar',
+                'link' => '/cliente/configuracion',
+            ];
+        }
+
+        // Alerta: Solicitudes pendientes de respuesta
+        $solicitudesPendientes = $cliente->cotizaciones()
+            ->where('estado', 'respondida')
+            ->where('updated_at', '>', now()->subDays(3))
+            ->count();
+
+        if ($solicitudesPendientes > 0) {
+            $alertas[] = [
+                'tipo' => 'success',
+                'icono' => 'check-circle',
+                'titulo' => "Tienes {$solicitudesPendientes} " . ($solicitudesPendientes == 1 ? 'respuesta nueva' : 'respuestas nuevas'),
+                'descripcion' => 'Un asesor ha respondido tu solicitud',
+                'accion' => 'Ver respuestas',
+                'link' => '/cliente/solicitudes',
+            ];
+        }
+
+        // Alerta: Reservas próximas a finalizar
+        $reservasProximas = $cliente->reservas()
+            ->where('fecha_fin', '>', now())
+            ->where('fecha_fin', '<=', now()->addDays(3))
+            ->where('estado', 'activa')
+            ->count();
+
+        if ($reservasProximas > 0) {
+            $alertas[] = [
+                'tipo' => 'warning',
+                'icono' => 'clock',
+                'titulo' => 'Reserva próxima a finalizar',
+                'descripcion' => 'Tu reserva finaliza en los próximos 3 días',
+                'accion' => 'Ver detalles',
+                'link' => '/cliente/reservas',
+            ];
+        }
+
+        // Alerta: Nuevas propiedades disponibles
+        $nuevasPropiedades = $this->contarNuevasPropiedades($cliente);
+        if ($nuevasPropiedades > 0) {
+            $alertas[] = [
+                'tipo' => 'info',
+                'icono' => 'home',
+                'titulo' => "{$nuevasPropiedades} " . ($nuevasPropiedades == 1 ? 'propiedad nueva' : 'propiedades nuevas'),
+                'descripcion' => 'Propiedades agregadas esta semana que coinciden con tu búsqueda',
+                'accion' => 'Explorar',
+                'link' => '/catalogo',
+            ];
+        }
+
+        return $alertas;
     }
 }

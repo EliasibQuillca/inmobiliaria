@@ -5,7 +5,8 @@ import Dropdown from '@/Components/Dropdown';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 
 export default function ClienteLayout({ children, header }) {
-    const { auth, flash } = usePage().props;
+    const { auth, flash, url } = usePage().props;
+    const currentUrl = usePage().url;
     const user = auth.user;
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
@@ -51,42 +52,51 @@ export default function ClienteLayout({ children, header }) {
         };
     }, []);
 
+    // Helper para verificar si la ruta está activa
+    const isActive = (path) => {
+        if (path.endsWith('*')) {
+            const basePath = path.slice(0, -1);
+            return currentUrl.startsWith(basePath);
+        }
+        return currentUrl === path;
+    };
+
     const menuItems = [
         { 
             name: 'Dashboard', 
             href: '/cliente/dashboard', 
             icon: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z',
-            active: route().current('cliente.dashboard')
+            active: isActive('/cliente/dashboard')
         },
         { 
             name: 'Explorar', 
             href: '/catalogo', 
             icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
-            active: route().current('catalogo.*')
+            active: isActive('/catalogo*')
         },
         { 
             name: 'Favoritos', 
             href: '/cliente/favoritos', 
             icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
-            active: route().current('cliente.favoritos.*')
+            active: isActive('/cliente/favoritos*')
         },
         { 
             name: 'Solicitudes', 
             href: '/cliente/solicitudes', 
             icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
-            active: route().current('cliente.solicitudes.*')
+            active: isActive('/cliente/solicitudes*')
         },
         { 
             name: 'Cotizaciones', 
             href: '/cliente/cotizaciones', 
             icon: 'M9 5H7a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-8a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
-            active: route().current('cliente.cotizaciones.*')
+            active: isActive('/cliente/cotizaciones*')
         },
         { 
             name: 'Reservas', 
             href: '/cliente/reservas', 
             icon: 'M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 8v4a2 2 0 002 2h4a2 2 0 002-2v-4M8 7h8v4H8V7z',
-            active: route().current('cliente.reservas.*')
+            active: isActive('/cliente/reservas*')
         }
     ];
 
