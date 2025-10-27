@@ -29,7 +29,9 @@ use Inertia\Inertia;
 // ============================================
 // PÁGINA PRINCIPAL PÚBLICA (Catálogo Híbrido)
 // ============================================
-Route::get('/', [CatalogoController::class, 'index'])->name('home');
+Route::get('/', function () {
+    return redirect('/catalogo');
+})->name('home');
 
 // Rutas de catálogo público
 Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo.index');
@@ -105,7 +107,7 @@ Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.
         Route::post('/', [AdminDepartamentoController::class, 'store'])->name('store');
         Route::get('/{id}', [AdminDepartamentoController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [AdminDepartamentoController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [AdminDepartamentoController::class, 'update'])->name('update');
+        Route::patch('/{id}', [AdminDepartamentoController::class, 'update'])->name('update');
         Route::delete('/{id}', [AdminDepartamentoController::class, 'destroy'])->name('destroy');
         Route::patch('/{id}/estado', [AdminDepartamentoController::class, 'cambiarEstado'])->name('cambiar-estado');
         Route::patch('/{id}/destacado', [AdminDepartamentoController::class, 'toggleDestacado'])->name('toggle-destacado');
