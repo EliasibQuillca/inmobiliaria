@@ -29,7 +29,7 @@ class DashboardController extends Controller
         $actividadesRecientes = $this->obtenerActividadesRecientes();
         $infoDebug = $this->obtenerInfoDepuracion();
         
-        return Inertia::render('Admin/Dashboard', [
+        return Inertia::render('Admin/Dashboard/Index', [
             'estadisticas' => $estadisticas,
             'crecimiento' => $crecimiento,
             'actividadesRecientes' => $actividadesRecientes,

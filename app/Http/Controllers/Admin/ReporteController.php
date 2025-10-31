@@ -30,7 +30,7 @@ class ReporteController extends Controller
             ]
         ]);
 
-        return Inertia::render('Admin/Reportes', [
+        return Inertia::render('Admin/Reportes/Index', [
             'reportes' => $reportesRecientes
         ]);
     }
@@ -46,14 +46,14 @@ class ReporteController extends Controller
             'datos' => $this->obtenerDatosVentas()
         ];
 
-        return Inertia::render('Admin/VerReporte', [
+        return Inertia::render('Admin/Reportes/Ver', [
             'reporte' => $reporte
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Admin/GenerarReporte');
+        return Inertia::render('Admin/Reportes/Generar');
     }
 
     public function reporteVentas(Request $request)

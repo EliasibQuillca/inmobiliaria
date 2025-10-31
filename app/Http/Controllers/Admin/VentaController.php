@@ -69,7 +69,7 @@ class VentaController extends Controller
                 ->count(),
         ];
 
-        return Inertia::render('Admin/Ventas', [
+        return Inertia::render('Admin/Ventas/Index', [
             'ventas' => $ventas,
             'estadisticas' => $estadisticas,
             'filtros' => $request->all(),

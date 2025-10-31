@@ -3,18 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Api\UserController as ApiUserController;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    protected $apiController;
-
-    public function __construct()
-    {
-        $this->apiController = new ApiUserController();
-    }
 
     /**
      * Mostrar la página de gestión de usuarios
@@ -22,36 +18,43 @@ class UserController extends Controller
     public function index(Request $request)
     {
         try {
-            // Obtener los datos desde el API controller
-            $response = $this->apiController->index($request);
-            $data = json_decode($response->getContent(), true);
+            $query = User::query()
+                ->with(['cliente', 'asesor'])
+                ->when($request->filled('search'), function ($query) use ($request) {
+                    $search = $request->search;
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->when($request->filled('role'), function ($query) use ($request) {
+                    $query->where('role', $request->role);
+                })
+                ->when($request->filled('estado'), function ($query) use ($request) {
+                    $query->where('estado', $request->estado);
+                });
 
-            if ($response->getStatusCode() === 200) {
-                return Inertia::render('Admin/Usuarios', [
-                    'usuarios' => $data,
-                    'pagination' => $data['pagination'] ?? null,
-                    'filters' => [
-                        'search' => $request->get('search', ''),
-                        'role' => $request->get('role', ''),
-                        'estado' => $request->get('estado', ''),
-                        'page' => $request->get('page', 1),
-                    ]
-                ]);
-            } else {
-                return Inertia::render('Admin/Usuarios', [
-                    'usuarios' => ['data' => []],
-                    'pagination' => ['total' => 0],
-                    'filters' => [],
-                    'error' => 'Error al cargar usuarios'
-                ]);
-            }
-        } catch (\Exception $e) {
-            return Inertia::render('Admin/Usuarios', [
-                'usuarios' => ['data' => []],
-                'pagination' => ['total' => 0],
-                'filters' => [],
-                'error' => 'Error al cargar usuarios: ' . $e->getMessage()
+            $usuarios = $query->paginate(10)->withQueryString();
+
+            return Inertia::render('Admin/Usuarios/Index', [
+                'usuarios' => $usuarios,
+                'filters' => [
+                    'search' => $request->get('search', ''),
+                    'role' => $request->get('role', ''),
+                    'estado' => $request->get('estado', ''),
+                ]
             ]);
+        } catch (\Throwable $e) {
+            return Inertia::render('Admin/Usuarios/Index', [
+                'usuarios' => [
+                    'data' => [],
+                    'links' => [],
+                    'meta' => []
+                ],
+                'filters' => [
+                    'search' => '',
+                    'role' => '',
+                    'estado' => ''
+                ],
+            ])->with('error', 'Error al cargar usuarios: ' . $e->getMessage());
         }
     }
 
@@ -60,7 +63,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/CrearUsuario');
+        return Inertia::render('Admin/Usuarios/Crear');
     }
 
     /**
@@ -69,18 +72,13 @@ class UserController extends Controller
     public function edit($id)
     {
         try {
-            $response = $this->apiController->show($id);
-            $data = json_decode($response->getContent(), true);
+            $usuario = User::findOrFail($id);
 
-            if ($response->getStatusCode() === 200) {
-                return Inertia::render('Admin/EditarUsuario', [
-                    'usuario' => $data['data']
-                ]);
-            } else {
-                return redirect()->route('admin.usuarios')->with('error', 'Usuario no encontrado');
-            }
+            return Inertia::render('Admin/Usuarios/Editar', [
+                'usuario' => $usuario
+            ]);
         } catch (\Exception $e) {
-            return redirect()->route('admin.usuarios')->with('error', 'Error al cargar usuario');
+            return redirect()->route('admin.usuarios.index')->with('error', 'Error al cargar usuario');
         }
     }
 
@@ -90,16 +88,32 @@ class UserController extends Controller
     public function store(Request $request)
     {
         try {
-            $response = $this->apiController->store($request);
-            $data = json_decode($response->getContent(), true);
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|min:8',
+                'role' => 'required|string|in:admin,asesor,cliente',
+                'estado' => 'required|boolean'
+            ]);
 
-            if ($response->getStatusCode() === 201) {
-                return redirect()->route('admin.usuarios')->with('success', 'Usuario creado correctamente');
-            } else {
-                return redirect()->back()->withInput()->with('error', $data['message'] ?? 'Error al crear el usuario');
-            }
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => $validated['role'],
+                'estado' => $validated['estado']
+            ]);
+
+            return redirect()->route('admin.usuarios.index')
+                ->with('success', 'Usuario creado correctamente');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput();
         } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', 'Error al crear usuario: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al crear usuario: ' . $e->getMessage());
         }
     }
 
@@ -109,16 +123,22 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $response = $this->apiController->update($request, $id);
-            $data = json_decode($response->getContent(), true);
+            $usuario = User::findOrFail($id);
 
-            if ($response->getStatusCode() === 200) {
-                return redirect()->route('admin.usuarios')->with('success', 'Usuario actualizado correctamente');
-            } else {
-                return redirect()->back()->withInput()->with('error', $data['message'] ?? 'Error al actualizar el usuario');
-            }
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . $id,
+                'role' => 'sometimes|required|string'
+            ]);
+
+            $usuario->update($validated);
+
+            return redirect()->route('admin.usuarios.index')
+                ->with('success', 'Usuario actualizado correctamente');
         } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', 'Error al actualizar usuario: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al actualizar usuario: ' . $e->getMessage());
         }
     }
 
@@ -128,16 +148,24 @@ class UserController extends Controller
     public function cambiarEstado(Request $request, $id)
     {
         try {
-            $response = $this->apiController->cambiarEstado($request, $id);
-            $data = json_decode($response->getContent(), true);
+            $usuario = User::findOrFail($id);
 
-            if ($response->getStatusCode() === 200) {
-                return redirect()->back()->with('success', 'Estado del usuario actualizado correctamente');
-            } else {
-                return redirect()->back()->with('error', $data['message'] ?? 'Error al cambiar estado del usuario');
-            }
+            $validated = $request->validate([
+                'estado' => 'required|boolean'
+            ]);
+
+            $usuario->update([
+                'estado' => $validated['estado']
+            ]);
+
+            return redirect()->back()
+                ->with('success', 'Estado del usuario actualizado correctamente');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->errors());
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al cambiar estado: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al cambiar estado: ' . $e->getMessage());
         }
     }
 
@@ -147,16 +175,14 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
-            $response = $this->apiController->destroy($id);
-            $data = json_decode($response->getContent(), true);
+            $usuario = User::findOrFail($id);
+            $usuario->delete();
 
-            if ($response->getStatusCode() === 200) {
-                return redirect()->back()->with('success', 'Usuario eliminado correctamente');
-            } else {
-                return redirect()->back()->with('error', $data['message'] ?? 'Error al eliminar el usuario');
-            }
+            return redirect()->back()
+                ->with('success', 'Usuario eliminado correctamente');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al eliminar usuario: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al eliminar usuario: ' . $e->getMessage());
         }
     }
 }

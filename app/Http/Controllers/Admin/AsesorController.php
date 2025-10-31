@@ -18,7 +18,7 @@ class AsesorController extends Controller
     {
         $asesores = Asesor::with('usuario')->paginate(10);
 
-        return Inertia::render('Admin/Asesores', [
+        return Inertia::render('Admin/Asesores/Index', [
             'asesores' => $asesores
         ]);
     }
@@ -28,7 +28,7 @@ class AsesorController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/CrearAsesor');
+        return Inertia::render('Admin/Asesores/Crear');
     }
 
     /**
@@ -90,7 +90,7 @@ class AsesorController extends Controller
         $asesor = Asesor::with(['usuario', 'clientes.usuario', 'cotizaciones.departamento'])
             ->findOrFail($id);
 
-        return Inertia::render('Admin/DetalleAsesor', [
+        return Inertia::render('Admin/Asesores/Detalle', [
             'asesor' => $asesor,
             'id' => $id
         ]);
@@ -103,7 +103,7 @@ class AsesorController extends Controller
     {
         $asesor = Asesor::with('usuario')->findOrFail($id);
 
-        return Inertia::render('Admin/EditarAsesor', [
+        return Inertia::render('Admin/Asesores/Editar', [
             'asesor' => $asesor
         ]);
     }

@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
-export default function Index({ users, filters }) {
-    const [searchQuery, setSearchQuery] = useState(filters.search || '');
+export default function Index({ usuarios, filters }) {
+    const [searchQuery, setSearchQuery] = useState(filters?.search || '');
     const { flash } = usePage().props;
 
     const handleSearch = (e) => {
@@ -68,9 +68,14 @@ export default function Index({ users, filters }) {
                             </div>
 
                             {/* Mensajes de éxito/error */}
-                            {flash.message && (
+                            {flash?.success && (
                                 <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-                                    {flash.message}
+                                    {flash.success}
+                                </div>
+                            )}
+                            {flash?.error && (
+                                <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                                    {flash.error}
                                 </div>
                             )}
 
@@ -97,51 +102,59 @@ export default function Index({ users, filters }) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {users.data.map((user) => (
-                                            <tr key={user.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {user.name}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-500">
-                                                        {user.email}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                        ${user.role === 'administrador' ? 'bg-purple-100 text-purple-800' : 
-                                                          user.role === 'asesor' ? 'bg-blue-100 text-blue-800' : 
-                                                          'bg-green-100 text-green-800'}`}>
-                                                        {user.role}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <button
-                                                        onClick={() => handleStatusChange(user.id, user.active)}
-                                                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                            ${user.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-                                                    >
-                                                        {user.active ? 'Activo' : 'Inactivo'}
-                                                    </button>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                                    <button
-                                                        onClick={() => router.get(`/admin/usuarios/${user.id}/edit`)}
-                                                        className="text-indigo-600 hover:text-indigo-900"
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(user.id)}
-                                                        className="text-red-600 hover:text-red-900"
-                                                    >
-                                                        Eliminar
-                                                    </button>
+                                        {usuarios?.data && usuarios.data.length > 0 ? (
+                                            usuarios.data.map((user) => (
+                                                <tr key={user.id}>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm font-medium text-gray-900">
+                                                            {user.name}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm text-gray-500">
+                                                            {user.email}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                                            ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
+                                                              user.role === 'asesor' ? 'bg-blue-100 text-blue-800' : 
+                                                              'bg-green-100 text-green-800'}`}>
+                                                            {user.role}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <button
+                                                            onClick={() => handleStatusChange(user.id, user.estado)}
+                                                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                                                ${user.estado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                                                        >
+                                                            {user.estado ? 'Activo' : 'Inactivo'}
+                                                        </button>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                        <button
+                                                            onClick={() => router.get(`/admin/usuarios/${user.id}/edit`)}
+                                                            className="text-indigo-600 hover:text-indigo-900"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(user.id)}
+                                                            className="text-red-600 hover:text-red-900"
+                                                        >
+                                                            Eliminar
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                                                    No hay usuarios para mostrar
                                                 </td>
                                             </tr>
-                                        ))}
+                                        )}
                                     </tbody>
                                 </table>
                             </div>

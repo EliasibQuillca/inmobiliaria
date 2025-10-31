@@ -35,7 +35,7 @@ class DepartamentoController extends Controller
             $propietarios = \App\Models\Propietario::all();
 
             if ($response->getStatusCode() === 200) {
-                return Inertia::render('Admin/Departamentos', [
+                return Inertia::render('Admin/Departamentos/Index', [
                     'departamentos' => $data,
                     'pagination' => $data['pagination'] ?? null,
                     'propietarios' => $propietarios,
@@ -51,7 +51,7 @@ class DepartamentoController extends Controller
                     ]
                 ]);
             } else {
-                return Inertia::render('Admin/Departamentos', [
+                return Inertia::render('Admin/Departamentos/Index', [
                     'departamentos' => ['data' => []],
                     'pagination' => ['total' => 0],
                     'propietarios' => $propietarios,
@@ -60,7 +60,7 @@ class DepartamentoController extends Controller
                 ]);
             }
         } catch (\Exception $e) {
-            return Inertia::render('Admin/Departamentos', [
+            return Inertia::render('Admin/Departamentos/Index', [
                 'departamentos' => ['data' => []],
                 'pagination' => ['total' => 0],
                 'propietarios' => [],
@@ -111,7 +111,7 @@ class DepartamentoController extends Controller
             // Obtener lista de propietarios para el formulario
             $propietarios = \App\Models\Propietario::all();
 
-            return Inertia::render('Admin/CrearDepartamento', [
+            return Inertia::render('Admin/Departamentos/Crear', [
                 'propietarios' => $propietarios
             ]);
         } catch (\Exception $e) {
