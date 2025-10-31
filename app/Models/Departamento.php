@@ -16,7 +16,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $habitaciones
  * @property int $banos
  * @property float $area
- * @property bool $disponible
  * @property string $estado
  * @property int $piso
  * @property bool $garage
