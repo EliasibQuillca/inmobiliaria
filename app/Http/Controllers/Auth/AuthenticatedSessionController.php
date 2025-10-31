@@ -78,6 +78,9 @@ class AuthenticatedSessionController extends Controller
                     // Si el rol no es reconocido, ir al catálogo por defecto
                     return redirect()->intended(route('catalogo.index', absolute: false));
             }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Re-lanzar ValidationException sin modificar para mantener el mensaje original
+            throw $e;
         } catch (\Exception $e) {
             Log::error('Error durante el proceso de login', [
                 'error' => $e->getMessage(),

@@ -63,7 +63,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 // Rutas protegidas de cliente
-Route::middleware(['auth', 'role:cliente'])->prefix('cliente')->name('cliente.')->group(function () {
+Route::middleware(['auth', 'active', 'role:cliente'])->prefix('cliente')->name('cliente.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [ClienteController::class, 'dashboard'])->name('dashboard');
     
@@ -96,7 +96,7 @@ Route::middleware(['auth', 'role:cliente'])->prefix('cliente')->name('cliente.')
 });
 
 // Rutas protegidas de administrador
-Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard admin
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     
@@ -140,7 +140,7 @@ Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.
 });
 
 // Rutas protegidas de asesor
-Route::middleware(['auth', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
+Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
     // Dashboard asesor
     Route::get('/dashboard', [AsesorDashboardController::class, 'index'])->name('dashboard');
     

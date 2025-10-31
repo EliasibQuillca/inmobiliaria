@@ -27,7 +27,7 @@ class UserControllerTest extends TestCase
 
         // Verificar respuesta
         $response->assertInertia(fn (Assert $page) => $page
-            ->component('Admin/Usuarios/Edit')
+            ->component('Admin/Usuarios/Editar')
             ->has('usuario')
             ->where('usuario.id', $user->id)
         );
@@ -69,19 +69,107 @@ class UserControllerTest extends TestCase
 
     public function test_usuario_no_admin_no_puede_editar()
     {
+        // Crear un usuario administrador
+        $admin = User::factory()->create([
+            'role' => 'administrador'
+        ]);
+
         // Crear un usuario normal
-        $normalUser = User::factory()->create([
+        $user = User::factory()->create([
             'role' => 'cliente'
         ]);
 
-        // Crear un usuario para intentar editar
+        // Intentar actualizar sin ser admin
+        $response = $this->actingAs($user)
+            ->put(route('admin.usuarios.update', $admin->id), [
+                'name' => 'Nuevo Nombre',
+                'email' => 'nuevo@email.com',
+                'role' => 'asesor'
+            ]);
+
+        // Verificar que no está autorizado
+        $response->assertStatus(403);
+    }
+
+    public function test_admin_puede_crear_usuario()
+    {
+        // Crear un usuario administrador
+        $admin = User::factory()->create([
+            'role' => 'administrador'
+        ]);
+
+        // Datos del nuevo usuario
+        $userData = [
+            'name' => 'Nuevo Usuario',
+            'email' => 'nuevo@test.com',
+            'password' => 'password123',
+            'role' => 'cliente',
+            'estado' => true
+        ];
+
+        // Intentar crear usuario como admin
+        $response = $this->actingAs($admin)
+            ->post(route('admin.usuarios.store'), $userData);
+
+        // Verificar redirección
+        $response->assertRedirect(route('admin.usuarios.index'));
+
+        // Verificar que el usuario fue creado
+        $this->assertDatabaseHas('users', [
+            'name' => 'Nuevo Usuario',
+            'email' => 'nuevo@test.com',
+            'role' => 'cliente'
+        ]);
+    }
+
+    public function test_admin_puede_cambiar_estado_usuario()
+    {
+        // Crear un usuario administrador
+        $admin = User::factory()->create([
+            'role' => 'administrador'
+        ]);
+
+        // Crear un usuario activo
+        $user = User::factory()->create([
+            'estado' => 'activo'
+        ]);
+
+        // Cambiar estado a inactivo
+        $response = $this->actingAs($admin)
+            ->patch(route('admin.usuarios.cambiar-estado', $user->id), [
+                'estado' => 0 // false = inactivo
+            ]);
+
+        // Verificar redirección
+        $response->assertRedirect();
+
+        // Verificar que el estado cambió
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'estado' => 'inactivo'
+        ]);
+    }
+
+    public function test_admin_puede_eliminar_usuario()
+    {
+        // Crear un usuario administrador
+        $admin = User::factory()->create([
+            'role' => 'administrador'
+        ]);
+
+        // Crear un usuario para eliminar
         $user = User::factory()->create();
 
-        // Intentar acceder como usuario normal
-        $response = $this->actingAs($normalUser)
-            ->get(route('admin.usuarios.edit', $user->id));
+        // Eliminar usuario
+        $response = $this->actingAs($admin)
+            ->delete(route('admin.usuarios.destroy', $user->id));
 
-        // Verificar que se deniega el acceso
-        $response->assertStatus(403);
+        // Verificar redirección
+        $response->assertRedirect();
+
+        // Verificar que el usuario fue eliminado
+        $this->assertDatabaseMissing('users', [
+            'id' => $user->id
+        ]);
     }
 }

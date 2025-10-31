@@ -21,10 +21,8 @@ export default function Index({ usuarios, filters }) {
     };
 
     const handleStatusChange = (id, currentStatus) => {
-        // Convertir 'activo'/'inactivo' a boolean y luego invertir
-        const esActivo = currentStatus === 'activo' || currentStatus === true || currentStatus === 1;
         router.patch(`/admin/usuarios/${id}/estado`, {
-            estado: !esActivo
+            estado: !currentStatus
         }, {
             preserveState: true,
             preserveScroll: true,
@@ -61,7 +59,7 @@ export default function Index({ usuarios, filters }) {
                                         </button>
                                     </form>
                                     <button
-                                        onClick={() => router.get('/admin/usuarios/crear')}
+                                        onClick={() => router.get('/admin/usuarios/create')}
                                         className="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700"
                                     >
                                         Nuevo Usuario
@@ -119,60 +117,34 @@ export default function Index({ usuarios, filters }) {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                            ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                                                                user.role === 'asesor' ? 'bg-blue-100 text-blue-800' :
-                                                                    'bg-green-100 text-green-800'}`}>
+                                                            ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
+                                                              user.role === 'asesor' ? 'bg-blue-100 text-blue-800' : 
+                                                              'bg-green-100 text-green-800'}`}>
                                                             {user.role}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <button
-                                                            onClick={() => {
-                                                                if (confirm(`¿Estás seguro de que deseas ${(user.estado === 'activo' || user.estado === true || user.estado === 1) ? 'desactivar' : 'activar'} a este usuario?`)) {
-                                                                    handleStatusChange(user.id, user.estado);
-                                                                }
-                                                            }}
-                                                            title={`Click para ${(user.estado === 'activo' || user.estado === true || user.estado === 1) ? 'desactivar' : 'activar'}`}
-                                                            className={`px-3 py-1 inline-flex items-center text-xs font-semibold rounded-full transition-all duration-200 cursor-pointer border-2
-                                                                ${(user.estado === 'activo' || user.estado === true || user.estado === 1) 
-                                                                    ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200 hover:border-green-300' 
-                                                                    : 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200 hover:border-red-300'}`}
+                                                            onClick={() => handleStatusChange(user.id, user.estado)}
+                                                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                                                ${user.estado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
                                                         >
-                                                            <svg className={`w-3 h-3 mr-1 ${(user.estado === 'activo' || user.estado === true || user.estado === 1) ? 'text-green-600' : 'text-red-600'}`} fill="currentColor" viewBox="0 0 20 20">
-                                                                {(user.estado === 'activo' || user.estado === true || user.estado === 1) ? (
-                                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                                                ) : (
-                                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                                                )}
-                                                            </svg>
-                                                            {(user.estado === 'activo' || user.estado === true || user.estado === 1) ? 'Activo' : 'Inactivo'}
+                                                            {user.estado ? 'Activo' : 'Inactivo'}
                                                         </button>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                        <div className="flex items-center gap-3">
-                                                            <button
-                                                                onClick={() => router.get(`/admin/usuarios/${user.id}/edit`)}
-                                                                className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
-                                                            >
-                                                                Editar
-                                                            </button>
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (confirm(`¿Estás seguro de que deseas ${(user.estado === 'activo' || user.estado === true || user.estado === 1) ? 'desactivar' : 'activar'} a este usuario?`)) {
-                                                                        handleStatusChange(user.id, user.estado);
-                                                                    }
-                                                                }}
-                                                                className={`font-medium transition-colors ${(user.estado === 'activo' || user.estado === true || user.estado === 1) ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'}`}
-                                                            >
-                                                                {(user.estado === 'activo' || user.estado === true || user.estado === 1) ? 'Desactivar' : 'Activar'}
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDelete(user.id)}
-                                                                className="text-red-600 hover:text-red-800 font-medium transition-colors"
-                                                            >
-                                                                Eliminar
-                                                            </button>
-                                                        </div>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                        <button
+                                                            onClick={() => router.get(`/admin/usuarios/${user.id}/edit`)}
+                                                            className="text-indigo-600 hover:text-indigo-900"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(user.id)}
+                                                            className="text-red-600 hover:text-red-900"
+                                                        >
+                                                            Eliminar
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))
@@ -186,6 +158,7 @@ export default function Index({ usuarios, filters }) {
                                     </tbody>
                                 </table>
                             </div>
+
                             {/* Paginación */}
                             <div className="mt-4">
                                 {/* Aquí puedes agregar tu componente de paginación */}

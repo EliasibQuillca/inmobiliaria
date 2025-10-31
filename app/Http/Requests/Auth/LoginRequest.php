@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @method array only(array|string $keys)
+ * @method bool boolean(string $key = null, bool $default = false)
+ * @method string|null ip()
+ */
 class LoginRequest extends FormRequest
 {
     /**
@@ -49,6 +54,16 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Verificar si el usuario está activo
+        $user = Auth::user();
+        if ($user && $user->estado !== 'activo') {
+            Auth::logout();
+            
+            throw ValidationException::withMessages([
+                'email' => 'Tu cuenta ha sido desactivada. Contacta al administrador.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
@@ -80,6 +95,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this['email'] ?? '') . '|' . request()->ip());
     }
 }

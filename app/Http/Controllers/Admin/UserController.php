@@ -155,7 +155,7 @@ class UserController extends Controller
             ]);
 
             $usuario->update([
-                'estado' => $validated['estado']
+                'estado' => $validated['estado'] ? 'activo' : 'inactivo'
             ]);
 
             return redirect()->back()
