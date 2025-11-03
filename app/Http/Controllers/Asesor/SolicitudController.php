@@ -28,8 +28,7 @@ class SolicitudController extends Controller
             ->get();
 
         // Solicitudes de información de departamentos disponibles
-        $departamentosInteres = Departamento::where('disponible', true)
-            ->where('estado', 'disponible')
+        $departamentosInteres = Departamento::where('estado', 'disponible')
             ->orderBy('precio')
             ->get();
 
@@ -169,8 +168,7 @@ class SolicitudController extends Controller
             'ubicacion' => 'nullable|string|max:255',
         ]);
 
-        $query = Departamento::where('disponible', true)
-            ->where('estado', 'disponible');
+        $query = Departamento::where('estado', 'disponible');
 
         if ($validated['precio_min']) {
             $query->where('precio', '>=', $validated['precio_min']);

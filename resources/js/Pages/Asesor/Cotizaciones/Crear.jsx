@@ -44,7 +44,7 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('asesor.cotizaciones.store'), {
+        post('/asesor/cotizaciones', {
             onSuccess: () => {
                 reset();
             }
@@ -215,9 +215,11 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
                                                     value={data.descuento}
                                                     onChange={(e) => setData('descuento', e.target.value)}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="0"
                                                     min="0"
                                                     step="1000"
                                                 />
+                                                <p className="mt-1 text-xs text-gray-500">Deja en blanco si no aplica descuento</p>
                                                 {errors.descuento && (
                                                     <p className="mt-1 text-sm text-red-600">{errors.descuento}</p>
                                                 )}

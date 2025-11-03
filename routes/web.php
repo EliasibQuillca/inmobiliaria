@@ -124,7 +124,8 @@ Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->na
     Route::patch('/usuarios/{id}/estado', [AdminUserController::class, 'cambiarEstado'])->name('usuarios.cambiar-estado');
     
     // Rutas para ventas
-    Route::resource('ventas', AdminVentaController::class);
+    Route::get('/ventas/crear', [AdminVentaController::class, 'create'])->name('ventas.crear');
+    Route::resource('ventas', AdminVentaController::class)->except(['create']);
     Route::get('/ventas/{id}/pdf', [AdminVentaController::class, 'generarPDF'])->name('ventas.pdf');
     Route::patch('/ventas/{id}/estado', [AdminVentaController::class, 'cambiarEstado'])->name('ventas.cambiar-estado');
     
@@ -171,7 +172,8 @@ Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('as
     
     // Cotizaciones
     Route::get('/cotizaciones', [AsesorCotizacionController::class, 'index'])->name('cotizaciones');
-    Route::get('/cotizaciones/crear/{cliente_id?}', [AsesorCotizacionController::class, 'create'])->name('cotizaciones.crear');
+    Route::get('/cotizaciones/crear', [AsesorCotizacionController::class, 'create'])->name('cotizaciones.crear');
+    Route::get('/cotizaciones/create', [AsesorCotizacionController::class, 'create'])->name('cotizaciones.create'); // Alias en inglés
     Route::post('/cotizaciones', [AsesorCotizacionController::class, 'store'])->name('cotizaciones.store');
     Route::get('/cotizaciones/{id}', [AsesorCotizacionController::class, 'show'])->name('cotizaciones.show');
     Route::get('/cotizaciones/{id}/editar', [AsesorCotizacionController::class, 'edit'])->name('cotizaciones.edit');

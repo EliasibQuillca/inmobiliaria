@@ -1542,7 +1542,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                     // Actualizar departamento
                                     setLoading(true);
 
-                                    router.put(`/admin/departamentos/${departamentoSeleccionado.id}`, datos, {
+                                    router.patch(`/admin/departamentos/${departamentoSeleccionado.id}`, datos, {
                                         preserveState: false,
                                         onSuccess: () => {
                                             // Mostrar mensaje de éxito
