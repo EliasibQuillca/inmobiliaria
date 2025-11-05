@@ -57,7 +57,7 @@ export default function Reservas({ auth, reservas = [] }) {
     const cancelarReserva = (id) => {
         // Confirmar la acción con el usuario
         const motivo = prompt('¿Por qué deseas cancelar esta reserva?\n(Este campo es obligatorio)');
-        
+
         if (!motivo || motivo.trim() === '') {
             alert('Es necesario proporcionar un motivo para cancelar la reserva.');
             return;
@@ -95,7 +95,7 @@ export default function Reservas({ auth, reservas = [] }) {
     const revertirConfirmacion = (id) => {
         // Confirmar la acción con el usuario
         const motivo = prompt('¿Por qué deseas revertir la confirmación?\n(El cliente no pagó, error de confirmación, etc.)');
-        
+
         if (!motivo || motivo.trim() === '') {
             alert('Es necesario proporcionar un motivo para revertir la confirmación.');
             return;
@@ -204,7 +204,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                         </button>
                                     </div>
                                     <Link
-                                        href={route('asesor.reservas.create')}
+                                        href="/asesor/reservas/crear"
                                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
                                     >
                                         Nueva Reserva
@@ -284,7 +284,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                                 </button>
                                             </>
                                         )}
-                                        
+
                                         {/* ESTADO: CONFIRMADA */}
                                         {reserva.estado === 'confirmada' && (
                                             <>
@@ -305,7 +305,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                                         </button>
                                                     </>
                                                 )}
-                                                
+
                                                 {/* Si YA tiene venta, solo mostrar enlace a venta */}
                                                 {reserva.venta && (
                                                     <button
@@ -317,7 +317,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                                 )}
                                             </>
                                         )}
-                                        
+
                                         {/* ESTADOS: CANCELADA, VENCIDA - Solo detalle */}
                                         {(reserva.estado === 'cancelada' || reserva.estado === 'vencida') && (
                                             <span className="flex-1 text-center text-gray-500 text-sm italic px-3 py-2">
@@ -336,7 +336,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                         No hay reservas {filtro !== 'todas' ? filtro : ''} en este momento
                                     </p>
                                     <Link
-                                        href={route('asesor.reservas.create')}
+                                        href="/asesor/reservas/crear"
                                         className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
                                     >
                                         Crear Primera Reserva

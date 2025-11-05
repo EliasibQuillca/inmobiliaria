@@ -31,7 +31,7 @@ export default function EditarCotizacion({ auth, cotizacion, clientes, departame
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        patch(route('asesor.cotizaciones.update', cotizacion.id));
+        patch(`/asesor/cotizaciones/${cotizacion.id}`);
     };
 
     const formatCurrency = (amount) => {

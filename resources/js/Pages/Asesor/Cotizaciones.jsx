@@ -79,7 +79,7 @@ export default function Cotizaciones({ auth, cotizaciones = [], mostrandoHistori
                                     {mostrandoHistorial ? 'Historial de Cotizaciones' : 'Mis Cotizaciones Activas'}
                                 </h2>
                                 <p className="mt-1 text-sm text-gray-500">
-                                    {mostrandoHistorial 
+                                    {mostrandoHistorial
                                         ? 'Cotizaciones procesadas, finalizadas o archivadas'
                                         : 'Gestiona las cotizaciones de departamentos para tus clientes'
                                     }
@@ -103,7 +103,7 @@ export default function Cotizaciones({ auth, cotizaciones = [], mostrandoHistori
                                         </>
                                     )}
                                 </Link>
-                                
+
                                 {!mostrandoHistorial && (
                                     <Link
                                         href="/asesor/cotizaciones/crear"
@@ -230,7 +230,7 @@ export default function Cotizaciones({ auth, cotizaciones = [], mostrandoHistori
                                                     <div>
                                                         <p><strong>Cliente:</strong> {cotizacion.cliente?.nombre || 'No especificado'}</p>
                                                         <p><strong>Departamento:</strong> {cotizacion.departamento?.nombre || 'No especificado'}</p>
-                                                        <p><strong>Fecha:</strong> {new Date(cotizacion.fecha).toLocaleDateString()}</p>
+                                                        <p><strong>Fecha:</strong> {cotizacion.created_at ? new Date(cotizacion.created_at).toLocaleDateString() : 'No disponible'}</p>
                                                     </div>
                                                     <div>
                                                         <p><strong>Monto:</strong> {formatearMoneda(cotizacion.monto)}</p>
@@ -238,7 +238,7 @@ export default function Cotizaciones({ auth, cotizaciones = [], mostrandoHistori
                                                             <p><strong>Descuento:</strong> {formatearMoneda(cotizacion.descuento)}</p>
                                                         )}
                                                         <p><strong>Total:</strong> {formatearMoneda(cotizacion.monto - (cotizacion.descuento || 0))}</p>
-                                                        <p><strong>Válida hasta:</strong> {new Date(cotizacion.fecha_validez).toLocaleDateString()}</p>
+                                                        <p><strong>Válida hasta:</strong> {cotizacion.fecha_validez ? new Date(cotizacion.fecha_validez).toLocaleDateString() : 'No especificada'}</p>
                                                     </div>
                                                 </div>
 
@@ -256,13 +256,13 @@ export default function Cotizaciones({ auth, cotizaciones = [], mostrandoHistori
                                                             {cotizacion.estado === 'completada' && cotizacion.reserva?.venta && (
                                                                 <div>
                                                                     <p className="font-medium text-green-700">✅ Venta Finalizada</p>
-                                                                    <p>Fecha venta: {new Date(cotizacion.reserva.venta.fecha_venta).toLocaleDateString()}</p>
+                                                                    <p>Fecha venta: {cotizacion.reserva.venta.fecha_venta ? new Date(cotizacion.reserva.venta.fecha_venta).toLocaleDateString() : 'No disponible'}</p>
                                                                     <p>Monto final: {formatearMoneda(cotizacion.reserva.venta.monto_final)}</p>
                                                                 </div>
                                                             )}
                                                             <div>
                                                                 <p className="font-medium">📅 Actualizado</p>
-                                                                <p>{new Date(cotizacion.updated_at).toLocaleString()}</p>
+                                                                <p>{cotizacion.updated_at ? new Date(cotizacion.updated_at).toLocaleString() : 'No disponible'}</p>
                                                             </div>
                                                         </div>
                                                     </div>

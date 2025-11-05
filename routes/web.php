@@ -66,31 +66,31 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'active', 'role:cliente'])->prefix('cliente')->name('cliente.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [ClienteController::class, 'dashboard'])->name('dashboard');
-    
+
     // Perfil
     Route::get('/perfil', [ClienteController::class, 'perfil'])->name('perfil.index');
     Route::patch('/perfil', [ClienteController::class, 'updatePerfil'])->name('perfil.update');
-    
+
     // Solicitudes
     Route::get('/solicitudes', [ClienteController::class, 'solicitudes'])->name('solicitudes.index');
     Route::get('/solicitudes/{id}', [ClienteSolicitudController::class, 'show'])->name('solicitudes.show');
     Route::post('/solicitudes', [ClienteSolicitudController::class, 'store'])->name('solicitudes.store');
-    
+
     // Favoritos
     Route::get('/favoritos', [ClienteDepartamentoController::class, 'favoritos'])->name('favoritos.index');
     Route::post('/favoritos/{departamento_id}', [ClienteDepartamentoController::class, 'agregarFavorito'])->name('favoritos.agregar');
     Route::delete('/favoritos/{departamento_id}', [ClienteDepartamentoController::class, 'eliminarFavorito'])->name('favoritos.eliminar');
-    
+
     // Asesores
     Route::get('/asesores', [ClienteDepartamentoController::class, 'asesores'])->name('asesores.index');
-    
+
     // Cotizaciones
     Route::get('/cotizaciones', [ClienteController::class, 'cotizaciones'])->name('cotizaciones.index');
-    
+
     // Reservas
     Route::get('/reservas', [ClienteController::class, 'reservas'])->name('reservas.index');
     Route::get('/reservas/{id}', [ClienteController::class, 'reservaDetalle'])->name('reservas.show');
-    
+
     // Comentarios en solicitudes
     Route::post('/solicitudes/{id}/comentarios', [ClienteComentarioController::class, 'store'])->name('solicitudes.comentarios.store');
 });
@@ -99,7 +99,7 @@ Route::middleware(['auth', 'active', 'role:cliente'])->prefix('cliente')->name('
 Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard admin
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Rutas para departamentos
     Route::prefix('departamentos')->name('departamentos.')->group(function () {
         Route::get('/crear', [AdminDepartamentoController::class, 'create'])->name('create');
@@ -111,24 +111,24 @@ Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->na
         Route::delete('/{id}', [AdminDepartamentoController::class, 'destroy'])->name('destroy');
         Route::patch('/{id}/estado', [AdminDepartamentoController::class, 'cambiarEstado'])->name('cambiar-estado');
         Route::patch('/{id}/destacado', [AdminDepartamentoController::class, 'toggleDestacado'])->name('toggle-destacado');
-        
+
         // Rutas para manejo de imágenes
         Route::post('/{id}/imagenes', [AdminDepartamentoController::class, 'subirImagenes'])->name('subir-imagenes');
         Route::delete('/{id}/imagenes/{imagen}', [AdminDepartamentoController::class, 'eliminarImagen'])->name('eliminar-imagen');
         Route::put('/{id}/imagenes/{imagen}/orden', [AdminDepartamentoController::class, 'cambiarOrdenImagen'])->name('cambiar-orden-imagen');
     });
-    
+
     // Rutas para usuarios
     Route::get('/usuarios/crear', [AdminUserController::class, 'create'])->name('usuarios.create');
     Route::resource('usuarios', AdminUserController::class)->except(['create']);
     Route::patch('/usuarios/{id}/estado', [AdminUserController::class, 'cambiarEstado'])->name('usuarios.cambiar-estado');
-    
+
     // Rutas para ventas
     Route::get('/ventas/crear', [AdminVentaController::class, 'create'])->name('ventas.crear');
     Route::resource('ventas', AdminVentaController::class)->except(['create']);
     Route::get('/ventas/{id}/pdf', [AdminVentaController::class, 'generarPDF'])->name('ventas.pdf');
     Route::patch('/ventas/{id}/estado', [AdminVentaController::class, 'cambiarEstado'])->name('ventas.cambiar-estado');
-    
+
     // Rutas para reportes
     Route::get('/reportes', [AdminReporteController::class, 'index'])->name('reportes.index');
     Route::get('/reportes/crear', [AdminReporteController::class, 'create'])->name('reportes.create');
@@ -136,7 +136,7 @@ Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->na
     Route::post('/reportes/ventas', [AdminReporteController::class, 'reporteVentas'])->name('reportes.ventas');
     Route::post('/reportes/exportar-excel', [AdminReporteController::class, 'exportarExcel'])->name('reportes.exportar-excel');
     Route::post('/reportes/exportar-pdf', [AdminReporteController::class, 'exportarPdf'])->name('reportes.exportar-pdf');
-    
+
     // Otras rutas de administrador...
 });
 
@@ -144,24 +144,24 @@ Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->na
 Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('asesor.')->group(function () {
     // Dashboard asesor
     Route::get('/dashboard', [AsesorDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Perfil asesor
     Route::get('/perfil', [AsesorPerfilController::class, 'index'])->name('perfil');
     Route::patch('/perfil', [AsesorPerfilController::class, 'update'])->name('perfil.update');
     Route::patch('/password', [AsesorPerfilController::class, 'updatePassword'])->name('password.update');
-    
+
     // Configuración
     Route::get('/configuracion', [AsesorConfiguracionController::class, 'index'])->name('configuracion');
     Route::patch('/configuracion/notificaciones', [AsesorConfiguracionController::class, 'updateNotificaciones'])->name('configuracion.notificaciones');
     Route::patch('/configuracion/horarios', [AsesorConfiguracionController::class, 'updateHorarios'])->name('configuracion.horarios');
-    
+
     // Clientes
     Route::get('/clientes', [AsesorClienteController::class, 'index'])->name('clientes.index');
     Route::get('/clientes/crear', [AsesorClienteController::class, 'create'])->name('clientes.create');
     Route::post('/clientes', [AsesorClienteController::class, 'store'])->name('clientes.store');
     Route::get('/clientes/{id}', [AsesorClienteController::class, 'show'])->name('clientes.show');
     Route::patch('/clientes/{id}', [AsesorClienteController::class, 'update'])->name('clientes.update');
-    
+
     // Solicitudes
     Route::get('/solicitudes', [AsesorSolicitudController::class, 'index'])->name('solicitudes');
     Route::post('/solicitudes/contacto', [AsesorSolicitudController::class, 'registrarContacto'])->name('solicitudes.contacto');
@@ -169,7 +169,7 @@ Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('as
     Route::get('/solicitudes/{id}/historial', [AsesorSolicitudController::class, 'historialCliente'])->name('solicitudes.historial');
     Route::post('/solicitudes/{id}/cita', [AsesorSolicitudController::class, 'agendarCita'])->name('solicitudes.cita');
     Route::post('/solicitudes/buscar-departamentos', [AsesorSolicitudController::class, 'buscarDepartamentos'])->name('solicitudes.buscar-departamentos');
-    
+
     // Cotizaciones
     Route::get('/cotizaciones', [AsesorCotizacionController::class, 'index'])->name('cotizaciones');
     Route::get('/cotizaciones/crear', [AsesorCotizacionController::class, 'create'])->name('cotizaciones.crear');
@@ -178,17 +178,20 @@ Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('as
     Route::get('/cotizaciones/{id}', [AsesorCotizacionController::class, 'show'])->name('cotizaciones.show');
     Route::get('/cotizaciones/{id}/editar', [AsesorCotizacionController::class, 'edit'])->name('cotizaciones.edit');
     Route::patch('/cotizaciones/{id}', [AsesorCotizacionController::class, 'update'])->name('cotizaciones.update');
+    Route::patch('/cotizaciones/{id}/estado', [AsesorCotizacionController::class, 'actualizarEstado'])->name('cotizaciones.actualizar-estado');
     Route::delete('/cotizaciones/{id}', [AsesorCotizacionController::class, 'destroy'])->name('cotizaciones.destroy');
     Route::get('/cotizaciones/{id}/pdf', [AsesorCotizacionController::class, 'generarPDF'])->name('cotizaciones.pdf');
-    
+
     // Reservas
     Route::get('/reservas', [AsesorReservaController::class, 'index'])->name('reservas');
     Route::get('/reservas/crear/{cotizacion_id?}', [AsesorReservaController::class, 'create'])->name('reservas.crear');
     Route::post('/reservas', [AsesorReservaController::class, 'store'])->name('reservas.store');
     Route::get('/reservas/{id}', [AsesorReservaController::class, 'show'])->name('reservas.show');
     Route::patch('/reservas/{id}', [AsesorReservaController::class, 'update'])->name('reservas.update');
-    Route::patch('/reservas/{id}/estado', [AsesorReservaController::class, 'actualizarEstado'])->name('reservas.actualizar-estado');
-    
+    Route::patch('/reservas/{id}/confirmar', [AsesorReservaController::class, 'confirmar'])->name('reservas.confirmar');
+    Route::patch('/reservas/{id}/cancelar', [AsesorReservaController::class, 'cancelar'])->name('reservas.cancelar');
+    Route::patch('/reservas/{id}/revertir', [AsesorReservaController::class, 'revertir'])->name('reservas.revertir');
+
     // Ventas
     Route::get('/ventas', [AsesorVentaController::class, 'index'])->name('ventas');
     Route::get('/ventas/crear/{reserva_id?}', [AsesorVentaController::class, 'create'])->name('ventas.crear');

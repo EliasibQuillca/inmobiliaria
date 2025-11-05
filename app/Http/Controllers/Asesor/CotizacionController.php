@@ -18,7 +18,7 @@ class CotizacionController extends Controller
     public function index(Request $request)
     {
         $asesor = Auth::user()->asesor;
-        
+
         // Determinar si mostrar historial o cotizaciones activas
         $mostrarHistorial = $request->boolean('historial', false);
 
@@ -66,13 +66,13 @@ class CotizacionController extends Controller
 
         // Obtener departamentos disponibles
         $departamentosQuery = Departamento::where('estado', 'disponible');
-        
+
         // Si hay cliente seleccionado con preferencias específicas, aplicar filtros
         $departamentosFiltrados = [];
         if ($clienteSeleccionado) {
             $queryFiltrada = clone $departamentosQuery;
             $hayFiltros = false;
-            
+
             // Filtrar por preferencias del cliente si existen
             if ($clienteSeleccionado->habitaciones_deseadas) {
                 $queryFiltrada->where('dormitorios', $clienteSeleccionado->habitaciones_deseadas);
@@ -85,7 +85,7 @@ class CotizacionController extends Controller
                 ]);
                 $hayFiltros = true;
             }
-            
+
             // Si se aplicaron filtros, obtener los departamentos filtrados
             if ($hayFiltros) {
                 $departamentosFiltrados = $queryFiltrada->get();
@@ -195,6 +195,27 @@ class CotizacionController extends Controller
             'clientes' => $clientes,
             'departamentos' => $departamentos
         ]);
+    }
+
+    /**
+     * Actualizar estado de cotización
+     */
+    public function actualizarEstado(Request $request, $id)
+    {
+        $asesor = Auth::user()->asesor;
+
+        $validated = $request->validate([
+            'estado' => 'required|in:pendiente,aceptada,rechazada,en_proceso,completada,cancelada,expirada',
+            'notas' => 'nullable|string|max:1000',
+        ]);
+
+        $cotizacion = Cotizacion::where('asesor_id', $asesor->id)
+            ->findOrFail($id);
+
+        $cotizacion->update($validated);
+
+        return redirect()->back()
+            ->with('success', 'Estado de cotización actualizado');
     }
 
     /**
