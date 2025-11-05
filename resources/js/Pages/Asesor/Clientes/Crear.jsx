@@ -21,6 +21,25 @@ export default function CrearCliente({ auth }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Validación de presupuestos
+        const maxBudget = 10000000; // S/ 10 millones
+
+        if (data.presupuesto_min && parseFloat(data.presupuesto_min) > maxBudget) {
+            alert(`El presupuesto mínimo no puede exceder S/ 10,000,000 (diez millones de soles)\nValor actual: S/ ${parseFloat(data.presupuesto_min).toLocaleString('es-PE')}`);
+            return;
+        }
+
+        if (data.presupuesto_max && parseFloat(data.presupuesto_max) > maxBudget) {
+            alert(`El presupuesto máximo no puede exceder S/ 10,000,000 (diez millones de soles)\nValor actual: S/ ${parseFloat(data.presupuesto_max).toLocaleString('es-PE')}`);
+            return;
+        }
+
+        if (data.presupuesto_min && data.presupuesto_max && parseFloat(data.presupuesto_max) < parseFloat(data.presupuesto_min)) {
+            alert('El presupuesto máximo debe ser mayor o igual al presupuesto mínimo');
+            return;
+        }
+
         post('/asesor/clientes', {
             onSuccess: () => {
                 reset();
@@ -186,6 +205,30 @@ export default function CrearCliente({ auth }) {
                                     <h3 className="text-lg font-medium text-gray-900 mb-4">
                                         Preferencias de Propiedad
                                     </h3>
+
+                                    {/* Información de Rangos de Precios en Cusco */}
+                                    <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <div className="flex">
+                                            <div className="flex-shrink-0">
+                                                <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div className="ml-3">
+                                                <h4 className="text-sm font-medium text-blue-800">Referencia de precios en Cusco</h4>
+                                                <div className="mt-2 text-sm text-blue-700">
+                                                    <ul className="list-disc list-inside space-y-1">
+                                                        <li><strong>Económicas:</strong> S/ 100,000 - S/ 200,000</li>
+                                                        <li><strong>Promedio:</strong> S/ 200,000 - S/ 500,000</li>
+                                                        <li><strong>Premium:</strong> S/ 500,000 - S/ 2,000,000</li>
+                                                        <li><strong>Lujo:</strong> S/ 2,000,000 - S/ 5,000,000</li>
+                                                        <li className="font-semibold">Límite máximo del sistema: S/ 10,000,000</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label htmlFor="tipo_propiedad" className="block text-sm font-medium text-gray-700">
@@ -225,7 +268,7 @@ export default function CrearCliente({ auth }) {
 
                                         <div>
                                             <label htmlFor="presupuesto_min" className="block text-sm font-medium text-gray-700">
-                                                Presupuesto Mínimo (COP)
+                                                Presupuesto Mínimo (S/)
                                             </label>
                                             <input
                                                 type="number"
@@ -233,13 +276,18 @@ export default function CrearCliente({ auth }) {
                                                 value={data.presupuesto_min}
                                                 onChange={(e) => setData('presupuesto_min', e.target.value)}
                                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                                placeholder="80000000"
+                                                placeholder="200000"
+                                                min="0"
+                                                max="10000000"
+                                                step="1000"
                                             />
+                                            {errors.presupuesto_min && <p className="text-red-500 text-xs mt-1">{errors.presupuesto_min}</p>}
+                                            <p className="text-xs text-gray-500 mt-1">Monto mínimo: S/ 0 - Máximo: S/ 10,000,000</p>
                                         </div>
 
                                         <div>
                                             <label htmlFor="presupuesto_max" className="block text-sm font-medium text-gray-700">
-                                                Presupuesto Máximo (COP)
+                                                Presupuesto Máximo (S/)
                                             </label>
                                             <input
                                                 type="number"
@@ -247,8 +295,13 @@ export default function CrearCliente({ auth }) {
                                                 value={data.presupuesto_max}
                                                 onChange={(e) => setData('presupuesto_max', e.target.value)}
                                                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                                placeholder="150000000"
+                                                placeholder="500000"
+                                                min="0"
+                                                max="10000000"
+                                                step="1000"
                                             />
+                                            {errors.presupuesto_max && <p className="text-red-500 text-xs mt-1">{errors.presupuesto_max}</p>}
+                                            <p className="text-xs text-gray-500 mt-1">Monto mínimo: S/ 0 - Máximo: S/ 10,000,000</p>
                                         </div>
 
                                         <div className="md:col-span-2">

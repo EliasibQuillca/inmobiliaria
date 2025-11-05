@@ -353,4 +353,24 @@ class ClienteTest extends TestCase
 
         $response->assertSessionHasErrors('habitaciones_deseadas');
     }
+
+    /** @test */
+    public function presupuesto_no_puede_exceder_diez_millones()
+    {
+        $datos = [
+            'nombre' => 'Cliente Rico',
+            'dni' => '77777777',
+            'email' => 'rico@example.com',
+            'telefono' => '987654321',
+            'medio_contacto' => 'presencial',
+            'tipo_propiedad' => 'penthouse',
+            'presupuesto_min' => 15000000, // Excede el límite
+            'presupuesto_max' => 20000000, // Excede el límite
+        ];
+
+        $response = $this->actingAs($this->usuarioAsesor)
+            ->post('/asesor/clientes', $datos);
+
+        $response->assertSessionHasErrors(['presupuesto_min', 'presupuesto_max']);
+    }
 }

@@ -55,9 +55,15 @@ class ClienteController extends Controller
             'notas_contacto' => 'nullable|string|max:1000',
             'tipo_propiedad' => 'required|in:apartamento,casa,penthouse,estudio,duplex',
             'habitaciones_deseadas' => 'nullable|integer|min:1|max:10',
-            'presupuesto_min' => 'nullable|numeric|min:0',
-            'presupuesto_max' => 'nullable|numeric|min:0|gte:presupuesto_min',
+            'presupuesto_min' => 'nullable|numeric|min:0|max:10000000',
+            'presupuesto_max' => 'nullable|numeric|min:0|max:10000000|gte:presupuesto_min',
             'zona_preferida' => 'nullable|string|max:255',
+        ], [
+            'presupuesto_min.max' => 'El presupuesto mínimo no puede exceder S/ 10,000,000 (diez millones de soles)',
+            'presupuesto_max.max' => 'El presupuesto máximo no puede exceder S/ 10,000,000 (diez millones de soles)',
+            'presupuesto_max.gte' => 'El presupuesto máximo debe ser mayor o igual al presupuesto mínimo',
+            'dni.unique' => 'Ya existe un cliente registrado con este DNI',
+            'email.unique' => 'Este correo electrónico ya está registrado',
         ]);
 
         // Crear usuario solo si proporcionó email
