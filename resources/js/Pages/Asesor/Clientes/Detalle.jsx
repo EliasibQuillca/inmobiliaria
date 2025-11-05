@@ -65,7 +65,7 @@ export default function DetalleCliente({ auth, cliente }) {
                             </div>
                             <div className="mt-4 flex md:mt-0 md:ml-4 space-x-3">
                                 <Link
-                                    href={route('asesor.clientes.index')}
+                                    href="/asesor/clientes"
                                     className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                                 >
                                     ← Volver a Clientes

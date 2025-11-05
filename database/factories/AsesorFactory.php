@@ -31,20 +31,14 @@ class AsesorFactory extends Factory
             'fecha_nacimiento' => $this->faker->dateTimeBetween('-60 years', '-25 years'),
             'especialidad' => $this->faker->randomElement([
                 'Ventas Residenciales',
-                'Ventas Comerciales', 
+                'Ventas Comerciales',
                 'Alquileres',
                 'Propiedades de Lujo',
                 'Inversiones Inmobiliarias'
             ]),
-            'experiencia' => $this->faker->randomElement([
-                'Menos de 1 año',
-                '1-2 años',
-                '3-5 años',
-                '5-10 años',
-                'Más de 10 años'
-            ]),
+            'experiencia' => $this->faker->numberBetween(0, 15),
             'biografia' => $this->faker->paragraph(3),
-            'estado' => $this->faker->randomElement(['activo', 'inactivo', 'suspendido']),
+            'estado' => $this->faker->randomElement(['activo', 'inactivo']),
             'comision_porcentaje' => $this->faker->randomFloat(2, 3, 10),
         ];
     }
