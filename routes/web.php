@@ -201,5 +201,6 @@ Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('as
     Route::get('/ventas/{id}/editar', [AsesorVentaController::class, 'edit'])->name('ventas.edit');
     Route::patch('/ventas/{id}', [AsesorVentaController::class, 'update'])->name('ventas.update');
     Route::patch('/ventas/{id}/documentos', [AsesorVentaController::class, 'actualizarDocumentos'])->name('ventas.documentos');
+    Route::patch('/ventas/{id}/entregar-documentos', [AsesorVentaController::class, 'marcarDocumentosEntregados'])->name('ventas.entregar-documentos');
     Route::get('/ventas/{id}/pdf', [AsesorVentaController::class, 'generarPDF'])->name('ventas.pdf');
 });

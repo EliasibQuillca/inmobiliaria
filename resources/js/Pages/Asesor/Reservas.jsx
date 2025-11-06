@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
 import AsesorLayout from '../../Layouts/AsesorLayout';
 
-export default function Reservas({ auth, reservas = [] }) {
+export default function Reservas({ auth, reservas = [], flash = {} }) {
     const [filtro, setFiltro] = useState('todas');
     const [reservaSeleccionada, setReservaSeleccionada] = useState(null);
     const [mostrarModal, setMostrarModal] = useState(false);
+    const [mostrarAlerta, setMostrarAlerta] = useState(!!flash.warning || !!flash.success || !!flash.error);
 
     const filtrarReservas = () => {
         switch (filtro) {
@@ -32,19 +33,8 @@ export default function Reservas({ auth, reservas = [] }) {
     };
 
     const confirmarReserva = (id) => {
-        // Asegurar que el token CSRF esté presente
-        const token = document.head.querySelector('meta[name="csrf-token"]');
-        if (!token) {
-            console.error('Token CSRF no encontrado');
-            return;
-        }
-
         router.patch(`/asesor/reservas/${id}/confirmar`, {}, {
-            headers: {
-                'X-CSRF-TOKEN': token.content
-            },
             onSuccess: () => {
-                // Refrescar la página para mostrar los cambios
                 router.reload({ only: ['reservas'] });
             },
             onError: (error) => {
@@ -68,21 +58,10 @@ export default function Reservas({ auth, reservas = [] }) {
             return;
         }
 
-        // Asegurar que el token CSRF esté presente
-        const token = document.head.querySelector('meta[name="csrf-token"]');
-        if (!token) {
-            console.error('Token CSRF no encontrado');
-            return;
-        }
-
         router.patch(`/asesor/reservas/${id}/cancelar`, {
             motivo: motivo.trim()
         }, {
-            headers: {
-                'X-CSRF-TOKEN': token.content
-            },
             onSuccess: () => {
-                // Refrescar la página para mostrar los cambios
                 router.reload({ only: ['reservas'] });
             },
             onError: (error) => {
@@ -106,21 +85,10 @@ export default function Reservas({ auth, reservas = [] }) {
             return;
         }
 
-        // Asegurar que el token CSRF esté presente
-        const token = document.head.querySelector('meta[name="csrf-token"]');
-        if (!token) {
-            console.error('Token CSRF no encontrado');
-            return;
-        }
-
         router.patch(`/asesor/reservas/${id}/revertir`, {
             motivo: motivo.trim()
         }, {
-            headers: {
-                'X-CSRF-TOKEN': token.content
-            },
             onSuccess: () => {
-                // Refrescar la página para mostrar los cambios
                 router.reload({ only: ['reservas'] });
             },
             onError: (error) => {
@@ -158,6 +126,59 @@ export default function Reservas({ auth, reservas = [] }) {
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    {/* Alertas Flash */}
+                    {mostrarAlerta && (flash.warning || flash.success || flash.error) && (
+                        <div className={`mb-6 rounded-lg p-4 ${
+                            flash.warning ? 'bg-yellow-50 border border-yellow-200' :
+                            flash.success ? 'bg-green-50 border border-green-200' :
+                            'bg-red-50 border border-red-200'
+                        }`}>
+                            <div className="flex items-start">
+                                <div className="flex-shrink-0">
+                                    {flash.warning && (
+                                        <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                        </svg>
+                                    )}
+                                    {flash.success && (
+                                        <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                        </svg>
+                                    )}
+                                    {flash.error && (
+                                        <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                        </svg>
+                                    )}
+                                </div>
+                                <div className="ml-3 flex-1">
+                                    <p className={`text-sm font-medium ${
+                                        flash.warning ? 'text-yellow-800' :
+                                        flash.success ? 'text-green-800' :
+                                        'text-red-800'
+                                    }`}>
+                                        {flash.warning || flash.success || flash.error}
+                                    </p>
+                                </div>
+                                <div className="ml-auto pl-3">
+                                    <button
+                                        onClick={() => setMostrarAlerta(false)}
+                                        className={`inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                                            flash.warning ? 'text-yellow-500 hover:bg-yellow-100 focus:ring-yellow-600' :
+                                            flash.success ? 'text-green-500 hover:bg-green-100 focus:ring-green-600' :
+                                            'text-red-500 hover:bg-red-100 focus:ring-red-600'
+                                        }`}
+                                    >
+                                        <span className="sr-only">Cerrar</span>
+                                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Header */}
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                         <div className="p-6">
@@ -332,15 +353,29 @@ export default function Reservas({ auth, reservas = [] }) {
                         {filtrarReservas().length === 0 && (
                             <div className="col-span-full bg-white overflow-hidden shadow-sm sm:rounded-lg">
                                 <div className="p-12 text-center">
-                                    <p className="text-gray-500 text-lg">
-                                        No hay reservas {filtro !== 'todas' ? filtro : ''} en este momento
+                                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                    </svg>
+                                    <h3 className="mt-2 text-lg font-medium text-gray-900">
+                                        No hay reservas {filtro !== 'todas' ? filtro : ''}
+                                    </h3>
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        Para crear una reserva, primero necesitas tener cotizaciones aceptadas por tus clientes.
                                     </p>
-                                    <Link
-                                        href="/asesor/reservas/crear"
-                                        className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
-                                    >
-                                        Crear Primera Reserva
-                                    </Link>
+                                    <div className="mt-6">
+                                        <Link
+                                            href="/asesor/reservas/crear"
+                                            className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                        >
+                                            <svg className="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                                            </svg>
+                                            Crear Reserva
+                                        </Link>
+                                    </div>
+                                    <p className="mt-4 text-xs text-gray-400">
+                                        💡 Tip: Ve a la sección de Cotizaciones para gestionar las propuestas de tus clientes
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -396,7 +431,7 @@ export default function Reservas({ auth, reservas = [] }) {
                                             <span className="font-medium">Ubicación:</span> {reservaSeleccionada.departamento?.ubicacion}
                                         </p>
                                         <p className="text-sm">
-                                            <span className="font-medium">Dormitorios:</span> {reservaSeleccionada.departamento?.dormitorios}
+                                            <span className="font-medium">Habitaciones:</span> {reservaSeleccionada.departamento?.habitaciones}
                                         </p>
                                         <p className="text-sm">
                                             <span className="font-medium">Baños:</span> {reservaSeleccionada.departamento?.banos}

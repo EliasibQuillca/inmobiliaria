@@ -75,7 +75,7 @@ class CotizacionController extends Controller
 
             // Filtrar por preferencias del cliente si existen
             if ($clienteSeleccionado->habitaciones_deseadas) {
-                $queryFiltrada->where('dormitorios', $clienteSeleccionado->habitaciones_deseadas);
+                $queryFiltrada->where('habitaciones', $clienteSeleccionado->habitaciones_deseadas);
                 $hayFiltros = true;
             }
             if ($clienteSeleccionado->presupuesto_min && $clienteSeleccionado->presupuesto_max) {

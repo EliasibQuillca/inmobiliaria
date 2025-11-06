@@ -36,33 +36,13 @@ export default function CrearReserva({ auth, cotizaciones, cotizacionSeleccionad
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
-        // Obtener token CSRF fresco
-        const token = document.head.querySelector('meta[name="csrf-token"]');
-        if (!token) {
-            console.error('Token CSRF no encontrado');
-            alert('Error de sesión. Por favor, recarga la página.');
-            return;
-        }
-        
-        console.log('Enviando datos:', data);
-        console.log('Token CSRF:', token.content.substring(0, 10) + '...');
-        
+
         post('/asesor/reservas', {
-            headers: {
-                'X-CSRF-TOKEN': token.content,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
             onSuccess: () => {
-                console.log('Reserva creada exitosamente');
                 reset();
             },
             onError: (errors) => {
                 console.error('Errores al crear reserva:', errors);
-                if (errors.message && errors.message.includes('419')) {
-                    alert('Sesión expirada. Por favor, recarga la página e intenta de nuevo.');
-                }
             }
         });
     };
@@ -164,7 +144,7 @@ export default function CrearReserva({ auth, cotizaciones, cotizacionSeleccionad
                                                         <span className="font-medium text-gray-700">Monto:</span> {formatCurrency(cotizacionActual.monto)}
                                                     </div>
                                                     <div>
-                                                        <span className="font-medium text-gray-700">Estado:</span> 
+                                                        <span className="font-medium text-gray-700">Estado:</span>
                                                         <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                             Aceptada
                                                         </span>

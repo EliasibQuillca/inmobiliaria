@@ -146,7 +146,7 @@ export default function EditarCotizacion({ auth, cotizacion, clientes, departame
                                                     <span className="font-medium text-gray-700">Ubicación:</span> {departamentoSeleccionado.ubicacion}
                                                 </div>
                                                 <div>
-                                                    <span className="font-medium text-gray-700">Dormitorios:</span> {departamentoSeleccionado.dormitorios}
+                                                    <span className="font-medium text-gray-700">Habitaciones:</span> {departamentoSeleccionado.habitaciones}
                                                 </div>
                                                 <div>
                                                     <span className="font-medium text-gray-700">Baños:</span> {departamentoSeleccionado.banos}

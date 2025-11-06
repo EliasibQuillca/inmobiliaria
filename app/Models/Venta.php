@@ -18,6 +18,8 @@ class Venta extends Model
         'monto_final',
         'documentos_entregados',
         'observaciones',
+        'fecha_entrega_documentos',
+        'usuario_entrega_id',
         'cantidad_ediciones',
         'max_ediciones',
         'bloqueada_edicion',
@@ -29,6 +31,7 @@ class Venta extends Model
         'fecha_venta' => 'datetime',
         'monto_final' => 'decimal:2',
         'documentos_entregados' => 'boolean',
+        'fecha_entrega_documentos' => 'datetime',
         'bloqueada_edicion' => 'boolean',
         'fecha_primera_edicion' => 'datetime',
         'fecha_ultima_edicion' => 'datetime'
@@ -38,6 +41,11 @@ class Venta extends Model
     public function reserva()
     {
         return $this->belongsTo(Reserva::class, 'reserva_id');
+    }
+
+    public function usuarioEntrega()
+    {
+        return $this->belongsTo(User::class, 'usuario_entrega_id');
     }
 
     // Relación al departamento a través de la reserva
@@ -105,15 +113,17 @@ class Venta extends Model
         return $this->documentos_entregados;
     }
 
-    public function marcarDocumentosEntregados()
+    public function marcarDocumentosEntregados($usuarioId = null)
     {
-        $this->update(['documentos_entregados' => true]);
-        
+        $this->update([
+            'documentos_entregados' => true,
+            'fecha_entrega_documentos' => now(),
+            'usuario_entrega_id' => $usuarioId ?? \Illuminate\Support\Facades\Auth::id()
+        ]);
+
         // Marcar el departamento como vendido
         $this->getDepartamento()->marcarComoVendido();
-    }
-
-    public function estaCompleta()
+    }    public function estaCompleta()
     {
         return $this->documentos_entregados;
     }

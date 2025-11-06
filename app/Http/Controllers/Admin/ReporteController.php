@@ -369,7 +369,7 @@ class ReporteController extends Controller
                     'titulo' => $propiedad->titulo,
                     'precio' => $propiedad->precio,
                     'area' => $propiedad->area_total,
-                    'habitaciones' => $propiedad->dormitorios,
+                    'habitaciones' => $propiedad->habitaciones,
                     'estado' => $propiedad->estado,
                     'fecha_creacion' => $propiedad->created_at
                 ];

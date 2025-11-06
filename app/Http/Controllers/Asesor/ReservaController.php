@@ -47,6 +47,12 @@ class ReservaController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Verificar si hay cotizaciones disponibles
+        if ($cotizacionesDisponibles->isEmpty()) {
+            return redirect('/asesor/reservas')
+                ->with('warning', 'No hay cotizaciones aceptadas disponibles para crear una reserva. Primero debes tener cotizaciones aceptadas por los clientes.');
+        }
+
         // Si viene una cotización específica, pre-seleccionarla
         $cotizacionSeleccionada = null;
         if ($request->has('cotizacion_id')) {

@@ -31,6 +31,14 @@ export default function Ventas({ auth, ventas = [] }) {
         });
     };
 
+    const marcarDocumentosEntregados = (ventaId) => {
+        if (confirm('¿Estás seguro de marcar los documentos como entregados? Esta acción marcará el departamento como vendido.')) {
+            patch(route('asesor.ventas.entregar-documentos', ventaId), {
+                preserveScroll: true
+            });
+        }
+    };
+
     const getEstadoColor = (documentos_entregados) => {
         return documentos_entregados
             ? 'bg-green-100 text-green-800'
@@ -238,9 +246,33 @@ export default function Ventas({ auth, ventas = [] }) {
                                                         </p>
                                                     </div>
                                                 )}
+
+                                                {venta.documentos_entregados && venta.fecha_entrega_documentos && (
+                                                    <div className="mt-2 p-2 bg-green-50 rounded-md">
+                                                        <p className="text-sm text-green-800">
+                                                            <svg className="inline h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            <strong>Documentos entregados:</strong> {new Date(venta.fecha_entrega_documentos).toLocaleString('es-PE')}
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div className="flex space-x-2">
+                                                {!venta.documentos_entregados && (
+                                                    <button
+                                                        onClick={() => marcarDocumentosEntregados(venta.id)}
+                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                        title="Marcar documentos como entregados"
+                                                    >
+                                                        <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        Marcar Entregado
+                                                    </button>
+                                                )}
+
                                                 <button
                                                     onClick={() => handleUpdateDocuments(venta)}
                                                     className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -257,7 +289,7 @@ export default function Ventas({ auth, ventas = [] }) {
 
                                                 <Link
                                                     href={route('asesor.ventas.edit', venta.id)}
-                                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                                 >
                                                     Editar
                                                 </Link>

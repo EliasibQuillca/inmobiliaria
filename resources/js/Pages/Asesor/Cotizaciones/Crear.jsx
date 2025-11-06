@@ -17,8 +17,8 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
     const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState(null);
 
     // Determinar qué departamentos mostrar
-    const departamentosAMostrar = mostrarFiltrados && departamentosFiltrados.length > 0 
-        ? departamentosFiltrados 
+    const departamentosAMostrar = mostrarFiltrados && departamentosFiltrados.length > 0
+        ? departamentosFiltrados
         : departamentos;
 
     useEffect(() => {
@@ -111,7 +111,7 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
                                                 <option value="">Seleccionar cliente...</option>
                                                 {clientes.map((cliente) => (
                                                     <option key={cliente.id} value={cliente.id}>
-                                                        {cliente.nombre} - {cliente.telefono}
+                                                        {cliente.nombre} {cliente.dni ? `(DNI: ${cliente.dni})` : ''}
                                                     </option>
                                                 ))}
                                             </select>
@@ -130,7 +130,7 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
                                                     </span>
                                                 )}
                                             </label>
-                                            
+
                                             {/* Controles para alternar entre filtrados y todos */}
                                             {clienteSeleccionado && departamentosFiltrados.length > 0 && (
                                                 <div className="mb-2 flex space-x-4">
@@ -175,12 +175,12 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
                                             {errors.departamento_id && (
                                                 <p className="mt-1 text-sm text-red-600">{errors.departamento_id}</p>
                                             )}
-                                            
+
                                             {/* Mensaje informativo si no hay departamentos filtrados */}
                                             {clienteSeleccionado && departamentosFiltrados.length === 0 && (
                                                 <p className="mt-1 text-sm text-yellow-600">
                                                     <i className="fas fa-info-circle mr-1"></i>
-                                                    No hay departamentos que coincidan con las preferencias del cliente. 
+                                                    No hay departamentos que coincidan con las preferencias del cliente.
                                                     Se muestran todos los disponibles.
                                                 </p>
                                             )}

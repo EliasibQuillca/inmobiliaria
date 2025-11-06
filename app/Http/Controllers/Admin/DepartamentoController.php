@@ -80,7 +80,7 @@ class DepartamentoController extends Controller
             Log::info('Redirigiendo desde show a index porque la vista de detalle no existe', ['id' => $id]);
             return redirect()->route('admin.departamentos.index')
                 ->with('info', 'La vista de detalle está en desarrollo. Por favor, use la lista para gestionar departamentos.');
-                
+
             /* Código original comentado - descomentar cuando se cree la vista
             $response = $this->apiController->show($id);
             $data = json_decode($response->getContent(), true);
@@ -130,7 +130,7 @@ class DepartamentoController extends Controller
 
             if ($response->getStatusCode() === 201) {
                 $departamentoId = $data['data']['id'] ?? null;
-                
+
                 // Siempre redirigimos a la lista de departamentos
                 return redirect()->route('admin.departamentos.index')
                     ->with('success', 'Departamento creado correctamente. Ahora puede agregar imágenes y más detalles.');
@@ -181,7 +181,7 @@ class DepartamentoController extends Controller
 
             $response = $this->apiController->update($request, $departamento);
             $data = json_decode($response->getContent(), true);
-            
+
             // Log detallado de la respuesta
             Log::debug('Respuesta completa del API', [
                 'status_code' => $response->getStatusCode(),
@@ -194,15 +194,15 @@ class DepartamentoController extends Controller
                 'data' => $data,
                 'content' => $response->getContent()
             ]);
-            
+
             if ($response->getStatusCode() === 200) {
                 Log::info('Departamento actualizado correctamente', ['id' => $departamento]);
-                
+
                 // Si hay imágenes nuevas, procesarlas
                 if ($request->hasFile('imagenes')) {
                     $this->subirImagenes($request, $departamento);
                 }
-                
+
                 // Para solicitudes AJAX/API
                 if ($request->expectsJson()) {
                     return response()->json([
@@ -210,7 +210,7 @@ class DepartamentoController extends Controller
                         'data' => $data['data'] ?? null
                     ]);
                 }
-                
+
                 // Para solicitudes web normales
                 session()->flash('success', 'Departamento actualizado correctamente');
                 return redirect()->route('admin.departamentos.edit', $departamento);
@@ -242,7 +242,7 @@ class DepartamentoController extends Controller
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return redirect()
                 ->back()
                 ->withInput()
@@ -330,8 +330,8 @@ class DepartamentoController extends Controller
                         'message' => $data['message'] ?? 'Error al eliminar el departamento'
                     ], $statusCode);
                 }
-            } 
-            
+            }
+
             // Para solicitudes normales, redireccionar
             if ($statusCode === 200) {
                 Log::info('Departamento eliminado exitosamente', ['id' => $id]);
@@ -347,13 +347,13 @@ class DepartamentoController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
-            
+
             if (request()->wantsJson() || request()->header('X-Inertia')) {
                 return response()->json([
                     'message' => 'Error al eliminar departamento: ' . $e->getMessage()
                 ], 500);
             }
-            
+
             return redirect()->back()->with('error', 'Error al eliminar departamento: ' . $e->getMessage());
         }
     }
@@ -445,7 +445,7 @@ class DepartamentoController extends Controller
             return response()->json(['error' => 'Error al eliminar imagen'], 500);
         }
     }
-    
+
     /**
      * Cambiar el orden de una imagen
      */
@@ -455,19 +455,19 @@ class DepartamentoController extends Controller
             $request->validate([
                 'orden' => 'required|integer|min:0'
             ]);
-            
+
             $imagen = \App\Models\Imagen::where('departamento_id', $departamentoId)
                 ->where('id', $imagenId)
                 ->firstOrFail();
-                
+
             $nuevoOrden = $request->input('orden');
-            
+
             // Si el orden es 0, hacer esta imagen la principal
             if ($nuevoOrden == 0) {
                 // Primero marcar todas como galería
                 \App\Models\Imagen::where('departamento_id', $departamentoId)
                     ->update(['tipo' => 'galeria']);
-                
+
                 // Luego marcar esta como principal
                 $imagen->update([
                     'tipo' => 'principal',
@@ -476,7 +476,7 @@ class DepartamentoController extends Controller
             } else {
                 $imagen->update(['orden' => $nuevoOrden]);
             }
-            
+
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             Log::error('Error al cambiar orden de imagen', [
@@ -519,7 +519,7 @@ class DepartamentoController extends Controller
                         'Título',
                         'Ubicación',
                         'Precio',
-                        'Dormitorios',
+                        'Habitaciones',
                         'Baños',
                         'Área Total',
                         'Estado',
@@ -535,7 +535,7 @@ class DepartamentoController extends Controller
                             $depto['titulo'] ?? '',
                             $depto['ubicacion'] ?? '',
                             $depto['precio'] ?? '',
-                            $depto['dormitorios'] ?? '',
+                            $depto['habitaciones'] ?? '',
                             $depto['banos'] ?? '',
                             $depto['area_total'] ?? '',
                             $depto['estado'] ?? '',

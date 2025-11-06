@@ -3,35 +3,35 @@ import { Link } from '@inertiajs/react';
 
 const DepartamentoCard = ({ departamento }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    
+
     // Obtener la imagen principal o la primera de la galería
     const imagenes = departamento.imagenes || [];
     const imagenPrincipal = imagenes.find(img => img.tipo === 'principal') || imagenes[0];
-    
+
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
             {/* Carrusel de imágenes */}
             <div className="relative h-48 w-full">
                 {imagenes.length > 0 ? (
                     <>
-                        <img 
-                            src={imagenes[currentImageIndex].url} 
+                        <img
+                            src={imagenes[currentImageIndex].url}
                             alt={departamento.titulo}
                             className="w-full h-full object-cover"
                         />
                         {/* Controles del carrusel */}
                         {imagenes.length > 1 && (
                             <div className="absolute bottom-2 right-2 flex space-x-2">
-                                <button 
-                                    onClick={() => setCurrentImageIndex((prev) => 
+                                <button
+                                    onClick={() => setCurrentImageIndex((prev) =>
                                         prev === 0 ? imagenes.length - 1 : prev - 1
                                     )}
                                     className="bg-black bg-opacity-50 text-white p-1 rounded"
                                 >
                                     ←
                                 </button>
-                                <button 
-                                    onClick={() => setCurrentImageIndex((prev) => 
+                                <button
+                                    onClick={() => setCurrentImageIndex((prev) =>
                                         prev === imagenes.length - 1 ? 0 : prev + 1
                                     )}
                                     className="bg-black bg-opacity-50 text-white p-1 rounded"
@@ -62,7 +62,7 @@ const DepartamentoCard = ({ departamento }) => {
                 <p className="text-gray-600 text-sm mb-2">{departamento.ubicacion}</p>
 
                 <div className="flex justify-between items-center text-sm text-gray-600 mb-4">
-                    <span>{departamento.dormitorios} Hab.</span>
+                    <span>{departamento.habitaciones} Hab.</span>
                     <span>{departamento.banos} Baños</span>
                     <span>{departamento.area_total}m²</span>
                 </div>

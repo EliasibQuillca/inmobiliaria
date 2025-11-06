@@ -73,7 +73,7 @@ class VentaController extends Controller
             'datos_anteriores' => null,
             'datos_nuevos' => $venta->only([
                 'fecha_venta',
-                'monto_final', 
+                'monto_final',
                 'documentos_entregados',
                 'observaciones'
             ]),
@@ -232,7 +232,7 @@ class VentaController extends Controller
             ->findOrFail($id);
 
         // VERIFICAR SI PUEDE EDITARSE
-        
+
         // 1. Verificar si está bloqueada
         if ($venta->bloqueada_edicion) {
             return redirect()->back()
@@ -254,7 +254,7 @@ class VentaController extends Controller
         // GUARDAR DATOS ANTERIORES PARA HISTORIAL
         $datosAnteriores = $venta->only([
             'fecha_venta',
-            'monto_final', 
+            'monto_final',
             'observaciones'
         ]);
 
@@ -276,7 +276,7 @@ class VentaController extends Controller
             'datos_anteriores' => $datosAnteriores,
             'datos_nuevos' => $venta->only([
                 'fecha_venta',
-                'monto_final', 
+                'monto_final',
                 'observaciones'
             ]),
             'motivo' => $validated['motivo_edicion'],
@@ -296,5 +296,48 @@ class VentaController extends Controller
 
         return redirect()->route('asesor.ventas')
             ->with('success', $mensaje);
+    }
+
+    /**
+     * Marcar documentos como entregados
+     */
+    public function marcarDocumentosEntregados($id)
+    {
+        $asesor = Auth::user()->asesor;
+
+        $venta = Venta::with(['reserva.cotizacion.departamento'])
+            ->whereHas('reserva', function($query) use ($asesor) {
+                $query->where('asesor_id', $asesor->id);
+            })
+            ->findOrFail($id);
+
+        // Verificar que no estén ya entregados
+        if ($venta->documentos_entregados) {
+            return redirect()->back()
+                ->with('warning', 'Los documentos ya fueron marcados como entregados anteriormente.');
+        }
+
+        // Marcar como entregados usando el método del modelo
+        $venta->marcarDocumentosEntregados(Auth::id());
+
+        // Crear registro en historial
+        \App\Models\VentaHistorial::create([
+            'venta_id' => $venta->id,
+            'usuario_id' => Auth::id(),
+            'accion' => 'entrega_documentos',
+            'datos_anteriores' => [
+                'documentos_entregados' => false,
+                'fecha_entrega_documentos' => null
+            ],
+            'datos_nuevos' => [
+                'documentos_entregados' => true,
+                'fecha_entrega_documentos' => $venta->fresh()->fecha_entrega_documentos
+            ],
+            'motivo' => 'Entrega de documentos al cliente',
+            'observaciones' => 'Documentos entregados y departamento marcado como vendido'
+        ]);
+
+        return redirect()->back()
+            ->with('success', '✓ Documentos marcados como entregados exitosamente.');
     }
 }
