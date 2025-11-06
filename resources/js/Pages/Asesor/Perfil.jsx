@@ -3,13 +3,20 @@ import { Head, useForm } from '@inertiajs/react';
 import AsesorLayout from '../../Layouts/AsesorLayout';
 
 export default function Perfil({ auth, asesor, estadisticas }) {
-    const { data, setData, put, processing, errors } = useForm({
+    // Formatear fecha para input type="date" (solo YYYY-MM-DD)
+    const formatearFecha = (fecha) => {
+        if (!fecha) return '';
+        // Si viene en formato ISO, extraer solo la fecha
+        return fecha.split('T')[0];
+    };
+
+    const { data, setData, patch, processing, errors } = useForm({
         nombre: asesor?.nombre || auth.user.name || '',
         email: auth.user.email || '',
         telefono: asesor?.telefono || auth.user.telefono || '',
         ci: asesor?.documento || '',
         direccion: asesor?.direccion || '',
-        fecha_nacimiento: asesor?.fecha_nacimiento || '',
+        fecha_nacimiento: formatearFecha(asesor?.fecha_nacimiento) || '',
         especialidad: asesor?.especialidad || '',
         experiencia: asesor?.experiencia || 0,
         descripcion: asesor?.biografia || ''
@@ -19,7 +26,7 @@ export default function Perfil({ auth, asesor, estadisticas }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('asesor.perfil.update'), {
+        patch(route('asesor.perfil'), {
             onSuccess: () => {
                 setEditMode(false);
             }
@@ -117,19 +124,32 @@ export default function Perfil({ auth, asesor, estadisticas }) {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Carnet de Identidad
+                                                DNI
                                             </label>
                                             <input
                                                 type="text"
                                                 value={data.ci}
-                                                onChange={(e) => setData('ci', e.target.value)}
+                                                onChange={(e) => {
+                                                    const value = e.target.value.replace(/\D/g, '');
+                                                    if (value.length <= 8) {
+                                                        setData('ci', value);
+                                                    }
+                                                }}
                                                 disabled={!editMode}
+                                                placeholder="12345678"
+                                                maxLength={8}
+                                                pattern="[0-9]{8}"
                                                 className={`w-full px-3 py-2 border rounded-md ${editMode
                                                         ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                         : 'border-gray-200 bg-gray-50'
                                                     }`}
                                             />
                                             {errors.ci && <p className="mt-1 text-sm text-red-600">{errors.ci}</p>}
+                                            {editMode && !errors.ci && (
+                                                <p className="mt-1 text-xs text-gray-500">
+                                                    Debe contener exactamente 8 dígitos numéricos
+                                                </p>
+                                            )}
                                         </div>
 
                                         <div>
@@ -141,12 +161,18 @@ export default function Perfil({ auth, asesor, estadisticas }) {
                                                 value={data.fecha_nacimiento}
                                                 onChange={(e) => setData('fecha_nacimiento', e.target.value)}
                                                 disabled={!editMode}
+                                                max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                                                 className={`w-full px-3 py-2 border rounded-md ${editMode
                                                         ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                         : 'border-gray-200 bg-gray-50'
                                                     }`}
                                             />
                                             {errors.fecha_nacimiento && <p className="mt-1 text-sm text-red-600">{errors.fecha_nacimiento}</p>}
+                                            {editMode && !errors.fecha_nacimiento && (
+                                                <p className="mt-1 text-xs text-gray-500">
+                                                    Debes ser mayor de 18 años
+                                                </p>
+                                            )}
                                         </div>
 
                                         <div className="md:col-span-2">
@@ -205,7 +231,14 @@ export default function Perfil({ auth, asesor, estadisticas }) {
                                             <input
                                                 type="number"
                                                 value={data.experiencia}
-                                                onChange={(e) => setData('experiencia', e.target.value)}
+                                                onChange={(e) => {
+                                                    const value = parseInt(e.target.value);
+                                                    if (value >= 0 && value <= 50) {
+                                                        setData('experiencia', e.target.value);
+                                                    } else if (e.target.value === '') {
+                                                        setData('experiencia', 0);
+                                                    }
+                                                }}
                                                 disabled={!editMode}
                                                 min="0"
                                                 max="50"
@@ -215,6 +248,11 @@ export default function Perfil({ auth, asesor, estadisticas }) {
                                                     }`}
                                             />
                                             {errors.experiencia && <p className="mt-1 text-sm text-red-600">{errors.experiencia}</p>}
+                                            {editMode && !errors.experiencia && (
+                                                <p className="mt-1 text-xs text-gray-500">
+                                                    Máximo 50 años de experiencia
+                                                </p>
+                                            )}
                                         </div>
 
                                         <div className="md:col-span-2">
@@ -268,9 +306,9 @@ export default function Perfil({ auth, asesor, estadisticas }) {
                                             </div>
                                             <div className="text-sm text-gray-600">Clientes</div>
                                         </div>
-                                        <div className="text-center">
+                                        <div className="bg-indigo-50 p-4 rounded-lg text-center">
                                             <div className="text-3xl font-bold text-indigo-600">
-                                                {estadisticas?.antiguedad_anos || 0}
+                                                {asesor?.experiencia || 0}
                                             </div>
                                             <div className="text-sm text-gray-600">Años Experiencia</div>
                                         </div>
@@ -279,10 +317,16 @@ export default function Perfil({ auth, asesor, estadisticas }) {
                                     {/* Información adicional */}
                                     {asesor && (
                                         <div className="mt-6 pt-6 border-t border-gray-200">
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
                                                 <div>
                                                     <strong>Fecha de contrato:</strong> {' '}
-                                                    {asesor.fecha_contrato ? new Date(asesor.fecha_contrato).toLocaleDateString() : 'No registrada'}
+                                                    {asesor.fecha_contrato ? new Date(asesor.fecha_contrato).toLocaleDateString('es-PE') : 'No registrada'}
+                                                </div>
+                                                <div>
+                                                    <strong>Tiempo Laboral:</strong> {' '}
+                                                    <span className="text-blue-600 font-medium">
+                                                        {estadisticas?.tiempo_laboral || '0 días'}
+                                                    </span>
                                                 </div>
                                                 <div>
                                                     <strong>Comisión:</strong> {asesor.comision_porcentaje || 5}%

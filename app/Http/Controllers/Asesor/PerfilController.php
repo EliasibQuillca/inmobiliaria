@@ -25,6 +25,8 @@ class PerfilController extends Controller
         }
 
         // Calcular estadísticas del asesor
+        $tiempoLaboral = $asesor->getTiempoLaboral();
+
         $estadisticas = [
             'ventas_totales' => $asesor->ventas()->count(),
             'ventas_este_mes' => $asesor->ventas()
@@ -42,6 +44,8 @@ class PerfilController extends Controller
                 ->whereYear('created_at', now()->year)
                 ->count(),
             'antiguedad_anos' => $asesor->getAntiguedad(),
+            'tiempo_laboral' => $tiempoLaboral['texto'],
+            'dias_laborales' => $tiempoLaboral['dias'],
         ];
 
         return Inertia::render('Asesor/Perfil', [
@@ -63,12 +67,24 @@ class PerfilController extends Controller
             'nombre' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'telefono' => 'nullable|string|max:20',
-            'ci' => 'nullable|string|max:20',
-            'fecha_nacimiento' => 'nullable|date',
+            'ci' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{8}$/'
+            ],
+            'fecha_nacimiento' => [
+                'nullable',
+                'date',
+                'before:-18 years'
+            ],
             'direccion' => 'nullable|string|max:500',
             'especialidad' => 'nullable|string|max:255',
-            'experiencia' => 'nullable|integer|min:0',
+            'experiencia' => 'nullable|integer|min:0|max:50',
             'descripcion' => 'nullable|string|max:1000',
+        ], [
+            'ci.regex' => 'El DNI debe contener exactamente 8 dígitos numéricos',
+            'fecha_nacimiento.before' => 'Debes ser mayor de 18 años para ser asesor',
+            'experiencia.max' => 'La experiencia no puede ser mayor a 50 años',
         ]);
 
         // Actualizar usuario

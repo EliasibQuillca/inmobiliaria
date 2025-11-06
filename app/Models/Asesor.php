@@ -111,6 +111,64 @@ class Asesor extends Model
         return Carbon::parse($this->attributes['fecha_contrato'])->diffInYears(Carbon::now());
     }
 
+    public function getTiempoLaboral()
+    {
+        if (!$this->attributes['fecha_contrato']) {
+            return ['texto' => '0 horas', 'dias' => 0, 'horas' => 0];
+        }
+
+        $fechaContrato = Carbon::parse($this->attributes['fecha_contrato']);
+        $ahora = Carbon::now();
+
+        $totalDias = $fechaContrato->diffInDays($ahora);
+        $totalHoras = $fechaContrato->diffInHours($ahora);
+
+        // Si tiene 360 días o más (1 año comercial)
+        if ($totalDias >= 360) {
+            $anos = floor($totalDias / 360);
+            $diasRestantes = $totalDias % 360;
+
+            if ($diasRestantes >= 30) {
+                $meses = floor($diasRestantes / 30);
+                $texto = $anos . ($anos === 1 ? ' año' : ' años') . ' y ' . $meses . ($meses === 1 ? ' mes' : ' meses');
+            } else {
+                $texto = $anos . ($anos === 1 ? ' año' : ' años');
+            }
+        }
+        // Si tiene 30 días o más (1 mes)
+        elseif ($totalDias >= 30) {
+            $meses = floor($totalDias / 30);
+            $diasRestantes = $totalDias % 30;
+
+            if ($diasRestantes > 0) {
+                $texto = $meses . ($meses === 1 ? ' mes' : ' meses') . ' y ' . $diasRestantes . ($diasRestantes === 1 ? ' día' : ' días');
+            } else {
+                $texto = $meses . ($meses === 1 ? ' mes' : ' meses');
+            }
+        }
+        // Entre 1 y 29 días
+        elseif ($totalDias >= 1) {
+            $texto = $totalDias . ($totalDias === 1 ? ' día' : ' días');
+        }
+        // Menos de 1 día (mostrar horas enteras sin decimales)
+        else {
+            // Redondear horas (sin decimales de minutos)
+            $horasEnteras = floor($totalHoras);
+
+            if ($horasEnteras === 0) {
+                $texto = 'Menos de 1 hora';
+            } else {
+                $texto = $horasEnteras . ($horasEnteras === 1 ? ' hora' : ' horas');
+            }
+        }
+
+        return [
+            'texto' => $texto,
+            'dias' => $totalDias,
+            'horas' => floor($totalHoras) // Horas enteras sin decimales
+        ];
+    }
+
     /**
      * Scope para filtrar por estado.
      */
