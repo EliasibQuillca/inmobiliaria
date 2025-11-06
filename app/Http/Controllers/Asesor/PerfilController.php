@@ -18,28 +18,31 @@ class PerfilController extends Controller
         $user = Auth::user();
         $asesor = $user->asesor;
 
-        // Calcular estadísticas del asesor
-        $estadisticas = [];
-        if ($asesor) {
-            $estadisticas = [
-                'ventas_totales' => $asesor->ventas()->count(),
-                'ventas_este_mes' => $asesor->ventas()
-                    ->whereMonth('fecha_venta', now()->month)
-                    ->whereYear('fecha_venta', now()->year)
-                    ->count(),
-                'reservas_activas' => $asesor->reservas()
-                    ->where('estado', 'confirmada')
-                    ->count(),
-                'clientes_activos' => $asesor->clientes()
-                    ->where('estado', 'activo')
-                    ->count(),
-                'cotizaciones_mes' => $asesor->cotizaciones()
-                    ->whereMonth('created_at', now()->month)
-                    ->whereYear('created_at', now()->year)
-                    ->count(),
-                'antiguedad_anos' => $asesor->getAntiguedad(),
-            ];
+        // Verificar que el usuario tenga un perfil de asesor
+        if (!$asesor) {
+            return redirect()->route('asesor.dashboard')
+                ->with('error', 'No se encontró el perfil de asesor asociado a tu cuenta.');
         }
+
+        // Calcular estadísticas del asesor
+        $estadisticas = [
+            'ventas_totales' => $asesor->ventas()->count(),
+            'ventas_este_mes' => $asesor->ventas()
+                ->whereMonth('fecha_venta', now()->month)
+                ->whereYear('fecha_venta', now()->year)
+                ->count(),
+            'reservas_activas' => $asesor->reservas()
+                ->where('estado', 'confirmada')
+                ->count(),
+            'clientes_activos' => $asesor->clientes()
+                ->where('estado', 'activo')
+                ->count(),
+            'cotizaciones_mes' => $asesor->cotizaciones()
+                ->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->count(),
+            'antiguedad_anos' => $asesor->getAntiguedad(),
+        ];
 
         return Inertia::render('Asesor/Perfil', [
             'user' => $user,

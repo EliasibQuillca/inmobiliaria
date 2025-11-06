@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
 /**
  * Class Asesor
- * 
+ *
  * @property int $id
  * @property int $usuario_id
  * @property \Illuminate\Support\Carbon|null $fecha_contrato
@@ -78,7 +78,15 @@ class Asesor extends Model
 
     public function ventas()
     {
-        return $this->hasMany(Venta::class, 'asesor_id');
+        // Las ventas están relacionadas a través de reservas
+        return $this->hasManyThrough(
+            Venta::class,
+            Reserva::class,
+            'asesor_id',    // Foreign key en reservas
+            'reserva_id',   // Foreign key en ventas
+            'id',           // Local key en asesores
+            'id'            // Local key en reservas
+        );
     }
 
     // Métodos de utilidad
