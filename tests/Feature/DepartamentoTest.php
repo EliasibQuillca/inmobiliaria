@@ -199,7 +199,7 @@ class DepartamentoTest extends TestCase
         
         // Verificar la respuesta de Inertia
         $responseVista->assertInertia(fn (Assert $page) => $page
-            ->component('Admin/Departamentos')
+            ->component('Admin/Departamentos/Index')
             ->has('departamentos.data', 1)
             ->where('departamentos.data.0.titulo', 'Departamento Test Vista')
             ->where('departamentos.data.0.precio', '150000.00')

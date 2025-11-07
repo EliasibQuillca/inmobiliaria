@@ -91,12 +91,24 @@ class UserController extends Controller
     public function store(Request $request)
     {
         try {
+            // Mensajes personalizados
+            $messages = [
+                'email.unique' => 'El correo electrónico ya está registrado. Por favor, utilice otro.',
+                'email.required' => 'El correo electrónico es obligatorio.',
+                'email.email' => 'Por favor, ingrese un correo electrónico válido.',
+                'name.required' => 'El nombre es obligatorio.',
+                'password.required' => 'La contraseña es obligatoria.',
+                'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+                'role.required' => 'El rol es obligatorio.',
+                'role.in' => 'El rol seleccionado no es válido.',
+            ];
+
             // Validación base
             $rules = [
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|min:8',
-                'role' => 'required|string|in:admin,asesor,cliente',
+                'role' => 'required|string|in:administrador,asesor,cliente',
                 'telefono' => 'nullable|string|max:20',
             ];
 
@@ -106,7 +118,7 @@ class UserController extends Controller
                 $rules['direccion'] = 'nullable|string|max:255';
             }
 
-            $validated = $request->validate($rules);
+            $validated = $request->validate($rules, $messages);
 
             // Usar transacción para asegurar integridad
             DB::beginTransaction();

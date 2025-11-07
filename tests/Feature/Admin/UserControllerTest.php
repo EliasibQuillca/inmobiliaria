@@ -101,9 +101,10 @@ class UserControllerTest extends TestCase
         // Datos del nuevo usuario
         $userData = [
             'name' => 'Nuevo Usuario',
-            'email' => 'nuevo@test.com',
+            'email' => 'nuevo@test.com', 
             'password' => 'password123',
             'role' => 'cliente',
+            'documento_identidad' => '12345678',
             'estado' => true
         ];
 

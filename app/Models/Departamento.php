@@ -38,18 +38,18 @@ class Departamento extends Model
     /**
      * Los eventos del modelo.
      */
-    // protected static function booted()
-    // {
-    //     // Asignar código automáticamente al crear un nuevo departamento
-    //     static::creating(function ($departamento) {
-    //         if (empty($departamento->codigo)) {
-    //             $departamento->codigo = static::generarCodigo();
-    //         }
-    //     });
-    // }
+    protected static function booted()
+    {
+        // Asignar código automáticamente al crear un nuevo departamento
+        static::creating(function ($departamento) {
+            if (empty($departamento->codigo)) {
+                $departamento->codigo = static::generarCodigo();
+            }
+        });
+    }
 
     protected $fillable = [
-        // 'codigo', // Columna no existe en la migración
+        'codigo',
         'titulo',
         'descripcion',
         'ubicacion',

@@ -248,7 +248,7 @@ export default function CrearDepartamento({ auth, propietarios }) {
                                         <option value="">Seleccionar propietario...</option>
                                         {propietarios?.map(propietario => (
                                             <option key={propietario.id} value={propietario.id}>
-                                                {propietario.nombre} - {propietario.dni || propietario.contacto}
+                                                {propietario.identificacion}
                                             </option>
                                         ))}
                                     </select>

@@ -108,8 +108,19 @@ class DepartamentoController extends Controller
     public function create()
     {
         try {
-            // Obtener lista de propietarios para el formulario
-            $propietarios = \App\Models\Propietario::all();
+            // Obtener lista de propietarios para el formulario con información relevante
+            $propietarios = \App\Models\Propietario::select('id', 'nombre', 'dni', 'tipo', 'contacto')
+                ->orderBy('nombre')
+                ->get()
+                ->map(function($propietario) {
+                    return [
+                        'id' => $propietario->id,
+                        'nombre' => $propietario->nombre,
+                        'dni' => $propietario->dni,
+                        'tipo' => $propietario->tipo,
+                        'identificacion' => "{$propietario->nombre} - {$propietario->dni} ({$propietario->tipo})"
+                    ];
+                });
 
             return Inertia::render('Admin/Departamentos/Crear', [
                 'propietarios' => $propietarios

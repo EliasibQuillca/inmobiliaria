@@ -24,6 +24,7 @@ class ClientePerfilTest extends TestCase
         $this->user = User::factory()->create([
             'name' => 'Cliente Test',
             'email' => 'cliente@test.com',
+            'password' => bcrypt('password'),
             'role' => 'cliente',
             'estado' => 'activo',
             'telefono' => '987654321',
@@ -63,9 +64,10 @@ class ClientePerfilTest extends TestCase
         $datosActualizados = [
             'nombre' => 'Cliente Actualizado',
             'email' => 'clientenuevo@test.com',
+            'current_password' => 'password',
             'telefono' => '999888777',
             'cedula' => '87654321',
-            'direccion' => 'Calle Nueva 456',
+            'direccion' => 'Calle Nueva 456', 
             'fecha_nacimiento' => '1995-03-20',
             'ciudad' => 'Lima',
             'ocupacion' => 'Arquitecto',
@@ -162,6 +164,7 @@ class ClientePerfilTest extends TestCase
         $datosValidos = [
             'nombre' => 'Cliente Test',
             'email' => 'cliente@test.com',
+            'current_password' => 'password',
             'telefono' => '987654321',
             'cedula' => '12345678',
             'direccion' => 'Av. Test 123',
@@ -181,6 +184,7 @@ class ClientePerfilTest extends TestCase
         $datosSoloObligatorios = [
             'nombre' => 'Cliente Test',
             'email' => 'cliente@test.com',
+            'current_password' => 'password',
             'telefono' => '987654321',
             'cedula' => '12345678',
             'direccion' => 'Av. Test 123',
@@ -207,6 +211,7 @@ class ClientePerfilTest extends TestCase
             $datos = [
                 'nombre' => 'Cliente Test',
                 'email' => 'cliente@test.com',
+                'current_password' => 'password',
                 'telefono' => '987654321',
                 'cedula' => '12345678',
                 'direccion' => 'Av. Test 123',
