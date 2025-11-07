@@ -46,6 +46,7 @@ class DepartamentosBasicosSeeder extends Seeder
         // Crear departamentos básicos
         $departamentos = [
             [
+                'codigo' => 'DPTO-AND-501',
                 'titulo' => 'Departamento Los Andes 501',
                 'descripcion' => 'Hermoso departamento con vista panorámica en zona residencial.',
                 'ubicacion' => 'Los Olivos',
@@ -65,6 +66,7 @@ class DepartamentosBasicosSeeder extends Seeder
                 'propietario_id' => $propietario1->id,
             ],
             [
+                'codigo' => 'DPTO-LIM-302',
                 'titulo' => 'Departamento Lima 302',
                 'descripcion' => 'Acogedor departamento en el centro de la ciudad.',
                 'ubicacion' => 'Lima Centro',
@@ -84,6 +86,7 @@ class DepartamentosBasicosSeeder extends Seeder
                 'propietario_id' => $propietario1->id,
             ],
             [
+                'codigo' => 'DPTO-CEN-204',
                 'titulo' => 'Departamento Central 204',
                 'descripcion' => 'Exclusivo departamento con acabados de lujo.',
                 'ubicacion' => 'San Isidro',
@@ -103,6 +106,7 @@ class DepartamentosBasicosSeeder extends Seeder
                 'propietario_id' => $propietario2->id,
             ],
             [
+                'codigo' => 'DPTO-FLO-101',
                 'titulo' => 'Departamento Las Flores 101',
                 'descripcion' => 'Cómodo departamento para familias jóvenes.',
                 'ubicacion' => 'Miraflores',
@@ -122,6 +126,7 @@ class DepartamentosBasicosSeeder extends Seeder
                 'propietario_id' => $propietario2->id,
             ],
             [
+                'codigo' => 'DPTO-UNI-601',
                 'titulo' => 'Departamento Universitaria 601',
                 'descripcion' => 'Moderno departamento cerca a universidades.',
                 'ubicacion' => 'San Miguel',
