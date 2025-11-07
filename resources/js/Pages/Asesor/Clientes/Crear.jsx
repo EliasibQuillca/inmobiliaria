@@ -19,8 +19,15 @@ export default function CrearCliente({ auth }) {
         zona_preferida: '',
     });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Obtener el token CSRF actualizado
+        const token = document.head.querySelector('meta[name="csrf-token"]');
+        if (!token) {
+            console.error('CSRF token no encontrado');
+            return;
+        }
 
         // Validación de presupuestos
         const maxBudget = 10000000; // S/ 10 millones
@@ -40,11 +47,27 @@ export default function CrearCliente({ auth }) {
             return;
         }
 
-        post('/asesor/clientes', {
-            onSuccess: () => {
-                reset();
+        try {
+            post(window.location.origin + '/asesor/clientes', {
+                preserveScroll: true,
+                onSuccess: () => {
+                    reset();
+                    window.location.href = window.location.origin + '/asesor/clientes';
+                },
+                onError: (errors) => {
+                    if (errors.response && errors.response.status === 419) {
+                        // Error de CSRF token
+                        console.error('Error de CSRF token. Recargando página...');
+                        window.location.reload();
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error al enviar formulario:', error);
+            if (error.response && error.response.status === 419) {
+                window.location.reload();
             }
-        });
+        }
     };
 
     return (
