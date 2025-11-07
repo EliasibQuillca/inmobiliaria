@@ -4,24 +4,64 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 export default function Login({ status, canResetPassword }) {
+    const { csrf_token } = usePage().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
         remember: false,
     });
 
+    // Asegurar que el token CSRF esté disponible al cargar la página
+    useEffect(() => {
+        if (!csrf_token) {
+            console.error('CSRF token not found on page load');
+        } else {
+            console.log('CSRF token found:', csrf_token.substring(0, 10) + '...');
+
+            // Actualizar el meta tag con el token de Inertia
+            const metaTag = document.head.querySelector('meta[name="csrf-token"]');
+            if (metaTag) {
+                metaTag.content = csrf_token;
+            }
+        }
+    }, [csrf_token]);
+
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('login'), {
-            onFinish: () => reset('password'),
-        });
-    };
+        // Verificar que el token CSRF existe
+        if (!csrf_token) {
+            console.error('CSRF token not found');
+            // Recargar la página para obtener un nuevo token
+            window.location.reload();
+            return;
+        }
 
-    return (
+        console.log('Submitting login with CSRF token:', csrf_token.substring(0, 10) + '...');
+
+        post(route('login'), {
+            preserveState: true,
+            preserveScroll: true,
+            forceFormData: true,
+            headers: {
+                'X-CSRF-TOKEN': csrf_token,
+            },
+            onFinish: () => reset('password'),
+            onError: (errors) => {
+                console.error('Login errors:', errors);
+
+                // Si hay un error 419, recargar la página para obtener un nuevo token
+                if (errors.message && errors.message.includes('419')) {
+                    console.log('CSRF token expired, reloading page...');
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }
+        });
+    };    return (
         <GuestLayout>
             <Head title="Iniciar Sesión" />
 

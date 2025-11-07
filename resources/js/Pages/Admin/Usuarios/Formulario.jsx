@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 export default function FormularioUsuario({ auth, usuario = null, userId = null, modo = 'crear' }) {
+    const { csrf_token } = usePage().props;
     const esEdicion = modo === 'editar';
     const titulo = esEdicion ? 'Editar Usuario' : 'Crear Nuevo Usuario';
 
@@ -10,6 +11,16 @@ export default function FormularioUsuario({ auth, usuario = null, userId = null,
     const [cargando, setCargando] = useState(esEdicion && !usuario);
     const [enviando, setEnviando] = useState(false);
     const [mostrarPassword, setMostrarPassword] = useState(false);
+
+    // Sincronizar token CSRF
+    useEffect(() => {
+        if (csrf_token) {
+            const metaTag = document.head.querySelector('meta[name="csrf-token"]');
+            if (metaTag) {
+                metaTag.content = csrf_token;
+            }
+        }
+    }, [csrf_token]);
 
     // Estado para el formulario
     const [formData, setFormData] = useState({
@@ -123,11 +134,6 @@ export default function FormularioUsuario({ auth, usuario = null, userId = null,
             return false;
         }
 
-        if (formData.role === 'asesor' && !formData.codigo_asesor) {
-            setError('El código de asesor es obligatorio');
-            return false;
-        }
-
         return true;
     };
 
@@ -160,38 +166,37 @@ export default function FormularioUsuario({ auth, usuario = null, userId = null,
             if (formData.role === 'cliente') {
                 datos.documento_identidad = formData.documento_identidad;
                 datos.direccion = formData.direccion;
-            } else if (formData.role === 'asesor') {
-                datos.codigo_asesor = formData.codigo_asesor;
-                datos.comision = parseFloat(formData.comision) || 0;
             }
+
+            // Verificar token CSRF
+            if (!csrf_token) {
+                console.error('CSRF token not found');
+                setError('Error de seguridad. Por favor, recarga la página.');
+                setEnviando(false);
+                return;
+            }
+
+            const requestOptions = {
+                headers: {
+                    'X-CSRF-TOKEN': csrf_token,
+                },
+                onSuccess: () => {
+                    // Redirect will be handled by the controller
+                },
+                onError: (errors) => {
+                    console.error('Errores:', errors);
+                    setError(errors.message || 'Error al guardar usuario. Por favor, inténtelo de nuevo.');
+                },
+                onFinish: () => {
+                    setEnviando(false);
+                }
+            };
 
             if (esEdicion) {
                 const idUsuario = usuario?.id || userId;
-                router.put(`/admin/usuarios/${idUsuario}`, datos, {
-                    onSuccess: () => {
-                        // Redirect will be handled by the controller
-                    },
-                    onError: (errors) => {
-                        console.error('Errores:', errors);
-                        setError(errors.message || 'Error al actualizar usuario. Por favor, inténtelo de nuevo.');
-                    },
-                    onFinish: () => {
-                        setEnviando(false);
-                    }
-                });
+                router.put(`/admin/usuarios/${idUsuario}`, datos, requestOptions);
             } else {
-                router.post('/admin/usuarios', datos, {
-                    onSuccess: () => {
-                        // Redirect will be handled by the controller
-                    },
-                    onError: (errors) => {
-                        console.error('Errores:', errors);
-                        setError(errors.message || 'Error al crear usuario. Por favor, inténtelo de nuevo.');
-                    },
-                    onFinish: () => {
-                        setEnviando(false);
-                    }
-                });
+                router.post('/admin/usuarios', datos, requestOptions);
             }
         } catch (err) {
             console.error('Error al guardar usuario:', err);

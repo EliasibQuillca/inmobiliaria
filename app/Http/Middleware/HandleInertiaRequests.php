@@ -29,21 +29,44 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $userData = null;
+
+        if ($user) {
+            $userData = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'telefono' => $user->telefono,
+            ];
+
+            // Agregar datos adicionales según el rol
+            if ($user->role === 'cliente' && $user->cliente) {
+                $userData = array_merge($userData, [
+                    'cedula' => $user->cliente->dni,
+                    'fecha_nacimiento' => $user->cliente->fecha_nacimiento,
+                    'direccion' => $user->cliente->direccion,
+                    'ciudad' => $user->cliente->ciudad,
+                    'ocupacion' => $user->cliente->ocupacion,
+                    'estado_civil' => $user->cliente->estado_civil,
+                    'ingresos_mensuales' => $user->cliente->ingresos_mensuales,
+                    'preferencias' => $user->cliente->preferencias,
+                ]);
+            }
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'role' => $request->user()->role,
-                ] : null,
+                'user' => $userData,
             ],
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('error'),
             ],
-            'csrf_token' => csrf_token(),
+            // Siempre enviar el token CSRF actualizado
+            'csrf_token' => fn () => csrf_token(),
         ];
     }
 }

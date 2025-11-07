@@ -81,11 +81,28 @@ class PerfilController extends Controller
             'especialidad' => 'nullable|string|max:255',
             'experiencia' => 'nullable|integer|min:0|max:50',
             'descripcion' => 'nullable|string|max:1000',
+            'current_password' => 'required_with:email',
         ], [
             'ci.regex' => 'El DNI debe contener exactamente 8 dígitos numéricos',
             'fecha_nacimiento.before' => 'Debes ser mayor de 18 años para ser asesor',
             'experiencia.max' => 'La experiencia no puede ser mayor a 50 años',
+            'current_password.required_with' => 'Debes ingresar tu contraseña para cambiar el correo electrónico',
         ]);
+
+        // Si está cambiando el email, verificar la contraseña
+        if ($request->email !== $user->email) {
+            if (!$request->current_password) {
+                return back()->withErrors([
+                    'current_password' => 'Debes ingresar tu contraseña para cambiar el correo electrónico'
+                ]);
+            }
+
+            if (!Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors([
+                    'current_password' => 'La contraseña es incorrecta'
+                ]);
+            }
+        }
 
         // Actualizar usuario
         $user->update([

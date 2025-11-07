@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DepartamentoController as AdminDepartamentoContro
 use App\Http\Controllers\Admin\VentaController as AdminVentaController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\ReporteController as AdminReporteController;
+use App\Http\Controllers\Admin\PerfilController as AdminPerfilController;
 use App\Http\Controllers\Asesor\ConfiguracionController as AsesorConfiguracionController;
 use App\Http\Controllers\Asesor\DashboardController as AsesorDashboardController;
 use App\Http\Controllers\Asesor\ClienteController as AsesorClienteController;
@@ -99,6 +100,11 @@ Route::middleware(['auth', 'active', 'role:cliente'])->prefix('cliente')->name('
 Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard admin
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Perfil admin
+    Route::get('/perfil', [AdminPerfilController::class, 'index'])->name('perfil.index');
+    Route::patch('/perfil', [AdminPerfilController::class, 'update'])->name('perfil.update');
+    Route::patch('/perfil/password', [AdminPerfilController::class, 'updatePassword'])->name('password.update');
 
     // Rutas para departamentos
     Route::prefix('departamentos')->name('departamentos.')->group(function () {

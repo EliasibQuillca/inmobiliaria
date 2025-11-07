@@ -1,8 +1,19 @@
-import React, { useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import AsesorLayout from '../../Layouts/AsesorLayout';
 
 export default function Perfil({ auth, asesor, estadisticas }) {
+    const { csrf_token } = usePage().props;
+
+    // Asegurar que el token CSRF esté disponible
+    useEffect(() => {
+        if (csrf_token) {
+            const metaTag = document.head.querySelector('meta[name="csrf-token"]');
+            if (metaTag) {
+                metaTag.content = csrf_token;
+            }
+        }
+    }, [csrf_token]);
     // Formatear fecha para input type="date" (solo YYYY-MM-DD)
     const formatearFecha = (fecha) => {
         if (!fecha) return '';
@@ -19,16 +30,36 @@ export default function Perfil({ auth, asesor, estadisticas }) {
         fecha_nacimiento: formatearFecha(asesor?.fecha_nacimiento) || '',
         especialidad: asesor?.especialidad || '',
         experiencia: asesor?.experiencia || 0,
-        descripcion: asesor?.biografia || ''
+        descripcion: asesor?.biografia || '',
+        current_password: ''
     });
 
     const [editMode, setEditMode] = useState(false);
 
+    // Detectar si el email ha sido modificado
+    const emailChanged = data.email !== auth.user.email;
+
     const submit = (e) => {
         e.preventDefault();
+
+        if (!csrf_token) {
+            console.error('CSRF token not found');
+            window.location.reload();
+            return;
+        }
+
         patch(route('asesor.perfil'), {
+            preserveState: true,
+            preserveScroll: true,
+            headers: {
+                'X-CSRF-TOKEN': csrf_token,
+            },
             onSuccess: () => {
+                console.log('Perfil de asesor actualizado exitosamente');
                 setEditMode(false);
+            },
+            onError: (errors) => {
+                console.error('Errores al actualizar perfil de asesor:', errors);
             }
         });
     };
@@ -88,7 +119,7 @@ export default function Perfil({ auth, asesor, estadisticas }) {
                                             {errors.nombre && <p className="mt-1 text-sm text-red-600">{errors.nombre}</p>}
                                         </div>
 
-                                        <div>
+                                        <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Email
                                             </label>
@@ -103,6 +134,37 @@ export default function Perfil({ auth, asesor, estadisticas }) {
                                                     }`}
                                             />
                                             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+
+                                            {/* Campo de contraseña cuando se modifica el email */}
+                                            {editMode && emailChanged && (
+                                                <div className="mt-4">
+                                                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-3">
+                                                        <div className="flex">
+                                                            <div className="flex-shrink-0">
+                                                                <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                                </svg>
+                                                            </div>
+                                                            <div className="ml-3">
+                                                                <p className="text-sm text-yellow-700">
+                                                                    Por seguridad, confirma tu contraseña para cambiar el correo electrónico
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Contraseña Actual
+                                                    </label>
+                                                    <input
+                                                        type="password"
+                                                        value={data.current_password}
+                                                        onChange={(e) => setData('current_password', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        required
+                                                    />
+                                                    {errors.current_password && <p className="mt-1 text-sm text-red-600">{errors.current_password}</p>}
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div>

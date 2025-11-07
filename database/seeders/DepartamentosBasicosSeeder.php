@@ -21,7 +21,7 @@ class DepartamentosBasicosSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Departamento::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        
+
         // Buscar o crear propietarios
         $propietario1 = Propietario::firstOrCreate([
             'dni' => '12345001'
@@ -43,14 +43,9 @@ class DepartamentosBasicosSeeder extends Seeder
             'registrado_sunarp' => true,
         ]);
 
-        // Determinar el último código existente
-        $ultimoCodigo = Departamento::orderBy('id', 'desc')->value('codigo');
-        $numero = $ultimoCodigo ? (intval(substr($ultimoCodigo, 5)) + 1) : 1;
-        
-        // Crear departamentos básicos con códigos secuenciales
+        // Crear departamentos básicos
         $departamentos = [
             [
-                'codigo' => 'DEPT-' . str_pad($numero++, 4, '0', STR_PAD_LEFT),
                 'titulo' => 'Departamento Los Andes 501',
                 'descripcion' => 'Hermoso departamento con vista panorámica en zona residencial.',
                 'ubicacion' => 'Los Olivos',
@@ -70,7 +65,6 @@ class DepartamentosBasicosSeeder extends Seeder
                 'propietario_id' => $propietario1->id,
             ],
             [
-                'codigo' => 'DEPT-' . str_pad($numero++, 4, '0', STR_PAD_LEFT),
                 'titulo' => 'Departamento Lima 302',
                 'descripcion' => 'Acogedor departamento en el centro de la ciudad.',
                 'ubicacion' => 'Lima Centro',
@@ -90,7 +84,6 @@ class DepartamentosBasicosSeeder extends Seeder
                 'propietario_id' => $propietario1->id,
             ],
             [
-                'codigo' => 'DEPT-' . str_pad($numero++, 4, '0', STR_PAD_LEFT),
                 'titulo' => 'Departamento Central 204',
                 'descripcion' => 'Exclusivo departamento con acabados de lujo.',
                 'ubicacion' => 'San Isidro',

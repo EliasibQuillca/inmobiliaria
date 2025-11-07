@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
  * Class Cliente
- * 
+ *
  * @property int $id
  * @property int|null $usuario_id
  * @property int|null $asesor_id
@@ -64,13 +64,20 @@ class Cliente extends Model
         'presupuesto_min',
         'presupuesto_max',
         'zona_preferida',
+        'fecha_nacimiento',
+        'ciudad',
+        'ocupacion',
+        'estado_civil',
+        'ingresos_mensuales',
     ];
 
     protected $casts = [
         'fecha_registro' => 'date',
         'fecha_cita' => 'datetime',
+        'fecha_nacimiento' => 'date',
         'presupuesto_min' => 'decimal:2',
         'presupuesto_max' => 'decimal:2',
+        'ingresos_mensuales' => 'decimal:2',
         'habitaciones_deseadas' => 'integer',
     ];
 
@@ -260,7 +267,7 @@ class Cliente extends Model
      */
     public function tieneCitaProgramada(): bool
     {
-        return $this->estado === 'cita_agendada' 
+        return $this->estado === 'cita_agendada'
                && !is_null($this->fecha_cita)
                && $this->fecha_cita >= now();
     }

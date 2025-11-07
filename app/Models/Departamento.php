@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class Departamento
- * 
+ *
  * @property int $id
  * @property string $titulo
  * @property string $descripcion
@@ -34,22 +34,22 @@ class Departamento extends Model
     use HasFactory;
 
     protected $table = 'departamentos';
-    
+
     /**
      * Los eventos del modelo.
      */
-    protected static function booted()
-    {
-        // Asignar código automáticamente al crear un nuevo departamento
-        static::creating(function ($departamento) {
-            if (empty($departamento->codigo)) {
-                $departamento->codigo = static::generarCodigo();
-            }
-        });
-    }
+    // protected static function booted()
+    // {
+    //     // Asignar código automáticamente al crear un nuevo departamento
+    //     static::creating(function ($departamento) {
+    //         if (empty($departamento->codigo)) {
+    //             $departamento->codigo = static::generarCodigo();
+    //         }
+    //     });
+    // }
 
     protected $fillable = [
-        'codigo',
+        // 'codigo', // Columna no existe en la migración
         'titulo',
         'descripcion',
         'ubicacion',
@@ -227,10 +227,10 @@ class Departamento extends Model
         }
         return 0;
     }
-    
+
     /**
      * Genera un código único para un nuevo departamento
-     * 
+     *
      * @return string
      */
     public static function generarCodigo()
@@ -305,7 +305,7 @@ class Departamento extends Model
 
         // Precio (30 puntos)
         if ($cliente->presupuesto_min && $cliente->presupuesto_max) {
-            if ($departamento->precio >= $cliente->presupuesto_min && 
+            if ($departamento->precio >= $cliente->presupuesto_min &&
                 $departamento->precio <= $cliente->presupuesto_max) {
                 $score += 30;
             } elseif ($departamento->precio < $cliente->presupuesto_min) {
@@ -338,7 +338,7 @@ class Departamento extends Model
         if ($cliente->zona_preferida) {
             $zonaCliente = strtolower($cliente->zona_preferida);
             $ubicacionDepto = strtolower($departamento->ubicacion);
-            
+
             if (stripos($ubicacionDepto, $zonaCliente) !== false) {
                 $score += 20;
             } elseif (self::zonaSimilar($zonaCliente, $ubicacionDepto)) {

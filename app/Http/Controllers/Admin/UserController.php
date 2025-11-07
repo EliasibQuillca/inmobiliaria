@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Cliente;
+use App\Models\Asesor;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -88,29 +91,61 @@ class UserController extends Controller
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate([
+            // Validación base
+            $rules = [
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|min:8',
                 'role' => 'required|string|in:admin,asesor,cliente',
-                'estado' => 'required|boolean'
-            ]);
+                'telefono' => 'nullable|string|max:20',
+            ];
 
+            // Agregar validaciones específicas según el rol
+            if ($request->role === 'cliente') {
+                $rules['documento_identidad'] = 'required|string|max:20|unique:clientes,dni';
+                $rules['direccion'] = 'nullable|string|max:255';
+            }
+
+            $validated = $request->validate($rules);
+
+            // Usar transacción para asegurar integridad
+            DB::beginTransaction();
+
+            // Crear usuario
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'role' => $validated['role'],
-                'estado' => $validated['estado']
+                'telefono' => $validated['telefono'] ?? null,
             ]);
+
+            // Crear registro específico según el rol
+            if ($validated['role'] === 'cliente') {
+                Cliente::create([
+                    'usuario_id' => $user->id,
+                    'dni' => $validated['documento_identidad'],
+                    'direccion' => $validated['direccion'] ?? null,
+                    'fecha_registro' => now(),
+                ]);
+            } elseif ($validated['role'] === 'asesor') {
+                Asesor::create([
+                    'usuario_id' => $user->id,
+                    'fecha_contrato' => now(),
+                ]);
+            }
+
+            DB::commit();
 
             return redirect()->route('admin.usuarios.index')
                 ->with('success', 'Usuario creado correctamente');
         } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
             return redirect()->back()
                 ->withErrors($e->errors())
                 ->withInput();
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error al crear usuario: ' . $e->getMessage());

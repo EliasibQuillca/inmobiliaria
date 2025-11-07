@@ -1,27 +1,86 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 export default function AdminPerfil({ auth }) {
+    const { csrf_token } = usePage().props;
+
+    // Asegurar que el token CSRF esté disponible
+    useEffect(() => {
+        if (csrf_token) {
+            const metaTag = document.head.querySelector('meta[name="csrf-token"]');
+            if (metaTag) {
+                metaTag.content = csrf_token;
+            }
+        }
+    }, [csrf_token]);
+
     const { data, setData, patch, processing, errors } = useForm({
-        name: auth.user.name,
-        email: auth.user.email,
+        name: auth.user.name || '',
+        email: auth.user.email || '',
+        telefono: auth.user.telefono || '',
+        current_password_profile: '',
         current_password: '',
         password: '',
         password_confirmation: '',
     });
 
+    // Detectar si el email ha cambiado
+    const emailChanged = data.email !== auth.user.email;
+
     const updateProfile = (e) => {
         e.preventDefault();
-        patch(route('admin.perfil.update'), {
+
+        if (!csrf_token) {
+            console.error('CSRF token not found');
+            window.location.reload();
+            return;
+        }
+
+        // Preparar datos: usar current_password_profile como current_password
+        const profileData = {
+            name: data.name,
+            email: data.email,
+            telefono: data.telefono,
+            current_password: data.current_password_profile,
+        };
+
+        // Usar URL directa en lugar del helper route() que no funciona correctamente para rutas RESTful
+        patch('/admin/perfil', {
+            data: profileData,
             preserveScroll: true,
+            preserveState: true,
+            headers: {
+                'X-CSRF-TOKEN': csrf_token,
+            },
+            onSuccess: () => {
+                console.log('Perfil actualizado exitosamente');
+                // Limpiar el campo de contraseña después del éxito
+                setData('current_password_profile', '');
+            },
+            onError: (errors) => {
+                console.error('Errores al actualizar perfil:', errors);
+            }
         });
     };
 
     const updatePassword = (e) => {
         e.preventDefault();
-        patch(route('admin.password.update'), {
+
+        if (!csrf_token) {
+            console.error('CSRF token not found');
+            window.location.reload();
+            return;
+        }
+
+        // Usar URL directa
+        patch('/admin/perfil/password', {
             preserveScroll: true,
+            headers: {
+                'X-CSRF-TOKEN': csrf_token,
+            },
             onSuccess: () => {
+                console.log('Contraseña actualizada exitosamente');
                 setData({
                     ...data,
                     current_password: '',
@@ -29,6 +88,9 @@ export default function AdminPerfil({ auth }) {
                     password_confirmation: '',
                 });
             },
+            onError: (errors) => {
+                console.error('Errores al actualizar contraseña:', errors);
+            }
         });
     };
 
@@ -128,7 +190,55 @@ export default function AdminPerfil({ auth }) {
                                                 />
                                                 {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
                                             </div>
+
+                                            <div>
+                                                <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Teléfono
+                                                </label>
+                                                <input
+                                                    type="tel"
+                                                    id="telefono"
+                                                    value={data.telefono}
+                                                    onChange={(e) => setData('telefono', e.target.value)}
+                                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                    placeholder="999888777"
+                                                />
+                                                {errors.telefono && <p className="mt-1 text-sm text-red-600">{errors.telefono}</p>}
+                                            </div>
                                         </div>
+
+                                        {/* Campo de contraseña cuando cambia el email */}
+                                        {emailChanged && (
+                                            <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4">
+                                                <div className="flex">
+                                                    <div className="flex-shrink-0">
+                                                        <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </div>
+                                                    <div className="ml-3 flex-1">
+                                                        <p className="text-sm text-yellow-700 font-medium">
+                                                            Por seguridad, confirma tu contraseña para cambiar el correo electrónico
+                                                        </p>
+                                                        <div className="mt-3">
+                                                            <label htmlFor="current_password_profile" className="block text-sm font-medium text-gray-700 mb-1">
+                                                                Contraseña actual <span className="text-red-500">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="password"
+                                                                id="current_password_profile"
+                                                                value={data.current_password_profile}
+                                                                onChange={(e) => setData('current_password_profile', e.target.value)}
+                                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                                placeholder="Ingresa tu contraseña actual"
+                                                                required={emailChanged}
+                                                            />
+                                                            {errors.current_password && <p className="mt-1 text-sm text-red-600">{errors.current_password}</p>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
 
                                         <div className="flex justify-end">
                                             <button

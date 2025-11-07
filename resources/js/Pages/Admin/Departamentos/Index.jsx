@@ -474,9 +474,19 @@ const FormularioEdicionRapida = ({ departamento, propietarios, onSave, onCancel 
 };
 
 export default function Departamentos({ auth, departamentos, pagination, filters, error, propietarios, flash }) {
-    const { flash: pageFlash } = usePage().props;
+    const { flash: pageFlash, csrf_token } = usePage().props;
     // Combinar flash messages del prop y de usePage
     const activeFlash = flash || pageFlash;
+
+    // Sincronizar token CSRF
+    useEffect(() => {
+        if (csrf_token) {
+            const metaTag = document.head.querySelector('meta[name="csrf-token"]');
+            if (metaTag) {
+                metaTag.content = csrf_token;
+            }
+        }
+    }, [csrf_token]);
 
     // Estado para los filtros
     const [filtros, setFiltros] = useState(filters || {
@@ -506,7 +516,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
     const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState(null);
     const [loadingVisualizacion, setLoadingVisualizacion] = useState(false);
     const [imagenCargando, setImagenCargando] = useState({});
-    
+
     // Función para verificar si una imagen existe
     const verificarImagen = (url) => {
         if (!url) return false;
@@ -582,6 +592,13 @@ export default function Departamentos({ auth, departamentos, pagination, filters
             return; // Usuario canceló la eliminación
         }
 
+        // Verificar token CSRF
+        if (!csrf_token) {
+            console.error('CSRF token not found');
+            window.location.reload();
+            return;
+        }
+
         // Activar indicador de carga
         setLoading(true);
 
@@ -590,6 +607,9 @@ export default function Departamentos({ auth, departamentos, pagination, filters
             preserveState: true, // Mantener el estado para evitar parpadeos
             preserveScroll: true, // Mantener la posición del scroll
             replace: true,
+            headers: {
+                'X-CSRF-TOKEN': csrf_token,
+            },
             onSuccess: (page) => {
                 // Mostrar notificación de éxito
                 alert('El departamento ha sido eliminado correctamente');
@@ -623,11 +643,20 @@ export default function Departamentos({ auth, departamentos, pagination, filters
         const accion = nuevoEstado === 'inactivo' ? 'desactivar' : 'activar';
 
         if (confirm(`¿Está seguro de que desea ${accion} la propiedad ${departamento.codigo}?`)) {
+            if (!csrf_token) {
+                console.error('CSRF token not found');
+                window.location.reload();
+                return;
+            }
+
             setLoading(true);
             router.patch(`/admin/departamentos/${departamento.id}/estado`, {
                 estado: nuevoEstado
             }, {
                 preserveState: true,
+                headers: {
+                    'X-CSRF-TOKEN': csrf_token,
+                },
                 onError: (errors) => {
                     console.error('Error al cambiar estado:', errors);
                 },
@@ -643,11 +672,20 @@ export default function Departamentos({ auth, departamentos, pagination, filters
         const accion = departamento.destacado ? 'quitar de destacados' : 'marcar como destacado';
 
         if (confirm(`¿Está seguro de que desea ${accion} la propiedad ${departamento.codigo}?`)) {
+            if (!csrf_token) {
+                console.error('CSRF token not found');
+                window.location.reload();
+                return;
+            }
+
             setLoading(true);
             router.patch(`/admin/departamentos/${departamento.id}/destacado`, {
                 destacado: !departamento.destacado
             }, {
                 preserveState: true,
+                headers: {
+                    'X-CSRF-TOKEN': csrf_token,
+                },
                 onError: (errors) => {
                     console.error('Error al cambiar destacado:', errors);
                 },
@@ -663,7 +701,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
         try {
             setLoadingVisualizacion(true);
             setDepartamentoSeleccionado(null); // Limpiamos el estado anterior
-            
+
             // Pre-cargar imágenes si es posible
             const imagenesPrecargar = [
                 departamento.imagen_principal,
@@ -673,10 +711,10 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                 departamento.imagen_galeria_4,
                 departamento.imagen_galeria_5
             ].filter(url => url); // Filtrar URLs vacías
-            
+
             // Tiempo corto de carga para mejor experiencia visual
             await new Promise(resolve => setTimeout(resolve, 200));
-            
+
             setDepartamentoSeleccionado(departamento);
             setShowVerModal(true);
             // Dejamos el estado de carga un poco más para que la animación se vea bien
@@ -737,17 +775,30 @@ export default function Departamentos({ auth, departamentos, pagination, filters
 
         const confirmMessage = `¿Está seguro de que desea ${accion} ${departamentosSeleccionados.length} departamento(s)?`;
         if (confirm(confirmMessage)) {
+            if (!csrf_token) {
+                console.error('CSRF token not found');
+                window.location.reload();
+                return;
+            }
+
             setLoading(true);
 
             const promesas = departamentosSeleccionados.map(id => {
+                const options = {
+                    preserveState: true,
+                    headers: {
+                        'X-CSRF-TOKEN': csrf_token,
+                    }
+                };
+
                 if (accion === 'activar') {
-                    return router.patch(`/admin/departamentos/${id}/estado`, { estado: 'disponible' });
+                    return router.patch(`/admin/departamentos/${id}/estado`, { estado: 'disponible' }, options);
                 } else if (accion === 'desactivar') {
-                    return router.patch(`/admin/departamentos/${id}/estado`, { estado: 'inactivo' });
+                    return router.patch(`/admin/departamentos/${id}/estado`, { estado: 'inactivo' }, options);
                 } else if (accion === 'destacar') {
-                    return router.patch(`/admin/departamentos/${id}/destacado`, { destacado: true });
+                    return router.patch(`/admin/departamentos/${id}/destacado`, { destacado: true }, options);
                 } else if (accion === 'no_destacar') {
-                    return router.patch(`/admin/departamentos/${id}/destacado`, { destacado: false });
+                    return router.patch(`/admin/departamentos/${id}/destacado`, { destacado: false }, options);
                 }
             });
 
@@ -1542,8 +1593,20 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                     // Actualizar departamento
                                     setLoading(true);
 
+                                    if (!csrf_token) {
+                                        console.error('CSRF token not found');
+                                        toast.error('Error de seguridad. Recarga la página.', {
+                                            position: "top-right",
+                                            autoClose: 3000
+                                        });
+                                        return;
+                                    }
+
                                     router.patch(`/admin/departamentos/${departamentoSeleccionado.id}`, datos, {
                                         preserveState: false,
+                                        headers: {
+                                            'X-CSRF-TOKEN': csrf_token,
+                                        },
                                         onSuccess: () => {
                                             // Mostrar mensaje de éxito
                                             toast.success('¡Departamento actualizado correctamente!', {

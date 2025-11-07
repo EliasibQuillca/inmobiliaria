@@ -1,9 +1,20 @@
-import { Head, useForm, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, useForm, Link, usePage } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
 export default function ClientePerfil({ auth, flash = {} }) {
     const [activeTab, setActiveTab] = useState('datos');
+    const { csrf_token } = usePage().props;
+
+    // Asegurar que el token CSRF esté disponible
+    useEffect(() => {
+        if (csrf_token) {
+            const metaTag = document.head.querySelector('meta[name="csrf-token"]');
+            if (metaTag) {
+                metaTag.content = csrf_token;
+            }
+        }
+    }, [csrf_token]);
 
     // Safe access to user data with defaults
     const user = auth.user || {};
@@ -20,6 +31,7 @@ export default function ClientePerfil({ auth, flash = {} }) {
         ocupacion: user.ocupacion || '',
         estado_civil: user.estado_civil || 'soltero',
         ingresos_mensuales: user.ingresos_mensuales || '',
+        current_password: '',
     });    // Formulario para cambiar contraseña
     const { data: passwordData, setData: setPasswordData, patch: patchPassword, processing: processingPassword, errors: erroresPassword, reset: resetPassword } = useForm({
         current_password: '',
@@ -42,28 +54,78 @@ export default function ClientePerfil({ auth, flash = {} }) {
         frecuencia_notificaciones: user.preferencias?.frecuencia_notificaciones || 'semanal',
     });
 
+    // Detectar si el email ha sido modificado
+    const emailChanged = datosPersonales.email !== user.email;
+
     const handleDatosSubmit = (e) => {
         e.preventDefault();
+
+        if (!csrf_token) {
+            console.error('CSRF token not found');
+            window.location.reload();
+            return;
+        }
+
         patchDatos('/cliente/perfil', {
-            onSuccess: () => {
-                // Success is handled by flash message
+            preserveState: true,
+            preserveScroll: true,
+            headers: {
+                'X-CSRF-TOKEN': csrf_token,
             },
+            onSuccess: () => {
+                console.log('Perfil actualizado exitosamente');
+            },
+            onError: (errors) => {
+                console.error('Errores al actualizar perfil:', errors);
+            }
         });
     };
 
     const handlePasswordSubmit = (e) => {
         e.preventDefault();
+
+        if (!csrf_token) {
+            console.error('CSRF token not found');
+            window.location.reload();
+            return;
+        }
+
         patchPassword('/cliente/perfil/password', {
-            onSuccess: () => resetPassword(),
+            preserveState: true,
+            headers: {
+                'X-CSRF-TOKEN': csrf_token,
+            },
+            onSuccess: () => {
+                console.log('Contraseña actualizada exitosamente');
+                resetPassword();
+            },
+            onError: (errors) => {
+                console.error('Errores al actualizar contraseña:', errors);
+            }
         });
     };
 
     const handlePreferenciasSubmit = (e) => {
         e.preventDefault();
+
+        if (!csrf_token) {
+            console.error('CSRF token not found');
+            window.location.reload();
+            return;
+        }
+
         patchPreferencias('/cliente/perfil/preferencias', {
-            onSuccess: () => {
-                // Success is handled by flash message
+            preserveState: true,
+            preserveScroll: true,
+            headers: {
+                'X-CSRF-TOKEN': csrf_token,
             },
+            onSuccess: () => {
+                console.log('Preferencias actualizadas exitosamente');
+            },
+            onError: (errors) => {
+                console.error('Errores al actualizar preferencias:', errors);
+            }
         });
     };
 
@@ -193,7 +255,7 @@ export default function ClientePerfil({ auth, flash = {} }) {
                                             {erroresDatos.nombre && <p className="mt-2 text-sm text-red-600">{erroresDatos.nombre}</p>}
                                         </div>
 
-                                        <div>
+                                        <div className="md:col-span-2">
                                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                                                 Email *
                                             </label>
@@ -206,6 +268,38 @@ export default function ClientePerfil({ auth, flash = {} }) {
                                                 required
                                             />
                                             {erroresDatos.email && <p className="mt-2 text-sm text-red-600">{erroresDatos.email}</p>}
+
+                                            {/* Campo de contraseña cuando se modifica el email */}
+                                            {emailChanged && (
+                                                <div className="mt-4">
+                                                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-3">
+                                                        <div className="flex">
+                                                            <div className="flex-shrink-0">
+                                                                <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                                </svg>
+                                                            </div>
+                                                            <div className="ml-3">
+                                                                <p className="text-sm text-yellow-700">
+                                                                    Por seguridad, confirma tu contraseña para cambiar el correo electrónico
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <label htmlFor="current_password_datos" className="block text-sm font-medium text-gray-700 mb-2">
+                                                        Contraseña Actual
+                                                    </label>
+                                                    <input
+                                                        type="password"
+                                                        id="current_password_datos"
+                                                        value={datosPersonales.current_password}
+                                                        onChange={(e) => setDatosPersonales('current_password', e.target.value)}
+                                                        className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                        required
+                                                    />
+                                                    {erroresDatos.current_password && <p className="mt-2 text-sm text-red-600">{erroresDatos.current_password}</p>}
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div>
@@ -225,21 +319,31 @@ export default function ClientePerfil({ auth, flash = {} }) {
 
                                         <div>
                                             <label htmlFor="cedula" className="block text-sm font-medium text-gray-700 mb-2">
-                                                Cédula/DNI
+                                                DNI <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 id="cedula"
                                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                                 value={datosPersonales.cedula}
-                                                onChange={(e) => setDatosPersonales('cedula', e.target.value)}
+                                                onChange={(e) => {
+                                                    const value = e.target.value.replace(/\D/g, '');
+                                                    if (value.length <= 8) {
+                                                        setDatosPersonales('cedula', value);
+                                                    }
+                                                }}
+                                                placeholder="12345678"
+                                                maxLength={8}
+                                                pattern="[0-9]{8}"
+                                                required
                                             />
                                             {erroresDatos.cedula && <p className="mt-2 text-sm text-red-600">{erroresDatos.cedula}</p>}
+                                            <p className="mt-1 text-xs text-gray-500">Debe contener exactamente 8 dígitos numéricos</p>
                                         </div>
 
                                         <div>
                                             <label htmlFor="fecha_nacimiento" className="block text-sm font-medium text-gray-700 mb-2">
-                                                Fecha de Nacimiento
+                                                Fecha de Nacimiento <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="date"
@@ -247,7 +351,10 @@ export default function ClientePerfil({ auth, flash = {} }) {
                                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                                 value={datosPersonales.fecha_nacimiento}
                                                 onChange={(e) => setDatosPersonales('fecha_nacimiento', e.target.value)}
+                                                max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                                                required
                                             />
+                                            <p className="mt-1 text-xs text-gray-500">Debes ser mayor de 18 años</p>
                                             {erroresDatos.fecha_nacimiento && <p className="mt-2 text-sm text-red-600">{erroresDatos.fecha_nacimiento}</p>}
                                         </div>
 
