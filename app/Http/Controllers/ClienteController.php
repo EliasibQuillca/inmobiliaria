@@ -15,13 +15,10 @@ class ClienteController extends Controller
     /**
      * Dashboard del cliente (privado - requiere autenticación).
      *
-     * Dashboard REALISTA enfocado en la experiencia del usuario:
-     * - Búsqueda de propiedades
-     * - Favoritos y comparativas
-     * - Comunicación con asesores
-     * - Seguimiento de solicitudes
-     * - Progreso hacia la compra
+     * NOTA: El cliente ahora usa el catálogo público directamente.
+     * Este método ya no se utiliza, se mantiene para referencia.
      */
+    /* DESHABILITADO - Cliente usa catálogo público
     public function dashboard()
     {
         $user = Auth::user();
@@ -390,6 +387,35 @@ class ClienteController extends Controller
         );
 
         return back()->with('message', 'Perfil actualizado exitosamente.');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|min:8|confirmed',
+        ], [
+            'current_password.required' => 'La contraseña actual es obligatoria',
+            'password.required' => 'La nueva contraseña es obligatoria',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres',
+            'password.confirmed' => 'Las contraseñas no coinciden',
+        ]);
+
+        $user = Auth::user();
+
+        // Verificar contraseña actual
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'La contraseña actual es incorrecta'
+            ]);
+        }
+
+        // Actualizar contraseña
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        return back()->with('success', 'Contraseña actualizada correctamente');
     }
 
     public function solicitudes()

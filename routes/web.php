@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\CatalogoController;
+use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\AsesorController as AdminAsesorController;
 use App\Http\Controllers\Admin\DepartamentoController as AdminDepartamentoController;
@@ -18,7 +19,7 @@ use App\Http\Controllers\Asesor\PerfilController as AsesorPerfilController;
 use App\Http\Controllers\Asesor\SolicitudController as AsesorSolicitudController;
 use App\Http\Controllers\Asesor\VentaController as AsesorVentaController;
 use App\Http\Controllers\Cliente\DashboardController as ClienteDashboardController;
-use App\Http\Controllers\Cliente\DepartamentoController as ClienteDepartamentoController;
+use App\Http\Controllers\ClienteDepartamentoController;
 use App\Http\Controllers\Cliente\SolicitudController as ClienteSolicitudController;
 use App\Http\Controllers\Cliente\ComentarioController as ClienteComentarioController;
 use App\Http\Controllers\ClienteController;
@@ -37,6 +38,11 @@ Route::get('/', function () {
 // Rutas de catálogo público
 Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo.index');
 Route::get('/catalogo/{departamento}', [CatalogoController::class, 'show'])->name('catalogo.show');
+
+// Rutas de páginas informativas
+Route::get('/sobre-nosotros', [PageController::class, 'sobreNosotros'])->name('sobre-nosotros');
+Route::get('/contacto', [PageController::class, 'contacto'])->name('contacto');
+Route::post('/contacto/enviar', [PageController::class, 'enviarContacto'])->name('contacto.enviar');
 
 // Alias para mantener compatibilidad con código existente
 Route::get('/departamentos/{id}', [CatalogoController::class, 'show'])->name('departamentos.ver');
@@ -59,41 +65,30 @@ Route::get('/dashboard', function () {
     } elseif ($user->role === 'asesor') {
         return redirect()->route('asesor.dashboard');
     } else {
+        // Cliente tiene su propio dashboard con estadísticas y acceso rápido
         return redirect()->route('cliente.dashboard');
     }
 })->middleware(['auth'])->name('dashboard');
 
-// Rutas protegidas de cliente
+// Rutas protegidas de cliente (sistema completo separado)
 Route::middleware(['auth', 'active', 'role:cliente'])->prefix('cliente')->name('cliente.')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [ClienteController::class, 'dashboard'])->name('dashboard');
+    // Dashboard del cliente
+    Route::get('/dashboard', [ClienteDashboardController::class, 'index'])->name('dashboard');
+
+    // Catálogo exclusivo del cliente (con funcionalidades adicionales)
+    Route::get('/catalogo', [ClienteDepartamentoController::class, 'catalogo'])->name('catalogo.index');
+    Route::get('/catalogo/{departamento}', [ClienteDepartamentoController::class, 'show'])->name('catalogo.show');
 
     // Perfil
     Route::get('/perfil', [ClienteController::class, 'perfil'])->name('perfil.index');
     Route::patch('/perfil', [ClienteController::class, 'updatePerfil'])->name('perfil.update');
-
-    // Solicitudes
-    Route::get('/solicitudes', [ClienteController::class, 'solicitudes'])->name('solicitudes.index');
-    Route::get('/solicitudes/{id}', [ClienteSolicitudController::class, 'show'])->name('solicitudes.show');
-    Route::post('/solicitudes', [ClienteSolicitudController::class, 'store'])->name('solicitudes.store');
+    Route::patch('/perfil/password', [ClienteController::class, 'updatePassword'])->name('perfil.password');
 
     // Favoritos
     Route::get('/favoritos', [ClienteDepartamentoController::class, 'favoritos'])->name('favoritos.index');
+    Route::post('/favoritos/toggle', [ClienteDepartamentoController::class, 'toggleFavorito'])->name('favoritos.toggle');
     Route::post('/favoritos/{departamento_id}', [ClienteDepartamentoController::class, 'agregarFavorito'])->name('favoritos.agregar');
     Route::delete('/favoritos/{departamento_id}', [ClienteDepartamentoController::class, 'eliminarFavorito'])->name('favoritos.eliminar');
-
-    // Asesores
-    Route::get('/asesores', [ClienteDepartamentoController::class, 'asesores'])->name('asesores.index');
-
-    // Cotizaciones
-    Route::get('/cotizaciones', [ClienteController::class, 'cotizaciones'])->name('cotizaciones.index');
-
-    // Reservas
-    Route::get('/reservas', [ClienteController::class, 'reservas'])->name('reservas.index');
-    Route::get('/reservas/{id}', [ClienteController::class, 'reservaDetalle'])->name('reservas.show');
-
-    // Comentarios en solicitudes
-    Route::post('/solicitudes/{id}/comentarios', [ClienteComentarioController::class, 'store'])->name('solicitudes.comentarios.store');
 });
 
 // Rutas protegidas de administrador

@@ -48,7 +48,6 @@ class DepartamentoFactory extends Factory
     public function disponible(): static
     {
         return $this->state(fn (array $attributes) => [
-            'disponible' => true,
             'estado' => 'disponible',
         ]);
     }
@@ -59,7 +58,6 @@ class DepartamentoFactory extends Factory
     public function reservado(): static
     {
         return $this->state(fn (array $attributes) => [
-            'disponible' => false,
             'estado' => 'reservado',
         ]);
     }
@@ -70,7 +68,6 @@ class DepartamentoFactory extends Factory
     public function vendido(): static
     {
         return $this->state(fn (array $attributes) => [
-            'disponible' => false,
             'estado' => 'vendido',
         ]);
     }
