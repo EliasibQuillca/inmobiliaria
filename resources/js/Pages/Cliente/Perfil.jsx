@@ -30,16 +30,18 @@ export default function Perfil({ auth, cliente }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('cliente.perfil.actualizar'), {
+        put('/cliente/perfil', {
+            preserveScroll: true,
             onSuccess: () => {
-                // Mostrar mensaje de éxito
+                // Mensaje de éxito ya viene en flash
             },
         });
     };
 
     const handlePasswordSubmit = (e) => {
         e.preventDefault();
-        passwordForm.put(route('cliente.perfil.actualizar-password'), {
+        passwordForm.put('/cliente/perfil/password', {
+            preserveScroll: true,
             onSuccess: () => {
                 passwordForm.reset();
             },
@@ -47,7 +49,7 @@ export default function Perfil({ auth, cliente }) {
     };
 
     return (
-        <PublicLayout>
+        <PublicLayout auth={auth} user={auth.user}>
             <Head title="Mi Perfil" />
 
             <div className="min-h-screen bg-gray-50 py-8">

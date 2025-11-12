@@ -31,6 +31,15 @@ export default function PublicLayout({ auth, user, children }) {
 
                         {/* Navigation */}
                         <nav className="hidden md:flex space-x-8">
+                            {/* Para clientes autenticados, mostrar Mi Panel primero */}
+                            {currentUser?.role === 'cliente' && (
+                                <Link
+                                    href="/cliente/dashboard"
+                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                                >
+                                    Mi Panel
+                                </Link>
+                            )}
                             <Link
                                 href="/catalogo"
                                 className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
@@ -38,16 +47,10 @@ export default function PublicLayout({ auth, user, children }) {
                                 Catálogo
                             </Link>
                             <Link
-                                href="/sobre-nosotros"
-                                className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
-                            >
-                                Sobre Nosotros
-                            </Link>
-                            <Link
                                 href="/contacto"
                                 className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
                             >
-                                Contacto
+                                Contáctanos
                             </Link>
                         </nav>
 
@@ -92,15 +95,6 @@ export default function PublicLayout({ auth, user, children }) {
                                             )}
                                             {currentUser.role === 'cliente' && (
                                                 <>
-                                                    <Link
-                                                        href="/cliente/dashboard"
-                                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                                    >
-                                                        <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                                        </svg>
-                                                        Mi Panel
-                                                    </Link>
                                                     <Link
                                                         href="/cliente/favoritos"
                                                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

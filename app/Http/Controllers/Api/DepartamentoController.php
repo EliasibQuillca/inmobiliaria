@@ -103,7 +103,7 @@ class DepartamentoController extends Controller
             'propietario',
             'atributos',
             'imagenes' => function($query) {
-                $query->where('estado', 'activo')->orderBy('orden');
+                $query->where('activa', true)->orderBy('orden');
             }
         ])->find($id);
 
@@ -177,9 +177,9 @@ class DepartamentoController extends Controller
                 'mascotas_permitidas' => $request->input('mascotas_permitidas', false),
                 'destacado' => $request->input('destacado', false),
             ]);
-        
+
             $departamento->load('propietario');
-            
+
             return response()->json([
                 'message' => 'Departamento creado correctamente. Ahora puede agregar imágenes y más detalles.',
                 'data' => $departamento
@@ -239,7 +239,7 @@ class DepartamentoController extends Controller
             Log::info('Antes de la validación', [
                 'request_data' => $request->all()
             ]);
-            
+
             $validated = $request->validate([
                 'titulo' => 'required|string|max:150',
                 'descripcion' => 'required|string',
@@ -292,7 +292,7 @@ class DepartamentoController extends Controller
 
             // Procesar imágenes si existen
             $imagenes = [];
-            
+
             // Imagen principal
             if ($request->has('imagen_principal')) {
                 $imagenes[] = [
@@ -301,7 +301,7 @@ class DepartamentoController extends Controller
                     'orden' => 0
                 ];
             }
-            
+
             // Imágenes de galería
             for ($i = 1; $i <= 5; $i++) {
                 if ($request->has("imagen_galeria_{$i}")) {
@@ -630,7 +630,7 @@ class DepartamentoController extends Controller
                 \App\Models\Imagen::where('departamento_id', $departamento->id)
                     ->where('tipo', 'principal')
                     ->update(['activa' => false]);
-                
+
                 // Crear nueva imagen principal
                 \App\Models\Imagen::create([
                     'departamento_id' => $departamento->id,
@@ -663,7 +663,7 @@ class DepartamentoController extends Controller
                         ->where('tipo', 'galeria')
                         ->where('orden', $orden)
                         ->update(['activa' => false]);
-                    
+
                     // Crear nueva imagen de galería
                     \App\Models\Imagen::create([
                         'departamento_id' => $departamento->id,

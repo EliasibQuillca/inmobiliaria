@@ -2,7 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import PublicLayout from '@/Layouts/PublicLayout';
 
-export default function CrearSolicitud({ auth, departamentoId, asesores }) {
+export default function CrearSolicitud({ auth, departamentoId, departamentos, asesores }) {
     const [departamento, setDepartamento] = useState(null);
     const [loading, setLoading] = useState(true);
     const [mostrarAsesores, setMostrarAsesores] = useState(false);
@@ -39,6 +39,32 @@ export default function CrearSolicitud({ auth, departamentoId, asesores }) {
             setLoading(false);
         }
     }, [departamentoId]);
+
+    // Cargar departamento cuando se selecciona del dropdown
+    const handleSelectDepartamento = (deptId) => {
+        if (!deptId) {
+            setData('departamento_id', '');
+            setDepartamento(null);
+            return;
+        }
+
+        setData('departamento_id', deptId);
+
+        // Cargar información completa del departamento
+        fetch(`/api/v1/catalogo/departamentos/${deptId}`, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                setDepartamento(data.data || data.departamento || data);
+            })
+            .catch((error) => {
+                console.error('Error al cargar departamento:', error);
+            });
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -99,7 +125,10 @@ export default function CrearSolicitud({ auth, departamentoId, asesores }) {
                                     <div className="p-6">
                                         {departamento.imagenes && departamento.imagenes.length > 0 && (
                                             <img
-                                                src={`/storage/${departamento.imagenes[0].ruta_imagen}`}
+                                                src={departamento.imagenes[0].url.startsWith('http')
+                                                    ? departamento.imagenes[0].url
+                                                    : `/storage/${departamento.imagenes[0].url}`
+                                                }
                                                 alt={departamento.titulo}
                                                 className="w-full h-40 object-cover rounded-lg mb-4"
                                             />
@@ -108,7 +137,7 @@ export default function CrearSolicitud({ auth, departamentoId, asesores }) {
                                             {departamento.titulo}
                                         </h3>
                                         <p className="text-sm text-gray-600 mb-3">
-                                            📍 {departamento.direccion}
+                                            📍 {departamento.ubicacion}
                                         </p>
                                         <div className="bg-blue-50 rounded-lg p-4">
                                             <p className="text-sm text-gray-600 mb-1">Precio</p>
@@ -119,11 +148,11 @@ export default function CrearSolicitud({ auth, departamentoId, asesores }) {
                                         <div className="grid grid-cols-3 gap-3 mt-4 text-center">
                                             <div className="bg-gray-50 rounded-lg p-3">
                                                 <p className="text-xs text-gray-600">Dorm.</p>
-                                                <p className="font-bold text-gray-900">{departamento.num_habitaciones}</p>
+                                                <p className="font-bold text-gray-900">{departamento.habitaciones}</p>
                                             </div>
                                             <div className="bg-gray-50 rounded-lg p-3">
                                                 <p className="text-xs text-gray-600">Baños</p>
-                                                <p className="font-bold text-gray-900">{departamento.num_banos}</p>
+                                                <p className="font-bold text-gray-900">{departamento.banos}</p>
                                             </div>
                                             <div className="bg-gray-50 rounded-lg p-3">
                                                 <p className="text-xs text-gray-600">m²</p>
@@ -139,6 +168,82 @@ export default function CrearSolicitud({ auth, departamentoId, asesores }) {
                         <div className={departamento ? "lg:col-span-2" : "lg:col-span-3"}>
                             <div className="bg-white rounded-xl shadow-lg p-8">
                                 <form onSubmit={submit} className="space-y-6">
+                                    {/* Selector de Departamento (solo si NO viene pre-seleccionado) */}
+                                    {!departamentoId && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                                                Selecciona el Departamento <span className="text-red-500">*</span>
+                                            </label>
+
+                                            {/* Select compacto de departamentos */}
+                                            <select
+                                                value={data.departamento_id}
+                                                onChange={(e) => handleSelectDepartamento(e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                                                required
+                                            >
+                                                <option value="">-- Selecciona un departamento --</option>
+                                                {departamentos?.map((dept) => (
+                                                    <option key={dept.id} value={dept.id}>
+                                                        {dept.codigo} - {dept.titulo}
+                                                    </option>
+                                                ))}
+                                            </select>
+
+                                            {errors.departamento_id && (
+                                                <p className="mt-2 text-sm text-red-600">{errors.departamento_id}</p>
+                                            )}
+
+                                            {/* Vista previa del departamento seleccionado */}
+                                            {data.departamento_id && departamentos && (
+                                                <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-600 rounded-lg shadow-sm">
+                                                    {(() => {
+                                                        const deptSeleccionado = departamentos.find(d => d.id == data.departamento_id);
+                                                        return deptSeleccionado ? (
+                                                            <div>
+                                                                <div className="flex items-start justify-between mb-3">
+                                                                    <div className="flex-1">
+                                                                        <h4 className="text-lg font-bold text-gray-900">
+                                                                            {deptSeleccionado.codigo}
+                                                                        </h4>
+                                                                        <p className="text-sm text-gray-700 mt-1">
+                                                                            {deptSeleccionado.titulo}
+                                                                        </p>
+                                                                        <p className="text-sm text-gray-600 mt-1 flex items-center">
+                                                                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                                                                            </svg>
+                                                                            {deptSeleccionado.ubicacion}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="text-right ml-4">
+                                                                        <p className="text-2xl font-bold text-blue-600">
+                                                                            {formatPrecio(deptSeleccionado.precio)}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="grid grid-cols-3 gap-3 pt-3 border-t border-blue-200">
+                                                                    <div className="text-center bg-white rounded-lg p-2">
+                                                                        <p className="text-xs text-gray-600">Dormitorios</p>
+                                                                        <p className="text-lg font-bold text-gray-900">{deptSeleccionado.habitaciones}</p>
+                                                                    </div>
+                                                                    <div className="text-center bg-white rounded-lg p-2">
+                                                                        <p className="text-xs text-gray-600">Baños</p>
+                                                                        <p className="text-lg font-bold text-gray-900">{deptSeleccionado.banos}</p>
+                                                                    </div>
+                                                                    <div className="text-center bg-white rounded-lg p-2">
+                                                                        <p className="text-xs text-gray-600">Área</p>
+                                                                        <p className="text-lg font-bold text-gray-900">{deptSeleccionado.area}m²</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : null;
+                                                    })()}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
                                     {/* Tipo de Consulta */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-3">

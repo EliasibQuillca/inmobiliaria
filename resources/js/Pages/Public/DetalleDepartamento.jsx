@@ -13,9 +13,9 @@ export default function DetalleDepartamento({
 
     const { data, setData, post, processing, errors, reset } = useForm({
         departamento_id: departamento.id,
-        nombre: auth.user ? auth.user.name : '',
-        telefono: auth.user ? auth.user.telefono : '',
-        email: auth.user ? auth.user.email : '',
+        nombre: auth.user ? (auth.user.name || '') : '',
+        telefono: auth.user ? (auth.user.telefono || '') : '',
+        email: auth.user ? (auth.user.email || '') : '',
         mensaje: '',
         crear_cuenta: false,
     });
@@ -293,7 +293,8 @@ export default function DetalleDepartamento({
 
                                 {/* Botones de Acción */}
                                 <div className="space-y-3">
-                                    {auth.user && auth.user.roles && auth.user.roles.some(r => r.name === 'cliente') ? (
+                                    {auth.user ? (
+                                        // Usuario autenticado - redirige a crear solicitud
                                         <Link
                                             href={`/cliente/solicitudes/crear?departamento_id=${departamento.id}`}
                                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg text-center block transition-colors duration-200"
@@ -301,6 +302,7 @@ export default function DetalleDepartamento({
                                             Me Interesa Esta Propiedad
                                         </Link>
                                     ) : (
+                                        // Usuario no autenticado - muestra modal de contacto
                                         <button
                                             onClick={() => setMostrarModalContacto(true)}
                                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"

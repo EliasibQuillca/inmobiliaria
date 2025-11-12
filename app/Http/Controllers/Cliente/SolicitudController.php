@@ -56,6 +56,28 @@ class SolicitudController extends Controller
         // Si se proporciona un ID de departamento, lo pasamos a la vista
         $departamentoId = $request->input('departamento_id');
 
+        // Obtener departamentos disponibles para seleccionar
+        $departamentos = Departamento::where('estado', 'disponible')
+            ->with(['imagenes' => function($q) {
+                $q->where('activa', true)->orderBy('orden')->limit(1);
+            }])
+            ->select('id', 'codigo', 'titulo', 'ubicacion', 'precio', 'habitaciones', 'banos', 'area')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($dept) {
+                return [
+                    'id' => $dept->id,
+                    'codigo' => $dept->codigo,
+                    'titulo' => $dept->titulo,
+                    'ubicacion' => $dept->ubicacion,
+                    'precio' => $dept->precio,
+                    'habitaciones' => $dept->habitaciones,
+                    'banos' => $dept->banos,
+                    'area' => $dept->area,
+                    'imagen' => $dept->imagenes->first()?->url,
+                ];
+            });
+
         // Obtener asesores activos con su carga de trabajo actual
         $asesores = Asesor::where('estado', 'activo')
             ->withCount(['cotizaciones' => function($query) {
@@ -81,6 +103,7 @@ class SolicitudController extends Controller
 
         return Inertia::render('Cliente/CrearSolicitud', [
             'departamentoId' => $departamentoId,
+            'departamentos' => $departamentos,
             'asesores' => $asesores,
         ]);
     }
