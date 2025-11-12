@@ -1,11 +1,24 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import AsesorLayout from '../../Layouts/AsesorLayout';
 
-export default function Solicitudes({ auth, clientesNuevos = [], departamentosInteres = [] }) {
+export default function Solicitudes({
+    auth,
+    solicitudes = [],
+    solicitudesPendientes = [],
+    solicitudesEnProceso = [],
+    solicitudesAprobadas = [],
+    solicitudesRechazadas = [],
+    clientesNuevos = [],
+    departamentosInteres = [],
+    estadisticas = {},
+    asesor = {}
+}) {
     const [showContactForm, setShowContactForm] = useState(false);
     const [selectedClient, setSelectedClient] = useState(null);
+    const [selectedSolicitud, setSelectedSolicitud] = useState(null);
     const [showFollowUp, setShowFollowUp] = useState(false);
+    const [activeTab, setActiveTab] = useState('pendientes'); // pendientes, en_proceso, aprobadas, rechazadas, clientes
 
     const { data, setData, post, patch, processing, errors, reset } = useForm({
         nombre: '',
@@ -41,7 +54,7 @@ export default function Solicitudes({ auth, clientesNuevos = [], departamentosIn
 
     const submitFollowUp = (e) => {
         e.preventDefault();
-        patch(route('asesor.solicitudes.seguimiento', selectedClient.id), {
+        patch(route('asesor.solicitudes.seguimiento', { id: selectedClient.id }), {
             onSuccess: () => {
                 setShowFollowUp(false);
                 setSelectedClient(null);
@@ -56,9 +69,38 @@ export default function Solicitudes({ auth, clientesNuevos = [], departamentosIn
             'interesado': 'bg-green-100 text-green-800',
             'sin_interes': 'bg-red-100 text-red-800',
             'perdido': 'bg-gray-100 text-gray-800',
-            'cita_agendada': 'bg-purple-100 text-purple-800'
+            'cita_agendada': 'bg-purple-100 text-purple-800',
+            'pendiente': 'bg-yellow-100 text-yellow-800',
+            'en_proceso': 'bg-blue-100 text-blue-800',
+            'aprobada': 'bg-green-100 text-green-800',
+            'rechazada': 'bg-red-100 text-red-800',
         };
         return colors[estado] || 'bg-gray-100 text-gray-800';
+    };
+
+    const handleUpdateEstado = (solicitudId, nuevoEstado) => {
+        router.patch(route('asesor.solicitudes.estado', { id: solicitudId }), {
+            estado: nuevoEstado,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Actualizado exitosamente
+                console.log('Estado actualizado correctamente');
+            },
+            onError: (errors) => {
+                console.error('Error al actualizar:', errors);
+            }
+        });
+    };
+
+    const formatFecha = (fecha) => {
+        return new Date(fecha).toLocaleDateString('es-PE', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
     return (
@@ -72,10 +114,10 @@ export default function Solicitudes({ auth, clientesNuevos = [], departamentosIn
                         <div className="md:flex md:items-center md:justify-between">
                             <div className="flex-1 min-w-0">
                                 <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                                    Solicitudes de Contacto
+                                    Solicitudes de Información
                                 </h2>
                                 <p className="mt-1 text-sm text-gray-500">
-                                    Gestiona las solicitudes e inquietudes de tus clientes
+                                    Gestiona las solicitudes de información de departamentos de tus clientes
                                 </p>
                             </div>
                             <div className="mt-4 flex md:mt-0 md:ml-4">
@@ -92,12 +134,287 @@ export default function Solicitudes({ auth, clientesNuevos = [], departamentosIn
                         </div>
                     </div>
 
+                    {/* Panel de Estadísticas */}
+                    {estadisticas && Object.keys(estadisticas).length > 0 && (
+                        <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            {/* Total Solicitudes */}
+                            <div className="bg-white overflow-hidden shadow rounded-lg">
+                                <div className="p-5">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt className="text-sm font-medium text-gray-500 truncate">
+                                                    Total Solicitudes
+                                                </dt>
+                                                <dd className="text-lg font-medium text-gray-900">
+                                                    {estadisticas.total_solicitudes || 0}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Pendientes */}
+                            <div className="bg-white overflow-hidden shadow rounded-lg">
+                                <div className="p-5">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt className="text-sm font-medium text-gray-500 truncate">
+                                                    Pendientes
+                                                </dt>
+                                                <dd className="text-lg font-medium text-yellow-600">
+                                                    {estadisticas.pendientes || 0}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* En Proceso */}
+                            <div className="bg-white overflow-hidden shadow rounded-lg">
+                                <div className="p-5">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt className="text-sm font-medium text-gray-500 truncate">
+                                                    En Proceso
+                                                </dt>
+                                                <dd className="text-lg font-medium text-blue-600">
+                                                    {estadisticas.en_proceso || 0}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Tabs de filtrado */}
+                    <div className="mb-6">
+                        <div className="border-b border-gray-200">
+                            <nav className="-mb-px flex space-x-8">
+                                <button
+                                    onClick={() => setActiveTab('pendientes')}
+                                    className={`${
+                                        activeTab === 'pendientes'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                                >
+                                    Pendientes
+                                    {solicitudesPendientes.length > 0 && (
+                                        <span className="ml-2 bg-yellow-100 text-yellow-800 py-0.5 px-2.5 rounded-full text-xs font-medium">
+                                            {solicitudesPendientes.length}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('en_proceso')}
+                                    className={`${
+                                        activeTab === 'en_proceso'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                                >
+                                    En Proceso
+                                    {solicitudesEnProceso.length > 0 && (
+                                        <span className="ml-2 bg-blue-100 text-blue-800 py-0.5 px-2.5 rounded-full text-xs font-medium">
+                                            {solicitudesEnProceso.length}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('aprobadas')}
+                                    className={`${
+                                        activeTab === 'aprobadas'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                                >
+                                    Aprobadas
+                                    {solicitudesAprobadas.length > 0 && (
+                                        <span className="ml-2 bg-green-100 text-green-800 py-0.5 px-2.5 rounded-full text-xs font-medium">
+                                            {solicitudesAprobadas.length}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('rechazadas')}
+                                    className={`${
+                                        activeTab === 'rechazadas'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                                >
+                                    Rechazadas
+                                    {solicitudesRechazadas.length > 0 && (
+                                        <span className="ml-2 bg-red-100 text-red-800 py-0.5 px-2.5 rounded-full text-xs font-medium">
+                                            {solicitudesRechazadas.length}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('clientes')}
+                                    className={`${
+                                        activeTab === 'clientes'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                                >
+                                    Clientes Sin Cotización
+                                    {clientesNuevos.length > 0 && (
+                                        <span className="ml-2 bg-purple-100 text-purple-800 py-0.5 px-2.5 rounded-full text-xs font-medium">
+                                            {clientesNuevos.length}
+                                        </span>
+                                    )}
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+
+                    {/* Contenido de las pestañas - Solicitudes */}
+                    {activeTab !== 'clientes' && (
+                        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+                            <div className="px-4 py-5 sm:p-6">
+                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                    {activeTab === 'pendientes' && `Solicitudes Pendientes (${solicitudesPendientes.length})`}
+                                    {activeTab === 'en_proceso' && `Solicitudes En Proceso (${solicitudesEnProceso.length})`}
+                                    {activeTab === 'aprobadas' && `Solicitudes Aprobadas (${solicitudesAprobadas.length})`}
+                                    {activeTab === 'rechazadas' && `Solicitudes Rechazadas (${solicitudesRechazadas.length})`}
+                                </h3>
+
+                                {(() => {
+                                    let solicitudesFiltradas = [];
+                                    if (activeTab === 'pendientes') solicitudesFiltradas = solicitudesPendientes;
+                                    else if (activeTab === 'en_proceso') solicitudesFiltradas = solicitudesEnProceso;
+                                    else if (activeTab === 'aprobadas') solicitudesFiltradas = solicitudesAprobadas;
+                                    else if (activeTab === 'rechazadas') solicitudesFiltradas = solicitudesRechazadas;
+
+                                    return solicitudesFiltradas.length === 0 ? (
+                                        <div className="text-center py-12">
+                                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                            </svg>
+                                            <h3 className="mt-2 text-sm font-medium text-gray-900">No hay solicitudes</h3>
+                                            <p className="mt-1 text-sm text-gray-500">
+                                                No se encontraron solicitudes {activeTab}.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <ul className="divide-y divide-gray-200">
+                                            {solicitudesFiltradas.map((solicitud) => (
+                                                <li key={solicitud.id} className="py-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center">
+                                                                    <svg className="h-10 w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                                                    </svg>
+                                                                    <div className="ml-4">
+                                                                        <p className="text-sm font-medium text-gray-900">
+                                                                            {solicitud.departamento?.codigo} - {solicitud.departamento?.titulo}
+                                                                        </p>
+                                                                        <p className="text-sm text-gray-500">
+                                                                            Cliente: {solicitud.cliente?.nombre || solicitud.cliente?.usuario?.name}
+                                                                        </p>
+                                                                        <p className="text-xs text-gray-400">
+                                                                            {formatFecha(solicitud.created_at)}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstadoColor(solicitud.estado)}`}>
+                                                                    {solicitud.estado}
+                                                                </span>
+                                                            </div>
+                                                            {solicitud.mensaje && (
+                                                                <p className="mt-2 text-sm text-gray-600 ml-14">
+                                                                    💬 {solicitud.mensaje}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="ml-4 flex space-x-2">
+                                                            {solicitud.estado === 'pendiente' && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => handleUpdateEstado(solicitud.id, 'en_proceso')}
+                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
+                                                                    >
+                                                                        En Proceso
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleUpdateEstado(solicitud.id, 'aprobada')}
+                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
+                                                                    >
+                                                                        Aprobar
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleUpdateEstado(solicitud.id, 'rechazada')}
+                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
+                                                                    >
+                                                                        Rechazar
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {solicitud.estado === 'en_proceso' && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => handleUpdateEstado(solicitud.id, 'aprobada')}
+                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
+                                                                    >
+                                                                        Aprobar
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleUpdateEstado(solicitud.id, 'rechazada')}
+                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
+                                                                    >
+                                                                        Rechazar
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            <Link
+                                                                href={route('asesor.solicitudes.detalle', { id: solicitud.id })}
+                                                                className="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
+                                                            >
+                                                                Ver Detalles
+                                                            </Link>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Lista de clientes nuevos */}
-                    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                        <div className="px-4 py-5 sm:p-6">
-                            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                                Clientes Sin Cotización ({clientesNuevos.length})
-                            </h3>
+                    {activeTab === 'clientes' && (
+                        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+                            <div className="px-4 py-5 sm:p-6">
+                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                    Clientes Sin Cotización ({clientesNuevos.length})
+                                </h3>
 
                             {clientesNuevos.length === 0 ? (
                                 <div className="text-center py-8">
@@ -129,7 +446,7 @@ export default function Solicitudes({ auth, clientesNuevos = [], departamentosIn
                                                         <p><strong>Contacto por:</strong> {cliente.medio_contacto}</p>
                                                         {cliente.notas_contacto && <p><strong>Notas:</strong> {cliente.notas_contacto}</p>}
                                                         {cliente.departamentoInteres && (
-                                                            <p><strong>Departamento de Interés:</strong> 
+                                                            <p><strong>Departamento de Interés:</strong>
                                                                 {cliente.departamentoInteres?.titulo || cliente.departamentoInteres?.codigo}
                                                                 {cliente.departamentoInteres?.precio && ` - $${Number(cliente.departamentoInteres.precio).toLocaleString()}`}
                                                             </p>
@@ -158,6 +475,7 @@ export default function Solicitudes({ auth, clientesNuevos = [], departamentosIn
                             )}
                         </div>
                     </div>
+                    )}
 
                     {/* Modal para registrar contacto */}
                     {showContactForm && (

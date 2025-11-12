@@ -176,6 +176,8 @@ Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('as
     // Solicitudes
     Route::get('/solicitudes', [AsesorSolicitudController::class, 'index'])->name('solicitudes');
     Route::post('/solicitudes/contacto', [AsesorSolicitudController::class, 'registrarContacto'])->name('solicitudes.contacto');
+    Route::get('/solicitudes/{id}/detalle', [AsesorSolicitudController::class, 'verDetalle'])->name('solicitudes.detalle');
+    Route::patch('/solicitudes/{id}/estado', [AsesorSolicitudController::class, 'actualizarEstado'])->name('solicitudes.estado');
     Route::patch('/solicitudes/{id}/seguimiento', [AsesorSolicitudController::class, 'actualizarSeguimiento'])->name('solicitudes.seguimiento');
     Route::get('/solicitudes/{id}/historial', [AsesorSolicitudController::class, 'historialCliente'])->name('solicitudes.historial');
     Route::post('/solicitudes/{id}/cita', [AsesorSolicitudController::class, 'agendarCita'])->name('solicitudes.cita');
