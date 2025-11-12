@@ -55,21 +55,29 @@ class PublicPagesTest extends TestCase
     }
 
     /**
-     * Test 5: Formulario de contacto requiere campos obligatorios
+     * Test 5: Formulario de contacto requiere autenticación
      */
-    public function test_formulario_contacto_requiere_campos_obligatorios()
+    public function test_formulario_contacto_requiere_autenticacion()
     {
-        $response = $this->post('/contacto/enviar', []);
+        $response = $this->post('/contacto/enviar', [
+            'nombre' => 'Juan Pérez',
+            'email' => 'juan@ejemplo.com',
+            'asunto' => 'Consulta',
+            'mensaje' => 'Mensaje de prueba',
+        ]);
 
-        $response->assertSessionHasErrors(['nombre', 'email', 'asunto', 'mensaje']);
+        $response->assertRedirect();
+        $response->assertSessionHas('error', 'Debes iniciar sesión para enviar un mensaje de contacto.');
     }
 
     /**
-     * Test 6: Formulario de contacto valida email
+     * Test 6: Usuario autenticado puede validar formulario de contacto
      */
-    public function test_formulario_contacto_valida_email()
+    public function test_formulario_contacto_valida_email_usuario_autenticado()
     {
-        $response = $this->post('/contacto/enviar', [
+        $user = \App\Models\User::factory()->create(['role' => 'cliente']);
+
+        $response = $this->actingAs($user)->post('/contacto/enviar', [
             'nombre' => 'Juan Pérez',
             'email' => 'email-invalido',
             'asunto' => 'Consulta',
@@ -80,11 +88,13 @@ class PublicPagesTest extends TestCase
     }
 
     /**
-     * Test 7: Formulario de contacto funciona con datos válidos
+     * Test 7: Usuario autenticado puede enviar formulario de contacto con datos válidos
      */
-    public function test_formulario_contacto_funciona_con_datos_validos()
+    public function test_formulario_contacto_funciona_con_datos_validos_usuario_autenticado()
     {
-        $response = $this->post('/contacto/enviar', [
+        $user = \App\Models\User::factory()->create(['role' => 'cliente']);
+
+        $response = $this->actingAs($user)->post('/contacto/enviar', [
             'nombre' => 'Juan Pérez',
             'email' => 'juan@ejemplo.com',
             'telefono' => '+51 987654321',
@@ -97,11 +107,13 @@ class PublicPagesTest extends TestCase
     }
 
     /**
-     * Test 8: Formulario de contacto valida longitud del mensaje
+     * Test 8: Usuario autenticado - formulario de contacto valida longitud del mensaje
      */
-    public function test_formulario_contacto_valida_longitud_mensaje()
+    public function test_formulario_contacto_valida_longitud_mensaje_usuario_autenticado()
     {
-        $response = $this->post('/contacto/enviar', [
+        $user = \App\Models\User::factory()->create(['role' => 'cliente']);
+
+        $response = $this->actingAs($user)->post('/contacto/enviar', [
             'nombre' => 'Juan Pérez',
             'email' => 'juan@ejemplo.com',
             'asunto' => 'Consulta',

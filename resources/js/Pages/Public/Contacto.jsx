@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import PublicLayout from '@/Layouts/PublicLayout';
 
 export default function Contacto({ auth }) {
     const { flash } = usePage().props;
     const { data, setData, post, processing, errors, reset } = useForm({
-        nombre: '',
-        email: '',
+        nombre: auth.user ? auth.user.name : '',
+        email: auth.user ? auth.user.email : '',
         telefono: '',
         asunto: '',
         mensaje: '',
@@ -14,16 +14,22 @@ export default function Contacto({ auth }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Verificar autenticación antes de enviar
+        if (!auth.user) {
+            return;
+        }
+
         post(route('contacto.enviar'), {
             onSuccess: () => {
-                reset();
+                reset('asunto', 'mensaje', 'telefono');
             },
         });
     };
 
     return (
         <PublicLayout auth={auth}>
-            <Head title="Contacto" />
+            <Head title="Contáctanos" />
 
             <div className="min-h-screen bg-gray-50">
                 {/* Hero Section */}
@@ -148,7 +154,48 @@ export default function Contacto({ auth }) {
                                     </div>
                                 )}
 
-                                <form onSubmit={handleSubmit} className="space-y-6">
+                                {/* Mensaje de Login Requerido */}
+                                {!auth.user ? (
+                                    <div className="text-center py-12">
+                                        <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
+                                            <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                                            Inicia Sesión para Contactarnos
+                                        </h3>
+                                        <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                                            Para proteger nuestro sistema de spam y brindarte un mejor servicio, necesitas iniciar sesión como cliente para enviar un mensaje.
+                                        </p>
+                                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                            <Link
+                                                href="/login"
+                                                className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                                            >
+                                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                                </svg>
+                                                Iniciar Sesión
+                                            </Link>
+                                            <Link
+                                                href="/register"
+                                                className="inline-flex items-center justify-center px-6 py-3 bg-white hover:bg-gray-50 text-blue-600 font-semibold rounded-lg border-2 border-blue-600 transition-colors duration-200"
+                                            >
+                                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                                </svg>
+                                                Crear Cuenta
+                                            </Link>
+                                        </div>
+                                        <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+                                            <p className="text-sm text-blue-800">
+                                                <strong>Beneficios de registrarte:</strong> Guarda propiedades favoritas, recibe notificaciones personalizadas, y accede a ofertas exclusivas.
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleSubmit} className="space-y-6">
                                     {/* Nombre */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -281,6 +328,7 @@ export default function Contacto({ auth }) {
                                         </button>
                                     </div>
                                 </form>
+                                )}
                             </div>
 
                             {/* Mapa (Opcional - puedes agregar Google Maps aquí) */}

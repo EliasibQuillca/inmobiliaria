@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
 
 class PageController extends Controller
 {
@@ -28,9 +29,15 @@ class PageController extends Controller
 
     /**
      * Procesa el formulario de contacto
+     * Requiere autenticación para prevenir spam
      */
     public function enviarContacto(Request $request)
     {
+        // Validar que el usuario esté autenticado
+        if (!Auth::check()) {
+            return redirect()->back()->with('error', 'Debes iniciar sesión para enviar un mensaje de contacto.');
+        }
+
         $validator = Validator::make($request->all(), [
             'nombre' => 'required|string|max:255',
             'email' => 'required|email|max:255',
