@@ -90,8 +90,8 @@ export default function DetalleDepartamento({
                                         <>
                                             <div className="aspect-w-16 aspect-h-9">
                                                 <img
-                                                    src={departamento.imagenes[imagenActual].url.startsWith('http') ? 
-                                                        departamento.imagenes[imagenActual].url : 
+                                                    src={departamento.imagenes[imagenActual].url.startsWith('http') ?
+                                                        departamento.imagenes[imagenActual].url :
                                                         `/storage/${departamento.imagenes[imagenActual].url}`}
                                                     alt={`${departamento.titulo || departamento.codigo} - Imagen ${imagenActual + 1}`}
                                                     className="w-full h-96 object-cover"
@@ -153,8 +153,8 @@ export default function DetalleDepartamento({
                                                     }`}
                                                 >
                                                     <img
-                                                        src={imagen.url.startsWith('http') ? 
-                                                            imagen.url : 
+                                                        src={imagen.url.startsWith('http') ?
+                                                            imagen.url :
                                                             `/storage/${imagen.url}`}
                                                         alt={`Miniatura ${index + 1}`}
                                                         className="w-full h-full object-cover"
@@ -293,12 +293,21 @@ export default function DetalleDepartamento({
 
                                 {/* Botones de Acción */}
                                 <div className="space-y-3">
-                                    <button
-                                        onClick={() => setMostrarModalContacto(true)}
-                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg"
-                                    >
-                                        Me Interesa Esta Propiedad
-                                    </button>
+                                    {auth.user && auth.user.roles && auth.user.roles.some(r => r.name === 'cliente') ? (
+                                        <Link
+                                            href={`/cliente/solicitudes/crear?departamento_id=${departamento.id}`}
+                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg text-center block transition-colors duration-200"
+                                        >
+                                            Me Interesa Esta Propiedad
+                                        </Link>
+                                    ) : (
+                                        <button
+                                            onClick={() => setMostrarModalContacto(true)}
+                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+                                        >
+                                            Me Interesa Esta Propiedad
+                                        </button>
+                                    )}
 
                                     {departamento.asesor && departamento.asesor.usuario && departamento.asesor.usuario.telefono && (
                                         <a

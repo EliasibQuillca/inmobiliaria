@@ -155,10 +155,10 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                 <div key={favorito.id} className="group bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
                                     {/* Imagen */}
                                     <div className="relative aspect-w-16 aspect-h-9 bg-gray-200">
-                                        {favorito.imagen_principal ? (
+                                        {favorito.imagenes && favorito.imagenes.length > 0 ? (
                                             <img
-                                                src={favorito.imagen_principal}
-                                                alt={favorito.titulo}
+                                                src={favorito.imagenes[0].url.startsWith('http') ? favorito.imagenes[0].url : `/storage/${favorito.imagenes[0].url}`}
+                                                alt={favorito.titulo || favorito.codigo}
                                                 className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                                             />
                                         ) : (
@@ -245,10 +245,10 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                                 Ver Detalles
                                             </Link>
                                             <Link
-                                                href={"/cliente/solicitudes/crear" + '?departamento=' + favorito.id}
+                                                href={`/cliente/solicitudes/crear?departamento_id=${favorito.id}`}
                                                 className="flex-1 bg-green-600 text-white text-center py-3 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium"
                                             >
-                                                Solicitar Info
+                                                📩 Solicitar Info
                                             </Link>
                                         </div>
                                     </div>

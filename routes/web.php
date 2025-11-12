@@ -89,6 +89,16 @@ Route::middleware(['auth', 'active', 'role:cliente'])->prefix('cliente')->name('
     Route::post('/favoritos/toggle', [ClienteDepartamentoController::class, 'toggleFavorito'])->name('favoritos.toggle');
     Route::post('/favoritos/{departamento_id}', [ClienteDepartamentoController::class, 'agregarFavorito'])->name('favoritos.agregar');
     Route::delete('/favoritos/{departamento_id}', [ClienteDepartamentoController::class, 'eliminarFavorito'])->name('favoritos.eliminar');
+
+    // Solicitudes (cotizaciones desde la perspectiva del cliente)
+    Route::get('/solicitudes', [ClienteSolicitudController::class, 'index'])->name('solicitudes');
+    Route::get('/solicitudes/crear', [ClienteSolicitudController::class, 'create'])->name('solicitudes.crear');
+    Route::post('/solicitudes', [ClienteSolicitudController::class, 'store'])->name('solicitudes.store');
+    Route::get('/solicitudes/{id}', [ClienteSolicitudController::class, 'show'])->name('solicitudes.show');
+    Route::patch('/solicitudes/{id}', [ClienteSolicitudController::class, 'update'])->name('solicitudes.update');
+
+    // Comentarios en solicitudes
+    Route::post('/solicitudes/{id}/comentarios', [ClienteComentarioController::class, 'store'])->name('solicitudes.comentarios.store');
 });
 
 // Rutas protegidas de administrador

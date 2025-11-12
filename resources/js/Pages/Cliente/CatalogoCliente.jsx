@@ -138,50 +138,69 @@ export default function Catalogo({
                     </div>
                 </div>
 
-                {/* Banner especial para clientes autenticados */}
-                {auth.user && auth.user.role === 'cliente' && (
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                        <div className="bg-gradient-to-r from-green-500 to-blue-600 rounded-lg shadow-lg p-6">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <div className="bg-white bg-opacity-20 rounded-full p-3">
-                                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                    </div>
-                                    <div className="text-white">
-                                        <h3 className="text-lg font-semibold">¡Hola, {auth.user.name}!</h3>
-                                        <p className="text-green-100">Gestiona tus favoritos, solicitudes y más desde tu panel personal</p>
-                                    </div>
-                                </div>
-                                <div className="flex space-x-3">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    {/* Encabezado con resultados */}
+                    <div className="mb-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-900">
+                                    {departamentos.data.length > 0 ? (
+                                        <>Propiedades Disponibles <span className="text-blue-600">({departamentos.total || departamentos.data.length})</span></>
+                                    ) : (
+                                        'Buscar Propiedades'
+                                    )}
+                                </h2>
+                                <p className="mt-1 text-sm text-gray-600">
+                                    {departamentos.data.length > 0
+                                        ? 'Filtra y encuentra tu hogar ideal'
+                                        : 'Ajusta los filtros para ver propiedades disponibles'
+                                    }
+                                </p>
+                            </div>
+                            {auth.user && auth.user.role === 'cliente' && departamentos.data.length > 0 && (
+                                <div className="mt-4 sm:mt-0 flex gap-2">
                                     <Link
                                         href="/cliente/dashboard"
-                                        className="bg-white text-green-600 px-4 py-2 rounded-md font-semibold hover:bg-gray-100 transition-colors duration-200 flex items-center"
+                                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                                     >
-                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                         </svg>
                                         Mi Panel
                                     </Link>
                                     <Link
                                         href="/cliente/favoritos"
-                                        className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-md font-semibold hover:bg-opacity-30 transition-colors duration-200 flex items-center"
+                                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
                                     >
-                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                         </svg>
                                         Favoritos
                                     </Link>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
-                )}
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     {/* Filtros */}
-                    <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+                    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                </svg>
+                                Filtros de Búsqueda
+                            </h3>
+                            <button
+                                onClick={limpiarFiltros}
+                                className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                            >
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Limpiar filtros
+                            </button>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                             {/* Tipo de Propiedad */}
                             <div>
@@ -266,101 +285,146 @@ export default function Catalogo({
                             </div>
                         </div>
 
-                        <div className="flex justify-end space-x-3 mt-6">
-                            <button
-                                onClick={limpiarFiltros}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                            >
-                                Limpiar Filtros
-                            </button>
+                        <div className="flex justify-end gap-3 mt-6">
                             <button
                                 onClick={aplicarFiltros}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+                                className="inline-flex items-center px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm hover:shadow transition-all duration-200"
                             >
-                                Aplicar Filtros
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                Buscar Propiedades
                             </button>
                         </div>
                     </div>
 
                     {/* Grid de Departamentos */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {departamentos.data.map((departamento) => (
-                            <div key={departamento.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                                {/* Imagen */}
-                                <div className="aspect-w-16 aspect-h-9 bg-gray-200">
+                            <div key={departamento.id} className="group bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100">
+                                {/* Imagen con overlay */}
+                                <div className="relative aspect-w-16 aspect-h-9 bg-gray-200 overflow-hidden">
                                     {departamento.imagenes && departamento.imagenes.length > 0 ? (
                                         <img
                                             src={departamento.imagenes[0].url.startsWith('http') ? departamento.imagenes[0].url : `/storage/${departamento.imagenes[0].url}`}
                                             alt={departamento.titulo || departamento.codigo}
-                                            className="w-full h-48 object-cover"
+                                            className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-300"
                                         />
                                     ) : (
-                                        <div className="w-full h-48 bg-gray-300 flex items-center justify-center">
-                                            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        <div className="w-full h-56 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                                            <svg className="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                             </svg>
+                                        </div>
+                                    )}
+
+                                    {/* Badge de estado */}
+                                    <div className="absolute top-3 left-3">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-md ${
+                                            departamento.estado === 'disponible' ? 'bg-green-500 text-white' :
+                                            departamento.estado === 'reservado' ? 'bg-yellow-500 text-white' :
+                                            'bg-gray-500 text-white'
+                                        }`}>
+                                            {departamento.estado === 'disponible' ? 'Disponible' :
+                                             departamento.estado === 'reservado' ? 'Reservado' :
+                                             'No disponible'}
+                                        </span>
+                                    </div>
+
+                                    {/* Código */}
+                                    {departamento.codigo && (
+                                        <div className="absolute top-3 right-3">
+                                            <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700 shadow-sm">
+                                                {departamento.codigo}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Contenido */}
-                                <div className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-gray-900">
-                                                {departamento.titulo || departamento.codigo}
-                                            </h3>
-                                            {departamento.ubicacion && (
-                                                <p className="text-sm text-gray-600">{departamento.ubicacion}</p>
-                                            )}
-                                        </div>
-                                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                                            {departamento.estado === 'disponible' ? 'Disponible' :
-                                             departamento.estado === 'reservado' ? 'Reservado' :
-                                             departamento.estado === 'vendido' ? 'Vendido' : 'No disponible'}
-                                        </span>
+                                <div className="p-5">
+                                    {/* Título y ubicación */}
+                                    <div className="mb-4">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                                            {departamento.titulo || departamento.codigo}
+                                        </h3>
+                                        {departamento.ubicacion && (
+                                            <p className="text-sm text-gray-600 flex items-center">
+                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                                {departamento.ubicacion}
+                                            </p>
+                                        )}
                                     </div>
 
-                                    <div className="space-y-2 mb-4">
-                                        <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Tipo:</span> Departamento
-                                        </p>
+                                    {/* Características en grid */}
+                                    <div className="grid grid-cols-3 gap-3 mb-4 pb-4 border-b border-gray-100">
                                         {departamento.habitaciones && (
-                                            <p className="text-sm text-gray-600">
-                                                <span className="font-medium">Habitaciones:</span> {departamento.habitaciones}
-                                            </p>
+                                            <div className="text-center">
+                                                <div className="inline-flex items-center justify-center w-10 h-10 bg-blue-50 rounded-lg mb-1">
+                                                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                                    </svg>
+                                                </div>
+                                                <p className="text-xs text-gray-500">Habitaciones</p>
+                                                <p className="text-sm font-semibold text-gray-900">{departamento.habitaciones}</p>
+                                            </div>
                                         )}
                                         {departamento.banos && (
-                                            <p className="text-sm text-gray-600">
-                                                <span className="font-medium">Baños:</span> {departamento.banos}
-                                            </p>
+                                            <div className="text-center">
+                                                <div className="inline-flex items-center justify-center w-10 h-10 bg-green-50 rounded-lg mb-1">
+                                                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                                    </svg>
+                                                </div>
+                                                <p className="text-xs text-gray-500">Baños</p>
+                                                <p className="text-sm font-semibold text-gray-900">{departamento.banos}</p>
+                                            </div>
                                         )}
                                         {departamento.area_total && (
-                                            <p className="text-sm text-gray-600">
-                                                <span className="font-medium">Área:</span> {departamento.area_total} m²
-                                            </p>
+                                            <div className="text-center">
+                                                <div className="inline-flex items-center justify-center w-10 h-10 bg-purple-50 rounded-lg mb-1">
+                                                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                                    </svg>
+                                                </div>
+                                                <p className="text-xs text-gray-500">Área</p>
+                                                <p className="text-sm font-semibold text-gray-900">{departamento.area_total}m²</p>
+                                            </div>
                                         )}
-                                        <p className="text-lg font-bold text-blue-600">
+                                    </div>
+
+                                    {/* Precio destacado */}
+                                    <div className="mb-4">
+                                        <p className="text-sm text-gray-500 mb-1">Precio</p>
+                                        <p className="text-2xl font-bold text-blue-600">
                                             {formatCurrency(departamento.precio)}
                                         </p>
                                     </div>
 
-                                    {/* Información del Asesor */}
+                                    {/* Información del Asesor - Compacta */}
                                     {departamento.asesor && (
-                                        <div className="border-t pt-4 mb-4">
-                                            <p className="text-sm text-gray-600">
-                                                <span className="font-medium">Asesor:</span> {departamento.asesor.nombre}
-                                            </p>
-                                            {departamento.asesor.usuario && (
-                                                <p className="text-sm text-gray-600">
-                                                    <span className="font-medium">Contacto:</span> {departamento.asesor.usuario.telefono || departamento.asesor.telefono}
-                                                </p>
-                                            )}
+                                        <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                                            <div className="flex items-center">
+                                                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                                    <span className="text-blue-600 font-semibold text-xs">
+                                                        {departamento.asesor.nombre?.charAt(0) || 'A'}
+                                                    </span>
+                                                </div>
+                                                <div className="ml-2 flex-1 min-w-0">
+                                                    <p className="text-xs text-gray-500">Asesor</p>
+                                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                                        {departamento.asesor.nombre}
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
 
                                     {/* Acciones */}
-                                    <div className="flex space-x-2">
+                                    <div className="flex gap-2">
                                         <Link
                                             href={`/catalogo/${departamento.id}`}
                                             className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium text-center transition-colors"
@@ -403,18 +467,18 @@ export default function Catalogo({
                                             </Link>
                                         )}
 
-                                        {/* Botón "Me Interesa" */}
+                                        {/* Botón "Solicitar Información" */}
                                         {auth.user && auth.user.role === 'cliente' ? (
-                                            // Cliente autenticado: puede contactar directamente
-                                            <button
-                                                onClick={() => abrirModalContacto(departamento)}
+                                            // Cliente autenticado: redirige al formulario completo
+                                            <Link
+                                                href={`/cliente/solicitudes/crear?departamento_id=${departamento.id}`}
                                                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-1"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
-                                                <span>Contactar</span>
-                                            </button>
+                                                <span>Solicitar Info</span>
+                                            </Link>
                                         ) : (
                                             // Visitante no autenticado: debe registrarse
                                             <Link

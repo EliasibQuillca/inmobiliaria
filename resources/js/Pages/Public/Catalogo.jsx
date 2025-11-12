@@ -138,47 +138,6 @@ export default function Catalogo({
                     </div>
                 </div>
 
-                {/* Banner especial para clientes autenticados */}
-                {auth.user && auth.user.role === 'cliente' && (
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                        <div className="bg-gradient-to-r from-green-500 to-blue-600 rounded-lg shadow-lg p-6">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <div className="bg-white bg-opacity-20 rounded-full p-3">
-                                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                    </div>
-                                    <div className="text-white">
-                                        <h3 className="text-lg font-semibold">¡Hola, {auth.user.name}!</h3>
-                                        <p className="text-green-100">Gestiona tus favoritos, solicitudes y más desde tu panel personal</p>
-                                    </div>
-                                </div>
-                                <div className="flex space-x-3">
-                                    <Link
-                                        href="/cliente/dashboard"
-                                        className="bg-white text-green-600 px-4 py-2 rounded-md font-semibold hover:bg-gray-100 transition-colors duration-200 flex items-center"
-                                    >
-                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                        </svg>
-                                        Mi Panel
-                                    </Link>
-                                    <Link
-                                        href="/cliente/favoritos"
-                                        className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-md font-semibold hover:bg-opacity-30 transition-colors duration-200 flex items-center"
-                                    >
-                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                        </svg>
-                                        Favoritos
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     {/* Filtros */}
                     <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
@@ -403,18 +362,18 @@ export default function Catalogo({
                                             </Link>
                                         )}
 
-                                        {/* Botón "Me Interesa" */}
+                                        {/* Botón "Solicitar Información" */}
                                         {auth.user && auth.user.role === 'cliente' ? (
-                                            // Cliente autenticado: puede contactar directamente
-                                            <button
-                                                onClick={() => abrirModalContacto(departamento)}
+                                            // Cliente autenticado: redirige al formulario completo
+                                            <Link
+                                                href={`/cliente/solicitudes/crear?departamento_id=${departamento.id}`}
                                                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-1"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
-                                                <span>Contactar</span>
-                                            </button>
+                                                <span>Solicitar Info</span>
+                                            </Link>
                                         ) : (
                                             // Visitante no autenticado: debe registrarse
                                             <Link
