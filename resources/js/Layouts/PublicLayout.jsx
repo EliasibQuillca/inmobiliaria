@@ -5,8 +5,9 @@ export default function PublicLayout({ auth, user, children }) {
     // Soporte para ambos formatos: auth.user o user directamente
     const currentUser = auth?.user || user;
 
-    // Estado para controlar el dropdown
+    // Estado para controlar el dropdown y el menú móvil
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -45,6 +46,12 @@ export default function PublicLayout({ auth, user, children }) {
                                 className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
                             >
                                 Catálogo
+                            </Link>
+                            <Link
+                                href="/sobre-nosotros"
+                                className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                            >
+                                Sobre Nosotros
                             </Link>
                             <Link
                                 href="/contacto"
@@ -156,13 +163,133 @@ export default function PublicLayout({ auth, user, children }) {
 
                         {/* Mobile menu button */}
                         <div className="md:hidden">
-                            <button className="text-gray-700 hover:text-blue-600">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
+                            <button
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                className="text-gray-700 hover:text-blue-600"
+                            >
+                                {mobileMenuOpen ? (
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                ) : (
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                )}
                             </button>
                         </div>
                     </div>
+
+                    {/* Mobile menu */}
+                    {mobileMenuOpen && (
+                        <div className="md:hidden py-4 border-t border-gray-200">
+                            <div className="space-y-2">
+                                {currentUser?.role === 'cliente' && (
+                                    <Link
+                                        href="/cliente/dashboard"
+                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        Mi Panel
+                                    </Link>
+                                )}
+                                <Link
+                                    href="/catalogo"
+                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Catálogo
+                                </Link>
+                                <Link
+                                    href="/sobre-nosotros"
+                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Sobre Nosotros
+                                </Link>
+                                <Link
+                                    href="/contacto"
+                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Contáctanos
+                                </Link>
+
+                                {currentUser ? (
+                                    <div className="pt-2 border-t border-gray-200 mt-2">
+                                        {currentUser.role === 'cliente' && (
+                                            <>
+                                                <Link
+                                                    href="/cliente/favoritos"
+                                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                >
+                                                    Mis Favoritos
+                                                </Link>
+                                                <Link
+                                                    href="/cliente/solicitudes"
+                                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                >
+                                                    Mis Solicitudes
+                                                </Link>
+                                                <Link
+                                                    href="/cliente/perfil"
+                                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                >
+                                                    Mi Perfil
+                                                </Link>
+                                            </>
+                                        )}
+                                        {currentUser.role === 'administrador' && (
+                                            <Link
+                                                href="/admin/dashboard"
+                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
+                                                Panel de Administrador
+                                            </Link>
+                                        )}
+                                        {currentUser.role === 'asesor' && (
+                                            <Link
+                                                href="/asesor/dashboard"
+                                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
+                                                Panel de Asesor
+                                            </Link>
+                                        )}
+                                        <Link
+                                            href="/logout"
+                                            method="post"
+                                            className="block px-4 py-2 text-red-600 hover:bg-gray-100 rounded-md font-medium"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            Cerrar Sesión
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="pt-2 border-t border-gray-200 mt-2">
+                                        <Link
+                                            href="/login"
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            Iniciar Sesión
+                                        </Link>
+                                        <Link
+                                            href="/register"
+                                            className="block px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md text-center font-medium"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            Registrarse
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </header>
 

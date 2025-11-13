@@ -4,27 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
-/**
- * Class Cotizacion
- * 
- * @property int $id
- * @property int $asesor_id
- * @property int $departamento_id
- * @property int $cliente_id
- * @property \Illuminate\Support\Carbon|null $fecha
- * @property float $monto
- * @property float|null $descuento
- * @property \Illuminate\Support\Carbon|null $fecha_validez
- * @property string $estado
- * @property string|null $notas
- * @property string|null $condiciones
- * @property string|null $tipo_solicitud
- * @property string|null $mensaje_solicitud
- * @property string|null $telefono_contacto
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- */
 class Cotizacion extends Model
 {
     use HasFactory;
@@ -45,16 +26,22 @@ class Cotizacion extends Model
         'tipo_solicitud',
         'mensaje_solicitud',
         'telefono_contacto',
+        'fecha_respuesta_cliente',
+        'motivo_rechazo_cliente',
     ];
 
     protected $casts = [
         'fecha' => 'datetime',
         'fecha_validez' => 'date',
-        'monto' => 'decimal:2',
-        'descuento' => 'decimal:2',
+        'fecha_respuesta_cliente' => 'datetime',
+        'monto' => 'float', // ⚙️ más compatible que decimal:2
+        'descuento' => 'float',
     ];
 
-    // Relaciones
+    /* ==========================
+       🔗 RELACIONES
+       ========================== */
+
     public function asesor()
     {
         return $this->belongsTo(Asesor::class, 'asesor_id');
@@ -72,7 +59,8 @@ class Cotizacion extends Model
 
     public function comentarios()
     {
-        return $this->hasMany(ComentarioSolicitud::class, 'cotizacion_id')->orderBy('created_at', 'asc');
+        return $this->hasMany(ComentarioSolicitud::class, 'cotizacion_id')
+                    ->orderBy('created_at', 'asc');
     }
 
     public function reserva()
@@ -80,100 +68,115 @@ class Cotizacion extends Model
         return $this->hasOne(Reserva::class, 'cotizacion_id');
     }
 
-    // Scopes
-    public function scopePendientes($query)
+    /* ==========================
+       🔍 SCOPES (consultas rápidas)
+       ========================== */
+
+    public function scopePendientes(Builder $query): Builder
     {
         return $query->where('estado', 'pendiente');
     }
 
-    public function scopeAceptadas($query)
+    public function scopeAceptadas(Builder $query): Builder
     {
-        return $query->where('estado', 'aceptada');
+        return $query->where('estado', 'aprobada'); // ⚙️ coincide con tu controlador
     }
 
-    public function scopeRechazadas($query)
+    public function scopeRechazadas(Builder $query): Builder
     {
         return $query->where('estado', 'rechazada');
     }
 
-    public function scopeReservadas($query)
+    public function scopeReservadas(Builder $query): Builder
     {
         return $query->where('estado', 'en_proceso');
     }
 
-    public function scopeFinalizadas($query)
+    public function scopeFinalizadas(Builder $query): Builder
     {
         return $query->where('estado', 'completada');
     }
 
-    public function scopeActivas($query)
+    public function scopeActivas(Builder $query): Builder
     {
-        return $query->whereIn('estado', ['pendiente', 'aceptada', 'rechazada']);
+        return $query->whereIn('estado', ['pendiente', 'en_proceso', 'aprobada']);
     }
 
-    public function scopeHistorial($query)
+    public function scopeHistorial(Builder $query): Builder
     {
-        return $query->whereIn('estado', ['en_proceso', 'completada', 'cancelada', 'expirada']);
+        return $query->whereIn('estado', ['completada', 'cancelada', 'expirada']);
     }
 
-    // Métodos de utilidad
-    public function estaPendiente()
+    /* ==========================
+       ⚙️ MÉTODOS DE UTILIDAD
+       ========================== */
+
+    public function estaPendiente(): bool
     {
-        return $this->attributes['estado'] === 'pendiente';
+        return $this->estado === 'pendiente';
     }
 
-    public function estaAceptada()
+    public function estaAprobada(): bool
     {
-        return $this->attributes['estado'] === 'aceptada';
+        return $this->estado === 'aprobada';
     }
 
-    public function estaRechazada()
+    public function estaRechazada(): bool
     {
-        return $this->attributes['estado'] === 'rechazada';
+        return $this->estado === 'rechazada';
     }
 
-    public function estaReservada()
+    public function estaEnProceso(): bool
     {
-        return $this->attributes['estado'] === 'en_proceso';
+        return $this->estado === 'en_proceso';
     }
 
-    public function estaFinalizada()
+    public function estaFinalizada(): bool
     {
-        return $this->attributes['estado'] === 'completada';
+        return $this->estado === 'completada';
     }
 
-    public function estaActiva()
+    public function estaActiva(): bool
     {
-        return in_array($this->attributes['estado'], ['pendiente', 'aceptada', 'rechazada']);
+        return in_array($this->estado, ['pendiente', 'en_proceso', 'aprobada']);
     }
 
-    public function estaEnHistorial()
+    public function estaEnHistorial(): bool
     {
-        return in_array($this->attributes['estado'], ['en_proceso', 'completada', 'cancelada', 'expirada']);
+        return in_array($this->estado, ['completada', 'cancelada', 'expirada']);
     }
 
-    public function aceptar()
+    /* ==========================
+       🚀 CAMBIOS DE ESTADO
+       ========================== */
+
+    public function marcarPendiente()
     {
-        $this->update(['estado' => 'aceptada']);
+        return $this->update(['estado' => 'pendiente']);
+    }
+
+    public function aprobar()
+    {
+        return $this->update(['estado' => 'aprobada']);
     }
 
     public function rechazar()
     {
-        $this->update(['estado' => 'rechazada']);
+        return $this->update(['estado' => 'rechazada']);
     }
 
-    public function marcarReservada()
+    public function marcarEnProceso()
     {
-        $this->update(['estado' => 'en_proceso']);
+        return $this->update(['estado' => 'en_proceso']);
     }
 
     public function marcarFinalizada()
     {
-        $this->update(['estado' => 'completada']);
+        return $this->update(['estado' => 'completada']);
     }
 
-    public function tieneReserva()
+    public function tieneReserva(): bool
     {
-        return $this->reserva !== null;
+        return !is_null($this->reserva);
     }
 }

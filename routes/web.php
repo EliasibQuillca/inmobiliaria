@@ -97,6 +97,11 @@ Route::middleware(['auth', 'active', 'role:cliente'])->prefix('cliente')->name('
     Route::get('/solicitudes/{id}', [ClienteSolicitudController::class, 'show'])->name('solicitudes.show');
     Route::patch('/solicitudes/{id}', [ClienteSolicitudController::class, 'update'])->name('solicitudes.update');
 
+    // Acciones del cliente sobre las cotizaciones
+    Route::post('/solicitudes/{id}/aceptar', [ClienteSolicitudController::class, 'aceptarCotizacion'])->name('solicitudes.aceptar');
+    Route::post('/solicitudes/{id}/rechazar', [ClienteSolicitudController::class, 'rechazarCotizacion'])->name('solicitudes.rechazar');
+    Route::post('/solicitudes/{id}/modificar', [ClienteSolicitudController::class, 'solicitarModificacion'])->name('solicitudes.modificar');
+
     // Comentarios en solicitudes
     Route::post('/solicitudes/{id}/comentarios', [ClienteComentarioController::class, 'store'])->name('solicitudes.comentarios.store');
 });
@@ -178,6 +183,7 @@ Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('as
     Route::post('/solicitudes/contacto', [AsesorSolicitudController::class, 'registrarContacto'])->name('solicitudes.contacto');
     Route::get('/solicitudes/{id}/detalle', [AsesorSolicitudController::class, 'verDetalle'])->name('solicitudes.detalle');
     Route::patch('/solicitudes/{id}/estado', [AsesorSolicitudController::class, 'actualizarEstado'])->name('solicitudes.estado');
+    Route::post('/solicitudes/{id}/responder', [AsesorSolicitudController::class, 'responderSolicitud'])->name('solicitudes.responder');
     Route::patch('/solicitudes/{id}/seguimiento', [AsesorSolicitudController::class, 'actualizarSeguimiento'])->name('solicitudes.seguimiento');
     Route::get('/solicitudes/{id}/historial', [AsesorSolicitudController::class, 'historialCliente'])->name('solicitudes.historial');
     Route::post('/solicitudes/{id}/cita', [AsesorSolicitudController::class, 'agendarCita'])->name('solicitudes.cita');

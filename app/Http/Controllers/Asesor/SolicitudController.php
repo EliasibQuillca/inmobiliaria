@@ -189,6 +189,59 @@ class SolicitudController extends Controller
     }
 
     /**
+     * Responder a la solicitud del cliente con información y cotización
+     */
+    public function responderSolicitud(Request $request, $solicitudId)
+    {
+        $asesor = Auth::user()->asesor;
+        if (!$asesor) {
+            abort(403, 'No tiene un asesor asociado.');
+        }
+
+        $validated = $request->validate([
+            'monto' => 'required|numeric|min:0',
+            'descuento' => 'nullable|numeric|min:0|max:100',
+            'fecha_validez' => 'nullable|date|after:today',
+            'notas' => 'nullable|string|max:2000',
+            'condiciones' => 'nullable|string|max:2000',
+        ]);
+
+        $solicitud = Cotizacion::where('asesor_id', $asesor->id)
+            ->with(['cliente', 'departamento'])
+            ->findOrFail($solicitudId);
+
+        // Calcular monto final con descuento
+        $montoFinal = $validated['monto'];
+        if (!empty($validated['descuento'])) {
+            $descuentoMonto = ($validated['monto'] * $validated['descuento']) / 100;
+            $montoFinal = $validated['monto'] - $descuentoMonto;
+        }
+
+        // Actualizar la cotización con la respuesta del asesor
+        $solicitud->update([
+            'estado' => 'en_proceso',
+            'monto' => $validated['monto'],
+            'descuento' => $validated['descuento'] ?? 0,
+            'fecha' => now(),
+            'fecha_validez' => $validated['fecha_validez'] ?? now()->addDays(15),
+            'notas' => $validated['notas'] ?? null,
+            'condiciones' => $validated['condiciones'] ?? 'Sujeto a disponibilidad y aprobación crediticia.',
+        ]);
+
+        // TODO: Enviar notificación al cliente (email/SMS)
+
+        Log::info('Solicitud respondida por asesor', [
+            'solicitud_id' => $solicitud->id,
+            'asesor_id' => $asesor->id,
+            'monto' => $validated['monto'],
+            'descuento' => $validated['descuento'] ?? 0,
+        ]);
+
+        return redirect()->back()
+            ->with('success', "Respuesta enviada a {$solicitud->cliente->nombre}. Monto: S/ " . number_format($montoFinal, 2));
+    }
+
+    /**
      * Ver detalles de una solicitud específica
      */
     public function verDetalle($solicitudId)

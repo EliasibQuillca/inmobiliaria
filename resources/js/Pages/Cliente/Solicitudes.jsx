@@ -1,10 +1,18 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import PublicLayout from '@/Layouts/PublicLayout';
 
 export default function Solicitudes({ auth, solicitudes }) {
     const { flash } = usePage().props;
     const [filtroEstado, setFiltroEstado] = useState('activas'); // 'activas', 'todas', 'canceladas'
+
+    // Estados para los modales
+    const [showRechazarModal, setShowRechazarModal] = useState(false);
+    const [showModificarModal, setShowModificarModal] = useState(false);
+    const [solicitudSeleccionada, setSolicitudSeleccionada] = useState(null);
+    const [motivoRechazo, setMotivoRechazo] = useState('');
+    const [mensajeModificacion, setMensajeModificacion] = useState('');
+    const [procesando, setProcesando] = useState(false);
 
     const formatFecha = (fecha) => {
         return new Date(fecha).toLocaleDateString('es-PE', {
@@ -36,17 +44,72 @@ export default function Solicitudes({ auth, solicitudes }) {
     };
 
     const getEstadoTexto = (estado) => {
-        const textos = {
-            'pendiente': '⏳ Pendiente',
-            'en_proceso': '🔄 En Proceso',
-            'aprobada': '✅ Aprobada',
-            'rechazada': '❌ Rechazada',
-            'cancelada': '🚫 Cancelada'
+        const estados = {
+            pendiente: 'Pendiente',
+            en_proceso: 'En Proceso',
+            aprobada: 'Aprobada',
+            cancelada: 'Cancelada',
         };
-        return textos[estado] || estado;
+        return estados[estado] || estado;
     };
 
-    const getTipoConsultaIcon = (tipo) => {
+    // Funciones para manejar las acciones del cliente
+    const handleAceptarCotizacion = (solicitudId) => {
+        if (confirm('¿Estás seguro de aceptar esta cotización? Se procederá con la reserva.')) {
+            setProcesando(true);
+            router.post(`/cliente/solicitudes/${solicitudId}/aceptar`, {}, {
+                onFinish: () => setProcesando(false),
+            });
+        }
+    };
+
+    const handleRechazarClick = (solicitud) => {
+        setSolicitudSeleccionada(solicitud);
+        setMotivoRechazo('');
+        setShowRechazarModal(true);
+    };
+
+    const handleRechazarSubmit = () => {
+        if (!motivoRechazo.trim()) {
+            alert('Por favor, indica el motivo del rechazo');
+            return;
+        }
+        setProcesando(true);
+        router.post(`/cliente/solicitudes/${solicitudSeleccionada.id}/rechazar`, {
+            motivo_rechazo: motivoRechazo
+        }, {
+            onFinish: () => {
+                setProcesando(false);
+                setShowRechazarModal(false);
+                setSolicitudSeleccionada(null);
+                setMotivoRechazo('');
+            }
+        });
+    };
+
+    const handleModificarClick = (solicitud) => {
+        setSolicitudSeleccionada(solicitud);
+        setMensajeModificacion('');
+        setShowModificarModal(true);
+    };
+
+    const handleModificarSubmit = () => {
+        if (!mensajeModificacion.trim()) {
+            alert('Por favor, describe los cambios que solicitas');
+            return;
+        }
+        setProcesando(true);
+        router.post(`/cliente/solicitudes/${solicitudSeleccionada.id}/modificar`, {
+            mensaje_modificacion: mensajeModificacion
+        }, {
+            onFinish: () => {
+                setProcesando(false);
+                setShowModificarModal(false);
+                setSolicitudSeleccionada(null);
+                setMensajeModificacion('');
+            }
+        });
+    };    const getTipoConsultaIcon = (tipo) => {
         const icons = {
             'informacion': '📋',
             'visita': '🏠',
@@ -243,6 +306,84 @@ export default function Solicitudes({ auth, solicitudes }) {
                                             )}
                                         </div>
 
+                                        {/* Cotización del Asesor */}
+                                        {solicitud.estado === 'en_proceso' && solicitud.monto && (
+                                            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
+                                                <h4 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+                                                    💰 Cotización del Asesor
+                                                </h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                                    <div className="bg-white rounded-lg p-3 shadow-sm">
+                                                        <p className="text-xs text-gray-500 mb-1">Monto Base</p>
+                                                        <p className="text-xl font-bold text-gray-900">
+                                                            S/ {formatPrecio(solicitud.monto)}
+                                                        </p>
+                                                    </div>
+                                                    {solicitud.descuento > 0 && (
+                                                        <div className="bg-white rounded-lg p-3 shadow-sm">
+                                                            <p className="text-xs text-gray-500 mb-1">Descuento</p>
+                                                            <p className="text-xl font-bold text-green-600">
+                                                                - {solicitud.descuento}%
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-3 shadow-md">
+                                                        <p className="text-xs opacity-90 mb-1">Precio Final</p>
+                                                        <p className="text-2xl font-bold">
+                                                            S/ {formatPrecio(solicitud.monto * (1 - (solicitud.descuento || 0) / 100))}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {solicitud.condiciones && (
+                                                    <div className="bg-white rounded-lg p-3 mb-3 shadow-sm">
+                                                        <p className="text-sm font-semibold text-gray-700 mb-1">📋 Condiciones:</p>
+                                                        <p className="text-sm text-gray-600">{solicitud.condiciones}</p>
+                                                    </div>
+                                                )}
+
+                                                {solicitud.notas && (
+                                                    <div className="bg-white rounded-lg p-3 mb-3 shadow-sm">
+                                                        <p className="text-sm font-semibold text-gray-700 mb-1">📝 Notas:</p>
+                                                        <p className="text-sm text-gray-600">{solicitud.notas}</p>
+                                                    </div>
+                                                )}
+
+                                                {solicitud.fecha_validez && (
+                                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                                                        <p className="text-sm text-yellow-800">
+                                                            ⏰ Válido hasta: <span className="font-semibold">{formatFecha(solicitud.fecha_validez)}</span>
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Botones de acción */}
+                                                <div className="flex flex-col sm:flex-row gap-3">
+                                                    <button
+                                                        onClick={() => handleAceptarCotizacion(solicitud.id)}
+                                                        disabled={procesando}
+                                                        className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        ✓ Aceptar Cotización
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleModificarClick(solicitud)}
+                                                        disabled={procesando}
+                                                        className="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        ✏️ Solicitar Cambios
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRechazarClick(solicitud)}
+                                                        disabled={procesando}
+                                                        className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        ✗ Rechazar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {/* Footer */}
                                         <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between">
                                             <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3 sm:mb-0">
@@ -301,6 +442,104 @@ export default function Solicitudes({ auth, solicitudes }) {
                     })()}
                 </div>
             </div>
+
+            {/* Modal de Rechazo */}
+            {showRechazarModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+                        <div className="flex items-center mb-4">
+                            <div className="bg-red-100 rounded-full p-3 mr-3">
+                                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900">Rechazar Cotización</h3>
+                        </div>
+
+                        <p className="text-gray-600 mb-4">
+                            Por favor, indica el motivo por el cual rechazas esta cotización:
+                        </p>
+
+                        <textarea
+                            value={motivoRechazo}
+                            onChange={(e) => setMotivoRechazo(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                            rows="4"
+                            placeholder="Ej: El precio excede mi presupuesto..."
+                        />
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowRechazarModal(false);
+                                    setSolicitudSeleccionada(null);
+                                    setMotivoRechazo('');
+                                }}
+                                disabled={procesando}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleRechazarSubmit}
+                                disabled={procesando || !motivoRechazo.trim()}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {procesando ? 'Rechazando...' : 'Confirmar Rechazo'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Modificación */}
+            {showModificarModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+                        <div className="flex items-center mb-4">
+                            <div className="bg-yellow-100 rounded-full p-3 mr-3">
+                                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900">Solicitar Modificaciones</h3>
+                        </div>
+
+                        <p className="text-gray-600 mb-4">
+                            Describe los cambios que deseas en la cotización:
+                        </p>
+
+                        <textarea
+                            value={mensajeModificacion}
+                            onChange={(e) => setMensajeModificacion(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                            rows="4"
+                            placeholder="Ej: Me gustaría un mayor descuento o cambiar las condiciones de pago..."
+                        />
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowModificarModal(false);
+                                    setSolicitudSeleccionada(null);
+                                    setMensajeModificacion('');
+                                }}
+                                disabled={procesando}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleModificarSubmit}
+                                disabled={procesando || !mensajeModificacion.trim()}
+                                className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {procesando ? 'Enviando...' : 'Enviar Solicitud'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </PublicLayout>
     );
 }

@@ -18,6 +18,7 @@ export default function Solicitudes({
     const [selectedClient, setSelectedClient] = useState(null);
     const [selectedSolicitud, setSelectedSolicitud] = useState(null);
     const [showFollowUp, setShowFollowUp] = useState(false);
+    const [showResponseForm, setShowResponseForm] = useState(false);
     const [activeTab, setActiveTab] = useState('pendientes'); // pendientes, en_proceso, aprobadas, rechazadas, clientes
 
     const { data, setData, post, patch, processing, errors, reset } = useForm({
@@ -30,6 +31,14 @@ export default function Solicitudes({
         medio_contacto: 'whatsapp',
         estado: 'contactado',
         notas_seguimiento: ''
+    });
+
+    const { data: responseData, setData: setResponseData, post: postResponse, processing: processingResponse, errors: responseErrors, reset: resetResponse } = useForm({
+        monto: '',
+        descuento: '',
+        fecha_validez: '',
+        notas: '',
+        condiciones: 'Sujeto a disponibilidad y aprobación crediticia.'
     });
 
     const handleSubmitContact = (e) => {
@@ -89,6 +98,30 @@ export default function Solicitudes({
             },
             onError: (errors) => {
                 console.error('Error al actualizar:', errors);
+            }
+        });
+    };
+
+    const handleResponderSolicitud = (solicitud) => {
+        setSelectedSolicitud(solicitud);
+        // Pre-llenar con el precio del departamento si existe
+        setResponseData({
+            monto: solicitud.departamento?.precio || '',
+            descuento: '',
+            fecha_validez: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            notas: `Información del departamento ${solicitud.departamento?.nombre || ''}`,
+            condiciones: 'Sujeto a disponibilidad y aprobación crediticia.'
+        });
+        setShowResponseForm(true);
+    };
+
+    const submitResponse = (e) => {
+        e.preventDefault();
+        postResponse(route('asesor.solicitudes.responder', { id: selectedSolicitud.id }), {
+            onSuccess: () => {
+                setShowResponseForm(false);
+                setSelectedSolicitud(null);
+                resetResponse();
             }
         });
     };
@@ -352,20 +385,23 @@ export default function Solicitudes({
                                                                 </p>
                                                             )}
                                                         </div>
-                                                        <div className="ml-4 flex space-x-2">
+                                                        <div className="ml-4 flex flex-wrap gap-2">
                                                             {solicitud.estado === 'pendiente' && (
                                                                 <>
+                                                                    <button
+                                                                        onClick={() => handleResponderSolicitud(solicitud)}
+                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-purple-600 hover:bg-purple-700"
+                                                                    >
+                                                                        <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                                        </svg>
+                                                                        Responder
+                                                                    </button>
                                                                     <button
                                                                         onClick={() => handleUpdateEstado(solicitud.id, 'en_proceso')}
                                                                         className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
                                                                     >
                                                                         En Proceso
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleUpdateEstado(solicitud.id, 'aprobada')}
-                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
-                                                                    >
-                                                                        Aprobar
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleUpdateEstado(solicitud.id, 'rechazada')}
@@ -377,12 +413,15 @@ export default function Solicitudes({
                                                             )}
                                                             {solicitud.estado === 'en_proceso' && (
                                                                 <>
-                                                                    <button
-                                                                        onClick={() => handleUpdateEstado(solicitud.id, 'aprobada')}
+                                                                    <Link
+                                                                        href={route('asesor.reservas.crear', { cotizacion_id: solicitud.id })}
                                                                         className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
                                                                     >
-                                                                        Aprobar
-                                                                    </button>
+                                                                        <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                        </svg>
+                                                                        Crear Reserva
+                                                                    </Link>
                                                                     <button
                                                                         onClick={() => handleUpdateEstado(solicitud.id, 'rechazada')}
                                                                         className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
@@ -390,6 +429,25 @@ export default function Solicitudes({
                                                                         Rechazar
                                                                     </button>
                                                                 </>
+                                                            )}
+                                                            {(solicitud.estado === 'aprobada' || solicitud.estado === 'aceptada') && !solicitud.reserva && (
+                                                                <Link
+                                                                    href={route('asesor.reservas.crear', { cotizacion_id: solicitud.id })}
+                                                                    className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
+                                                                >
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
+                                                                    Crear Reserva
+                                                                </Link>
+                                                            )}
+                                                            {solicitud.reserva && (
+                                                                <Link
+                                                                    href={route('asesor.reservas.show', { id: solicitud.reserva.id })}
+                                                                    className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700"
+                                                                >
+                                                                    Ver Reserva
+                                                                </Link>
                                                             )}
                                                             <Link
                                                                 href={route('asesor.solicitudes.detalle', { id: solicitud.id })}
@@ -668,6 +726,134 @@ export default function Solicitudes({
                                                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                                             >
                                                 {processing ? 'Actualizando...' : 'Actualizar'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal para responder solicitud con cotización */}
+                    {showResponseForm && selectedSolicitud && (
+                        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                                <div className="mt-3">
+                                    <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
+                                        Responder Solicitud - {selectedSolicitud.cliente?.nombre}
+                                    </h3>
+                                    <div className="mb-4 p-4 bg-blue-50 rounded-md">
+                                        <p className="text-sm text-gray-700">
+                                            <strong>Departamento:</strong> {selectedSolicitud.departamento?.nombre}
+                                        </p>
+                                        <p className="text-sm text-gray-700">
+                                            <strong>Mensaje del cliente:</strong> {selectedSolicitud.mensaje_solicitud || 'Sin mensaje'}
+                                        </p>
+                                    </div>
+                                    <form onSubmit={submitResponse} className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    Precio/Monto *
+                                                </label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-2 text-gray-500">S/</span>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={responseData.monto}
+                                                        onChange={(e) => setResponseData('monto', e.target.value)}
+                                                        className="pl-10 w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                        required
+                                                    />
+                                                </div>
+                                                {responseErrors.monto && <p className="mt-1 text-sm text-red-600">{responseErrors.monto}</p>}
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    Descuento (%)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    max="100"
+                                                    value={responseData.descuento}
+                                                    onChange={(e) => setResponseData('descuento', e.target.value)}
+                                                    className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                />
+                                                {responseErrors.descuento && <p className="mt-1 text-sm text-red-600">{responseErrors.descuento}</p>}
+                                            </div>
+                                        </div>
+
+                                        {responseData.monto && responseData.descuento && (
+                                            <div className="p-3 bg-green-50 rounded-md">
+                                                <p className="text-sm font-medium text-green-800">
+                                                    Precio Final: S/ {(parseFloat(responseData.monto) - (parseFloat(responseData.monto) * parseFloat(responseData.descuento || 0) / 100)).toFixed(2)}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Válido hasta
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={responseData.fecha_validez}
+                                                onChange={(e) => setResponseData('fecha_validez', e.target.value)}
+                                                min={new Date().toISOString().split('T')[0]}
+                                                className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                            {responseErrors.fecha_validez && <p className="mt-1 text-sm text-red-600">{responseErrors.fecha_validez}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Información adicional
+                                            </label>
+                                            <textarea
+                                                value={responseData.notas}
+                                                onChange={(e) => setResponseData('notas', e.target.value)}
+                                                rows="3"
+                                                className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Detalles del departamento, amenidades, etc."
+                                            />
+                                            {responseErrors.notas && <p className="mt-1 text-sm text-red-600">{responseErrors.notas}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Condiciones
+                                            </label>
+                                            <textarea
+                                                value={responseData.condiciones}
+                                                onChange={(e) => setResponseData('condiciones', e.target.value)}
+                                                rows="2"
+                                                className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                            {responseErrors.condiciones && <p className="mt-1 text-sm text-red-600">{responseErrors.condiciones}</p>}
+                                        </div>
+
+                                        <div className="flex justify-end space-x-3 pt-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowResponseForm(false);
+                                                    setSelectedSolicitud(null);
+                                                    resetResponse();
+                                                }}
+                                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={processingResponse}
+                                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                            >
+                                                {processingResponse ? 'Enviando...' : 'Enviar Respuesta'}
                                             </button>
                                         </div>
                                     </form>

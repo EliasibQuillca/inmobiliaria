@@ -10,6 +10,7 @@ use App\Models\Asesor;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class SolicitudController extends Controller
@@ -292,5 +293,117 @@ class SolicitudController extends Controller
         // Redireccionar con mensaje de éxito
         return redirect()->route('cliente.solicitudes.show', $id)
             ->with('success', 'Comentario agregado exitosamente.');
+    }
+
+    /**
+     * Cliente acepta la cotización del asesor
+     */
+    public function aceptarCotizacion($solicitudId)
+    {
+        $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
+
+        $solicitud = Cotizacion::where('cliente_id', $cliente->id)
+            ->with(['asesor', 'departamento'])
+            ->findOrFail($solicitudId);
+
+        // Validar que la cotización esté en estado que pueda aceptarse
+        if (!in_array($solicitud->estado, ['en_proceso', 'pendiente'])) {
+            return redirect()->back()
+                ->with('error', 'No se puede aceptar esta solicitud en su estado actual.');
+        }
+
+        // Validar que tenga monto definido por el asesor
+        if (!$solicitud->monto || $solicitud->monto <= 0) {
+            return redirect()->back()
+                ->with('error', 'El asesor aún no ha enviado una cotización con precio.');
+        }
+
+        $solicitud->update([
+            'estado' => 'aprobada',
+            'fecha_respuesta_cliente' => now(),
+        ]);
+
+        Log::info('Cliente aceptó cotización', [
+            'solicitud_id' => $solicitud->id,
+            'cliente_id' => $cliente->id,
+            'monto' => $solicitud->monto,
+        ]);
+
+        return redirect()->back()
+            ->with('success', '¡Excelente! Has aceptado la cotización. El asesor se pondrá en contacto contigo para proceder con la reserva.');
+    }
+
+    /**
+     * Cliente rechaza la cotización del asesor
+     */
+    public function rechazarCotizacion(Request $request, $solicitudId)
+    {
+        $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
+
+        $validated = $request->validate([
+            'motivo' => 'nullable|string|max:500',
+        ]);
+
+        $solicitud = Cotizacion::where('cliente_id', $cliente->id)
+            ->findOrFail($solicitudId);
+
+        // Validar que la cotización esté en estado que pueda rechazarse
+        if (!in_array($solicitud->estado, ['en_proceso', 'pendiente', 'aprobada'])) {
+            return redirect()->back()
+                ->with('error', 'No se puede rechazar esta solicitud en su estado actual.');
+        }
+
+        $solicitud->update([
+            'estado' => 'rechazada',
+            'fecha_respuesta_cliente' => now(),
+            'motivo_rechazo_cliente' => $validated['motivo'] ?? null,
+        ]);
+
+        Log::info('Cliente rechazó cotización', [
+            'solicitud_id' => $solicitud->id,
+            'cliente_id' => $cliente->id,
+            'motivo' => $validated['motivo'] ?? 'Sin motivo especificado',
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Cotización rechazada. Puedes realizar una nueva solicitud cuando lo desees.');
+    }
+
+    /**
+     * Cliente solicita modificaciones a la cotización
+     */
+    public function solicitarModificacion(Request $request, $solicitudId)
+    {
+        $cliente = Cliente::where('usuario_id', Auth::id())->firstOrFail();
+
+        $validated = $request->validate([
+            'mensaje' => 'required|string|min:10|max:1000',
+        ]);
+
+        $solicitud = Cotizacion::where('cliente_id', $cliente->id)
+            ->findOrFail($solicitudId);
+
+        // Validar que la cotización esté en proceso
+        if ($solicitud->estado !== 'en_proceso') {
+            return redirect()->back()
+                ->with('error', 'Solo puedes solicitar modificaciones a cotizaciones en proceso.');
+        }
+
+        // Agregar el mensaje a las notas
+        $notasAnteriores = $solicitud->notas ?? '';
+        $nuevaNota = "\n\n[" . now()->format('d/m/Y H:i') . "] Cliente solicita modificación:\n" . $validated['mensaje'];
+
+        $solicitud->update([
+            'notas' => $notasAnteriores . $nuevaNota,
+            'estado' => 'pendiente', // Vuelve a pendiente para que asesor revise
+        ]);
+
+        Log::info('Cliente solicitó modificación', [
+            'solicitud_id' => $solicitud->id,
+            'cliente_id' => $cliente->id,
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Solicitud de modificación enviada. El asesor revisará tu petición.');
     }
 }
