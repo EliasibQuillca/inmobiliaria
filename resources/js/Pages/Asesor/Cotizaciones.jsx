@@ -23,10 +23,17 @@ export default function Cotizaciones({ auth, cotizaciones = [], mostrandoHistori
     const submitUpdate = (e) => {
         e.preventDefault();
         patch(`/asesor/cotizaciones/${selectedCotizacion.id}/estado`, {
+            preserveScroll: true,
             onSuccess: () => {
                 setShowUpdateModal(false);
                 setSelectedCotizacion(null);
                 reset();
+            },
+            onError: (errors) => {
+                console.error('Error al actualizar:', errors);
+                if (errors.message) {
+                    alert('Error: ' + errors.message);
+                }
             }
         });
     };

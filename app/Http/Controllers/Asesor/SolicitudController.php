@@ -36,10 +36,10 @@ class SolicitudController extends Controller
             'departamento.atributos'
         ])
             ->where('asesor_id', $asesor->id)
-            ->whereHas('cliente', function ($query) {
-                // Solo mostrar cotizaciones que tengan clientes válidos
-                $query->whereNotNull('nombre')
-                      ->where('nombre', '!=', '');
+            ->whereHas('cliente.usuario', function ($query) {
+                // Solo mostrar cotizaciones que tengan clientes con usuario válido
+                $query->whereNotNull('name')
+                      ->where('name', '!=', '');
             })
             ->orderBy('created_at', 'desc')
             ->get();

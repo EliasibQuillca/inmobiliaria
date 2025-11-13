@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Departamento;
 use App\Models\Asesor;
 use App\Models\Cliente;
+use App\Models\Cotizacion;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class CatalogoController extends Controller
         // Construcción de la consulta base - incluyendo todos los campos necesarios
         $query = Departamento::with(['imagenes', 'propietario', 'atributos'])
             ->where('estado', 'disponible');
-        
+
         // Obtener estadísticas básicas para los filtros
         $estadisticas = [
             'total' => Departamento::where('estado', 'disponible')->count(),
@@ -79,7 +80,7 @@ class CatalogoController extends Controller
             $cliente = Auth::user()->cliente;
             if ($cliente) {
                 $favoritosIds = $cliente->favoritos()->pluck('departamento_id')->toArray();
-                
+
                 foreach ($departamentos as $departamento) {
                     $departamento->es_favorito = in_array($departamento->id, $favoritosIds);
                 }
@@ -231,6 +232,7 @@ class CatalogoController extends Controller
                 'usuario_id' => $usuario ? $usuario->id : (Auth::check() ? Auth::id() : null),
                 'asesor_id' => $asesor->id,
                 'nombre' => $validated['nombre'],
+                'dni' => 'TEMP-' . time() . '-' . rand(1000, 9999), // DNI temporal único
                 'telefono' => $validated['telefono'],
                 'email' => $validated['email'],
                 'medio_contacto' => 'web',
@@ -248,6 +250,21 @@ class CatalogoController extends Controller
             ]);
             $cliente = $clienteExistente;
         }
+
+        // ✅ CREAR LA SOLICITUD/COTIZACIÓN EN EL SISTEMA
+        $solicitud = Cotizacion::create([
+            'cliente_id' => $cliente->id,
+            'asesor_id' => $asesor->id,
+            'departamento_id' => $departamento->id,
+            'tipo_solicitud' => 'cotizacion',
+            'mensaje_solicitud' => $validated['mensaje'] ?? 'Solicitud de información sobre el departamento ' . $departamento->titulo,
+            'estado' => 'pendiente',
+            'monto' => 0, // Se llenará cuando el asesor responda
+            'descuento' => 0,
+            'notas' => '',
+            'condiciones' => '',
+            'fecha_validez' => now()->addDays(30),
+        ]);
 
         // Respuesta diferente según si se creó cuenta o no
         $mensaje = 'Tu solicitud ha sido enviada exitosamente. El asesor se pondrá en contacto contigo pronto.';

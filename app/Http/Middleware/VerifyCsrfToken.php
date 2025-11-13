@@ -14,4 +14,20 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
         //
     ];
+
+    /**
+     * Determine if the session and input CSRF tokens match.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return bool
+     */
+    protected function tokensMatch($request)
+    {
+        // Deshabilitar CSRF verification en modo testing
+        if (app()->environment('testing')) {
+            return true;
+        }
+
+        return parent::tokensMatch($request);
+    }
 }

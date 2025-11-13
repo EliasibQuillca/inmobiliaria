@@ -316,7 +316,7 @@ class ClienteController extends Controller
 
     public function updatePerfil(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'email' => 'required|email',
             'telefono' => 'required|string|max:20',
@@ -345,17 +345,18 @@ class ClienteController extends Controller
             'current_password.required_with' => 'Debes ingresar tu contraseña para cambiar el correo electrónico',
         ]);
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Si está cambiando el email, verificar la contraseña
-        if ($request->email !== $user->email) {
-            if (!$request->current_password) {
+        if ($validated['email'] !== $user->email) {
+            if (!$validated['current_password']) {
                 return back()->withErrors([
                     'current_password' => 'Debes ingresar tu contraseña para cambiar el correo electrónico'
                 ]);
             }
 
-            if (!Hash::check($request->current_password, $user->password)) {
+            if (!Hash::check($validated['current_password'], $user->password)) {
                 return back()->withErrors([
                     'current_password' => 'La contraseña es incorrecta'
                 ]);
@@ -364,25 +365,25 @@ class ClienteController extends Controller
 
         // Actualizar usuario
         $user->update([
-            'name' => $request->nombre,
-            'email' => $request->email,
-            'telefono' => $request->telefono,
+            'name' => $validated['nombre'],
+            'email' => $validated['email'],
+            'telefono' => $validated['telefono'],
         ]);
 
         // Buscar o crear cliente
         $cliente = Cliente::updateOrCreate(
             ['usuario_id' => $user->id],
             [
-                'dni' => $request->cedula, // Mapear cedula a dni
-                'nombre' => $request->nombre,
-                'telefono' => $request->telefono,
-                'direccion' => $request->direccion,
-                'fecha_nacimiento' => $request->fecha_nacimiento,
-                'ciudad' => $request->ciudad,
-                'ocupacion' => $request->ocupacion,
-                'estado_civil' => $request->estado_civil,
-                'ingresos_mensuales' => $request->ingresos_mensuales,
-                'preferencias' => $request->preferencias,
+                'dni' => $validated['cedula'], // Mapear cedula a dni
+                'nombre' => $validated['nombre'],
+                'telefono' => $validated['telefono'],
+                'direccion' => $validated['direccion'],
+                'fecha_nacimiento' => $validated['fecha_nacimiento'],
+                'ciudad' => $validated['ciudad'] ?? null,
+                'ocupacion' => $validated['ocupacion'] ?? null,
+                'estado_civil' => $validated['estado_civil'] ?? null,
+                'ingresos_mensuales' => $validated['ingresos_mensuales'] ?? null,
+                'preferencias' => $validated['preferencias'] ?? null,
             ]
         );
 
@@ -401,6 +402,7 @@ class ClienteController extends Controller
             'password.confirmed' => 'Las contraseñas no coinciden',
         ]);
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Verificar contraseña actual

@@ -60,7 +60,9 @@ class PerfilController extends Controller
      */
     public function update(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
+        /** @var \App\Models\Asesor|null $asesor */
         $asesor = $user->asesor;
 
         $validated = $request->validate([
@@ -155,6 +157,7 @@ class PerfilController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         // Verificar contraseña actual
