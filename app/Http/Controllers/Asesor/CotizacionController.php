@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Asesor;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cotizacion;
+use App\Models\Solicitud;
 use App\Models\Cliente;
 use App\Models\Departamento;
 use Illuminate\Http\Request;
@@ -30,9 +31,10 @@ class CotizacionController extends Controller
                 ->orderBy('updated_at', 'desc')
                 ->get();
         } else {
-            // Mostrar solo cotizaciones activas (por defecto)
+            // Mostrar solo cotizaciones formales activas (excluir solicitudes pendientes/aprobadas)
             $cotizaciones = Cotizacion::with(['cliente.usuario', 'departamento'])
                 ->where('asesor_id', $asesor->id)
+                ->whereNotIn('estado', ['pendiente', 'aprobada', 'rechazada'])
                 ->activas()
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -51,12 +53,27 @@ class CotizacionController extends Controller
     {
         $asesor = Auth::user()->asesor;
 
+        // Si viene una solicitud_id, obtener la solicitud aprobada
+        $solicitudSeleccionada = null;
+        if ($request->has('solicitud_id')) {
+            $solicitudSeleccionada = Solicitud::with(['cliente', 'departamento'])
+                ->where('asesor_id', $asesor->id)
+                ->where('id', $request->solicitud_id)
+                ->where('estado', 'aprobada')
+                ->first();
+        }
+
         // Si viene un cliente_id específico, obtenerlo con sus preferencias
         $clienteSeleccionado = null;
         if ($request->has('cliente_id')) {
             $clienteSeleccionado = Cliente::where('asesor_id', $asesor->id)
                 ->where('id', $request->cliente_id)
                 ->first();
+        }
+
+        // Si hay solicitud, usar su cliente
+        if ($solicitudSeleccionada) {
+            $clienteSeleccionado = $solicitudSeleccionada->cliente;
         }
 
         // Obtener solo clientes del asesor actual
@@ -66,6 +83,12 @@ class CotizacionController extends Controller
 
         // Obtener departamentos disponibles
         $departamentosQuery = Departamento::where('estado', 'disponible');
+
+        // Si hay solicitud, pre-seleccionar el departamento
+        $departamentoSeleccionado = null;
+        if ($solicitudSeleccionada) {
+            $departamentoSeleccionado = $solicitudSeleccionada->departamento;
+        }
 
         // Si hay cliente seleccionado con preferencias específicas, aplicar filtros
         $departamentosFiltrados = [];
@@ -100,6 +123,8 @@ class CotizacionController extends Controller
             'departamentos' => $departamentos,
             'departamentosFiltrados' => $departamentosFiltrados,
             'clienteSeleccionado' => $clienteSeleccionado,
+            'departamentoSeleccionado' => $departamentoSeleccionado,
+            'solicitud' => $solicitudSeleccionada,
         ]);
     }
 
@@ -118,6 +143,7 @@ class CotizacionController extends Controller
             'fecha_validez' => 'required|date|after:today',
             'notas' => 'nullable|string|max:1000',
             'condiciones' => 'nullable|string|max:2000',
+            'solicitud_id' => 'nullable|exists:solicitudes,id',
         ]);
 
         $cotizacion = Cotizacion::create([
@@ -128,11 +154,24 @@ class CotizacionController extends Controller
             'monto' => $validated['monto'],
             'descuento' => $validated['descuento'] ?? 0,
             'fecha_validez' => $validated['fecha_validez'],
-            'estado' => 'pendiente',
+            'estado' => 'en_proceso',
             'notas' => $validated['notas'],
             'condiciones' => $validated['condiciones'],
         ]);
 
+        // Si viene de una solicitud, marcarla como finalizada
+        if ($request->has('solicitud_id')) {
+            $solicitud = Solicitud::where('id', $validated['solicitud_id'])
+                ->where('asesor_id', $asesor->id)
+                ->first();
+
+            if ($solicitud) {
+                $solicitud->update([
+                    'estado' => 'finalizada',
+                    'notas_asesor' => 'Cotización formal creada (ID: ' . $cotizacion->id . ')'
+                ]);
+            }
+        }
         return redirect()->route('asesor.cotizaciones')
             ->with('success', 'Cotización creada exitosamente');
     }

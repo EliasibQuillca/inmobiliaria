@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cliente;
 use App\Models\Departamento;
 use App\Models\User;
+use App\Models\Solicitud;
 use App\Models\Cotizacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,8 +28,8 @@ class SolicitudController extends Controller
             abort(403, 'No tiene un asesor asociado.');
         }
 
-        // Obtener cotizaciones asignadas al asesor con relaciones completas
-        $solicitudes = Cotizacion::with([
+        // Obtener SOLICITUDES (tabla separada) asignadas al asesor
+        $solicitudes = Solicitud::with([
             'cliente.usuario',
             'departamento.imagenes' => function ($q) {
                 $q->where('activa', true)->orderBy('orden')->limit(1);
@@ -36,30 +37,24 @@ class SolicitudController extends Controller
             'departamento.atributos'
         ])
             ->where('asesor_id', $asesor->id)
-            ->whereHas('cliente.usuario', function ($query) {
-                // Solo mostrar cotizaciones que tengan clientes con usuario válido
-                $query->whereNotNull('name')
-                      ->where('name', '!=', '');
-            })
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Agrupar por estado con nombres más descriptivos
+        // Agrupar por estado
         $solicitudesPendientes = $solicitudes->where('estado', 'pendiente')->values();
-        $solicitudesEnProceso = $solicitudes->where('estado', 'en_proceso')->values();
-        $solicitudesAprobadas = $solicitudes->whereIn('estado', ['aprobada', 'aceptada', 'respondida'])->values();
-        $solicitudesRechazadas = $solicitudes->whereIn('estado', ['rechazada', 'cancelada', 'finalizada'])->values();
+        $solicitudesAprobadas = $solicitudes->where('estado', 'aprobada')->values();
+        $solicitudesRechazadas = $solicitudes->where('estado', 'rechazada')->values();
 
-        // Clientes sin cotizaciones (nuevos) con datos válidos
-        $clientesNuevos = Cliente::with(['usuario', 'cotizaciones', 'departamentoInteres'])
+        // Clientes sin solicitudes (nuevos)
+        $clientesNuevos = Cliente::with(['usuario', 'departamentoInteres'])
             ->where('asesor_id', $asesor->id)
             ->whereNotNull('nombre')
             ->where('nombre', '!=', '')
-            ->whereDoesntHave('cotizaciones')
+            ->whereDoesntHave('solicitudes')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Departamentos disponibles para cotización
+        // Departamentos disponibles
         $departamentosInteres = Departamento::where('estado', 'disponible')
             ->with(['imagenes' => function ($q) {
                 $q->where('activa', true)->orderBy('orden')->limit(1);
@@ -71,7 +66,6 @@ class SolicitudController extends Controller
         $estadisticas = [
             'total_solicitudes' => $solicitudes->count(),
             'pendientes' => $solicitudesPendientes->count(),
-            'en_proceso' => $solicitudesEnProceso->count(),
             'aprobadas' => $solicitudesAprobadas->count(),
             'rechazadas' => $solicitudesRechazadas->count(),
             'clientes_nuevos' => $clientesNuevos->count(),
@@ -80,7 +74,6 @@ class SolicitudController extends Controller
         return Inertia::render('Asesor/Solicitudes', [
             'solicitudes' => $solicitudes,
             'solicitudesPendientes' => $solicitudesPendientes,
-            'solicitudesEnProceso' => $solicitudesEnProceso,
             'solicitudesAprobadas' => $solicitudesAprobadas,
             'solicitudesRechazadas' => $solicitudesRechazadas,
             'clientesNuevos' => $clientesNuevos,
@@ -146,7 +139,7 @@ class SolicitudController extends Controller
     }
 
     /**
-     * Actualizar estado de una solicitud (cotización)
+     * Actualizar estado de una solicitud
      */
     public function actualizarEstado(Request $request, $solicitudId)
     {
@@ -156,35 +149,39 @@ class SolicitudController extends Controller
         }
 
         $validated = $request->validate([
-            'estado' => 'required|in:pendiente,en_proceso,respondida,aprobada,aceptada,rechazada,cancelada,finalizada',
+            'estado' => 'required|in:pendiente,aprobada,rechazada,finalizada',
             'notas' => 'nullable|string|max:1000',
-            'observaciones' => 'nullable|string|max:1000', // Alias para compatibilidad
+            'motivo_rechazo' => 'nullable|string|max:1000',
         ]);
 
-        $solicitud = Cotizacion::where('asesor_id', $asesor->id)
+        $solicitud = Solicitud::where('asesor_id', $asesor->id)
             ->with(['cliente', 'departamento'])
             ->findOrFail($solicitudId);
 
-        // Validar que existe el cliente asociado
-        if (!$solicitud->cliente || empty($solicitud->cliente->nombre)) {
-            return redirect()->back()
-                ->with('error', 'La solicitud no tiene un cliente válido asociado.');
+        // Actualizar campos según el estado
+        $updateData = [
+            'estado' => $validated['estado'],
+            'notas_asesor' => $validated['notas'] ?? $solicitud->notas_asesor,
+        ];
+
+        if ($validated['estado'] === 'aprobada') {
+            $updateData['fecha_aprobacion'] = now();
+        } elseif ($validated['estado'] === 'rechazada') {
+            $updateData['fecha_rechazo'] = now();
+            $updateData['motivo_rechazo'] = $validated['motivo_rechazo'] ?? null;
         }
 
-        $solicitud->update([
-            'estado' => $validated['estado'],
-            'notas' => $validated['notas'] ?? $validated['observaciones'] ?? $solicitud->notas,
-        ]);
+        $solicitud->update($updateData);
 
-        // Log de la acción (opcional)
+        // Log de la acción
         Log::info('Estado de solicitud actualizado', [
             'solicitud_id' => $solicitud->id,
             'nuevo_estado' => $validated['estado'],
             'asesor_id' => $asesor->id,
-            'cliente' => $solicitud->cliente->nombre
+            'cliente' => $solicitud->cliente->nombre ?? 'N/A'
         ]);
 
-        // Retornar con Inertia back() con mensaje de éxito
+        // Retornar con Inertia
         return back()->with('success', "Solicitud actualizada a: " . ucfirst($validated['estado']));
     }
 

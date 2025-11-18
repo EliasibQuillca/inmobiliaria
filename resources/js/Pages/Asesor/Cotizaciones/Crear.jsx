@@ -2,19 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AsesorLayout from '../../../Layouts/AsesorLayout';
 
-export default function CrearCotizacion({ auth, clientes, departamentos, departamentosFiltrados = [], clienteSeleccionado }) {
+export default function CrearCotizacion({ auth, clientes, departamentos, departamentosFiltrados = [], clienteSeleccionado, departamentoSeleccionado, solicitud }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         cliente_id: clienteSeleccionado ? clienteSeleccionado.id : '',
-        departamento_id: '',
-        monto: '',
+        departamento_id: departamentoSeleccionado ? departamentoSeleccionado.id : '',
+        monto: departamentoSeleccionado ? departamentoSeleccionado.precio : '',
         descuento: '',
         fecha_validez: '',
-        notas: '',
+        notas: solicitud ? solicitud.mensaje_solicitud : '',
         condiciones: '',
+        solicitud_id: solicitud ? solicitud.id : '',
     });
 
     const [mostrarFiltrados, setMostrarFiltrados] = useState(true);
-    const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState(null);
+    const [departamentoSeleccionadoState, setDepartamentoSeleccionadoState] = useState(departamentoSeleccionado);
 
     // Determinar qué departamentos mostrar
     const departamentosAMostrar = mostrarFiltrados && departamentosFiltrados.length > 0
@@ -30,7 +31,7 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
 
     const handleDepartamentoChange = (departamentoId) => {
         const departamento = departamentos.find(d => d.id == departamentoId);
-        setDepartamentoSeleccionado(departamento);
+        setDepartamentoSeleccionadoState(departamento);
         setData('departamento_id', departamentoId);
 
         if (departamento) {
@@ -318,16 +319,16 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
                                     )}
 
                                     {/* Información del Departamento */}
-                                    {departamentoSeleccionado && (
+                                    {departamentoSeleccionadoState && (
                                         <div className="mb-6">
                                             <h4 className="font-medium text-gray-700 mb-2">Departamento</h4>
                                             <div className="text-sm text-gray-600">
-                                                <p><strong>Código:</strong> {departamentoSeleccionado.codigo}</p>
-                                                <p><strong>Tipo:</strong> {departamentoSeleccionado.tipo_propiedad}</p>
-                                                <p><strong>Habitaciones:</strong> {departamentoSeleccionado.habitaciones}</p>
-                                                <p><strong>Baños:</strong> {departamentoSeleccionado.banos}</p>
-                                                <p><strong>Área:</strong> {departamentoSeleccionado.area_construida} m²</p>
-                                                <p><strong>Precio:</strong> {formatCurrency(departamentoSeleccionado.precio)}</p>
+                                                <p><strong>Código:</strong> {departamentoSeleccionadoState.codigo}</p>
+                                                <p><strong>Tipo:</strong> {departamentoSeleccionadoState.tipo_propiedad}</p>
+                                                <p><strong>Habitaciones:</strong> {departamentoSeleccionadoState.habitaciones}</p>
+                                                <p><strong>Baños:</strong> {departamentoSeleccionadoState.banos}</p>
+                                                <p><strong>Área:</strong> {departamentoSeleccionadoState.area_construida} m²</p>
+                                                <p><strong>Precio:</strong> {formatCurrency(departamentoSeleccionadoState.precio)}</p>
                                             </div>
                                         </div>
                                     )}

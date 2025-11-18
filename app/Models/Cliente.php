@@ -109,6 +109,11 @@ class Cliente extends Model
                     ->withTimestamps();
     }
 
+    public function solicitudes()
+    {
+        return $this->hasMany(Solicitud::class, 'cliente_id');
+    }
+
     public function cotizaciones()
     {
         return $this->hasMany(Cotizacion::class, 'cliente_id');
