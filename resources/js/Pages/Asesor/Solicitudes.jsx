@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AsesorLayout from '../../Layouts/AsesorLayout';
+import axios from 'axios';
 
 export default function Solicitudes({
     auth,
@@ -89,14 +90,23 @@ export default function Solicitudes({
     };
 
     const handleUpdateEstado = (solicitudId, nuevoEstado) => {
+        console.log('Actualizando solicitud:', solicitudId, 'a estado:', nuevoEstado);
+
+        if (!solicitudId) {
+            console.error('Error: solicitudId no definido');
+            return;
+        }
+
+        // Usar router.patch de Inertia como en Reservas.jsx
         router.patch(`/asesor/solicitudes/${solicitudId}/estado`, {
-            estado: nuevoEstado,
+            estado: nuevoEstado
         }, {
             preserveState: false,
             preserveScroll: false,
             onSuccess: () => {
-                console.log('Estado actualizado correctamente');
-                router.reload({ only: ['solicitudes', 'solicitudesPendientes', 'solicitudesAprobadas', 'solicitudesRechazadas', 'estadisticas'] });
+                console.log('Estado actualizado exitosamente');
+                // Forzar recarga completa de la página
+                window.location.reload();
             },
             onError: (errors) => {
                 console.error('Error al actualizar:', errors);

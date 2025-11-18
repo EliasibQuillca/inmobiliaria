@@ -184,8 +184,8 @@ class SolicitudController extends Controller
             'cliente' => $solicitud->cliente->nombre
         ]);
 
-        // Retornar respuesta de Inertia
-        return back()->with('success', "Solicitud de {$solicitud->cliente->nombre} actualizada a: " . ucfirst($validated['estado']));
+        // Retornar con Inertia back() con mensaje de éxito
+        return back()->with('success', "Solicitud actualizada a: " . ucfirst($validated['estado']));
     }
 
     /**
