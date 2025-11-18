@@ -19,6 +19,7 @@ export default function Solicitudes({
     const [selectedSolicitud, setSelectedSolicitud] = useState(null);
     const [showFollowUp, setShowFollowUp] = useState(false);
     const [showResponseForm, setShowResponseForm] = useState(false);
+    const [showDetalleModal, setShowDetalleModal] = useState(false);
     const [activeTab, setActiveTab] = useState('pendientes'); // pendientes, en_proceso, aprobadas, rechazadas, clientes
 
     const { data, setData, post, patch, processing, errors, reset } = useForm({
@@ -88,13 +89,14 @@ export default function Solicitudes({
     };
 
     const handleUpdateEstado = (solicitudId, nuevoEstado) => {
-        router.patch(route('asesor.solicitudes.estado', { id: solicitudId }), {
+        router.patch(`/asesor/solicitudes/${solicitudId}/estado`, {
             estado: nuevoEstado,
         }, {
-            preserveScroll: true,
+            preserveState: false,
+            preserveScroll: false,
             onSuccess: () => {
-                // Actualizado exitosamente
                 console.log('Estado actualizado correctamente');
+                router.reload({ only: ['solicitudes', 'solicitudesPendientes', 'solicitudesAprobadas', 'solicitudesRechazadas', 'estadisticas'] });
             },
             onError: (errors) => {
                 console.error('Error al actualizar:', errors);
@@ -113,6 +115,33 @@ export default function Solicitudes({
             condiciones: 'Sujeto a disponibilidad y aprobación crediticia.'
         });
         setShowResponseForm(true);
+    };
+
+    const handleVerDetalle = (solicitud) => {
+        setSelectedSolicitud(solicitud);
+        setShowDetalleModal(true);
+    };
+
+    const extraerDatosMensaje = (mensaje) => {
+        const datos = {
+            telefono: null,
+            tipoConsulta: null,
+            mensajeAdicional: null
+        };
+
+        // Extraer teléfono
+        const telMatch = mensaje.match(/Teléfono de contacto:\s*(.+?)(\n|$)/i);
+        if (telMatch) datos.telefono = telMatch[1].trim();
+
+        // Extraer tipo de consulta
+        const tipoMatch = mensaje.match(/Tipo de consulta:\s*(.+?)(\n|$)/i);
+        if (tipoMatch) datos.tipoConsulta = tipoMatch[1].trim();
+
+        // Extraer mensaje adicional
+        const mensajeMatch = mensaje.match(/Mensaje adicional del cliente:\s*(.+)/is);
+        if (mensajeMatch) datos.mensajeAdicional = mensajeMatch[1].trim();
+
+        return datos;
     };
 
     const submitResponse = (e) => {
@@ -389,25 +418,41 @@ export default function Solicitudes({
                                                             {solicitud.estado === 'pendiente' && (
                                                                 <>
                                                                     <button
-                                                                        onClick={() => handleResponderSolicitud(solicitud)}
-                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-purple-600 hover:bg-purple-700"
+                                                                        onClick={() => handleUpdateEstado(solicitud.id, 'respondida')}
+                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
                                                                     >
                                                                         <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                         </svg>
-                                                                        Responder
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleUpdateEstado(solicitud.id, 'en_proceso')}
-                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
-                                                                    >
-                                                                        En Proceso
+                                                                        Aprobar
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleUpdateEstado(solicitud.id, 'rechazada')}
                                                                         className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
                                                                     >
                                                                         Rechazar
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {solicitud.estado === 'respondida' && (
+                                                                <>
+                                                                    <Link
+                                                                        href={route('asesor.cotizaciones.crear', { solicitud_id: solicitud.id })}
+                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-purple-600 hover:bg-purple-700"
+                                                                    >
+                                                                        <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                                        </svg>
+                                                                        Crear Cotización
+                                                                    </Link>
+                                                                    <button
+                                                                        onClick={() => handleUpdateEstado(solicitud.id, 'finalizada')}
+                                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-gray-600 hover:bg-gray-700"
+                                                                    >
+                                                                        <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                        </svg>
+                                                                        Finalizar (No Interesado)
                                                                     </button>
                                                                 </>
                                                             )}
@@ -449,12 +494,12 @@ export default function Solicitudes({
                                                                     Ver Reserva
                                                                 </Link>
                                                             )}
-                                                            <Link
-                                                                href={route('asesor.solicitudes.detalle', { id: solicitud.id })}
+                                                            <button
+                                                                onClick={() => handleVerDetalle(solicitud)}
                                                                 className="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
                                                             >
                                                                 Ver Detalles
-                                                            </Link>
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </li>
@@ -857,6 +902,203 @@ export default function Solicitudes({
                                             </button>
                                         </div>
                                     </form>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal de Detalles */}
+                    {showDetalleModal && selectedSolicitud && (
+                        <div className="fixed z-10 inset-0 overflow-y-auto">
+                            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowDetalleModal(false)}></div>
+                                <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+                                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+                                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                        <div className="sm:flex sm:items-start">
+                                            <div className="w-full mt-3 text-center sm:mt-0 sm:text-left">
+                                                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                                    Detalles de la Solicitud
+                                                </h3>
+
+                                                <div className="space-y-4">
+                                                    {/* Información del Cliente */}
+                                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                                        <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+                                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                            </svg>
+                                                            Información del Cliente
+                                                        </h4>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                            <div>
+                                                                <span className="text-sm text-gray-500">Nombre:</span>
+                                                                <p className="font-medium">{selectedSolicitud.cliente?.usuario?.name || 'N/A'}</p>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-sm text-gray-500">Email:</span>
+                                                                <p className="font-medium">{selectedSolicitud.cliente?.usuario?.email || 'N/A'}</p>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-sm text-gray-500">Teléfono:</span>
+                                                                <p className="font-medium text-blue-600">
+                                                                    {(() => {
+                                                                        const datos = extraerDatosMensaje(selectedSolicitud.mensaje_solicitud || '');
+                                                                        return datos.telefono || 'No especificado';
+                                                                    })()}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-sm text-gray-500">Estado:</span>
+                                                                <p>
+                                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                                        selectedSolicitud.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' :
+                                                                        selectedSolicitud.estado === 'en_proceso' ? 'bg-blue-100 text-blue-800' :
+                                                                        selectedSolicitud.estado === 'respondida' ? 'bg-green-100 text-green-800' :
+                                                                        'bg-gray-100 text-gray-800'
+                                                                    }`}>
+                                                                        {selectedSolicitud.estado.replace('_', ' ').toUpperCase()}
+                                                                    </span>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Información de la Consulta */}
+                                                    <div className="bg-blue-50 p-4 rounded-lg">
+                                                        <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+                                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            Tipo de Consulta
+                                                        </h4>
+                                                        <p className="text-gray-700">
+                                                            {(() => {
+                                                                const datos = extraerDatosMensaje(selectedSolicitud.mensaje_solicitud || '');
+                                                                return datos.tipoConsulta || 'No especificado';
+                                                            })()}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Información del Departamento */}
+                                                    {selectedSolicitud.departamento && (
+                                                        <div className="bg-green-50 p-4 rounded-lg">
+                                                            <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+                                                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                                </svg>
+                                                                Departamento de Interés
+                                                            </h4>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                                <div>
+                                                                    <span className="text-sm text-gray-500">Código:</span>
+                                                                    <p className="font-medium">{selectedSolicitud.departamento.codigo}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-sm text-gray-500">Precio:</span>
+                                                                    <p className="font-medium text-green-600">
+                                                                        S/ {parseFloat(selectedSolicitud.departamento.precio).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-sm text-gray-500">Ubicación:</span>
+                                                                    <p className="font-medium">{selectedSolicitud.departamento.ubicacion}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-sm text-gray-500">Características:</span>
+                                                                    <p className="font-medium">
+                                                                        {selectedSolicitud.departamento.numero_dormitorios} dorm. •
+                                                                        {selectedSolicitud.departamento.numero_banos} baños •
+                                                                        {selectedSolicitud.departamento.area_m2} m²
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Mensaje Adicional */}
+                                                    {(() => {
+                                                        const datos = extraerDatosMensaje(selectedSolicitud.mensaje_solicitud || '');
+                                                        return datos.mensajeAdicional ? (
+                                                            <div className="bg-purple-50 p-4 rounded-lg">
+                                                                <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+                                                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                                                    </svg>
+                                                                    Mensaje Adicional del Cliente
+                                                                </h4>
+                                                                <p className="text-gray-700 whitespace-pre-wrap">{datos.mensajeAdicional}</p>
+                                                            </div>
+                                                        ) : null;
+                                                    })()}
+
+                                                    {/* Fechas */}
+                                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                                        <h4 className="font-semibold text-gray-700 mb-3">Fechas</h4>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                            <div>
+                                                                <span className="text-sm text-gray-500">Fecha de Solicitud:</span>
+                                                                <p className="font-medium">{new Date(selectedSolicitud.created_at).toLocaleString('es-PE')}</p>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-sm text-gray-500">Última Actualización:</span>
+                                                                <p className="font-medium">{new Date(selectedSolicitud.updated_at).toLocaleString('es-PE')}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                                        {selectedSolicitud.estado === 'pendiente' && (
+                                            <>
+                                                <button
+                                                    onClick={() => {
+                                                        setShowDetalleModal(false);
+                                                        handleUpdateEstado(selectedSolicitud.id, 'respondida');
+                                                    }}
+                                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                                >
+                                                    Aprobar (Llamar Cliente)
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setShowDetalleModal(false);
+                                                        handleUpdateEstado(selectedSolicitud.id, 'rechazada');
+                                                    }}
+                                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                                >
+                                                    Rechazar
+                                                </button>
+                                            </>
+                                        )}
+                                        {selectedSolicitud.estado === 'respondida' && (
+                                            <>
+                                                <Link
+                                                    href={route('asesor.cotizaciones.crear', { solicitud_id: selectedSolicitud.id })}
+                                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                                >
+                                                    Crear Cotización
+                                                </Link>
+                                                <button
+                                                    onClick={() => {
+                                                        setShowDetalleModal(false);
+                                                        handleUpdateEstado(selectedSolicitud.id, 'finalizada');
+                                                    }}
+                                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-600 text-base font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                                >
+                                                    Finalizar (No Interesado)
+                                                </button>
+                                            </>
+                                        )}
+                                        <button
+                                            onClick={() => setShowDetalleModal(false)}
+                                            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
+                                        >
+                                            Cerrar
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

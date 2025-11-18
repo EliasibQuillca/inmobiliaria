@@ -181,6 +181,7 @@ Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('as
     // Solicitudes
     Route::get('/solicitudes', [AsesorSolicitudController::class, 'index'])->name('solicitudes');
     Route::post('/solicitudes/contacto', [AsesorSolicitudController::class, 'registrarContacto'])->name('solicitudes.contacto');
+    Route::get('/solicitudes/detalle', [AsesorSolicitudController::class, 'verDetalleQuery'])->name('solicitudes.detalle.query');
     Route::get('/solicitudes/{id}/detalle', [AsesorSolicitudController::class, 'verDetalle'])->name('solicitudes.detalle');
     Route::patch('/solicitudes/{id}/estado', [AsesorSolicitudController::class, 'actualizarEstado'])->name('solicitudes.estado');
     Route::post('/solicitudes/{id}/responder', [AsesorSolicitudController::class, 'responderSolicitud'])->name('solicitudes.responder');

@@ -10,6 +10,7 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
     const { data, setData, post, processing, errors, reset } = useForm({
         departamento_id: departamentoId || '',
         tipo_consulta: 'informacion',
+        telefono: '',
         mensaje: '',
         asesor_id: '', // null = auto-asignar
     });
@@ -295,21 +296,43 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
                                     {/* Mensaje */}
                                     <div>
                                         <label htmlFor="mensaje" className="block text-sm font-medium text-gray-700 mb-2">
-                                            Mensaje <span className="text-red-500">*</span>
+                                            Mensaje (Opcional)
                                         </label>
                                         <textarea
                                             id="mensaje"
-                                            rows="6"
+                                            rows="4"
                                             value={data.mensaje}
                                             onChange={(e) => setData('mensaje', e.target.value)}
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="Describe brevemente tu consulta o necesidades..."
+                                            placeholder="Describe brevemente tu consulta o necesidades... (opcional)"
                                         ></textarea>
                                         <p className="mt-1 text-xs text-gray-500">
-                                            Mínimo 10 caracteres, máximo 1000
+                                            Máximo 1000 caracteres
                                         </p>
                                         {errors.mensaje && (
                                             <p className="mt-2 text-sm text-red-600">{errors.mensaje}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Número de Teléfono */}
+                                    <div>
+                                        <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-2">
+                                            Número de Celular <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            id="telefono"
+                                            value={data.telefono}
+                                            onChange={(e) => setData('telefono', e.target.value)}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Ej: 987654321"
+                                            maxLength="15"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Ingresa tu número de celular para que el asesor pueda contactarte
+                                        </p>
+                                        {errors.telefono && (
+                                            <p className="mt-2 text-sm text-red-600">{errors.telefono}</p>
                                         )}
                                     </div>
 

@@ -121,15 +121,17 @@ class SolicitudController extends Controller
         $validated = $request->validate([
             'departamento_id' => 'required|exists:departamentos,id',
             'tipo_consulta' => 'required|in:informacion,visita,financiamiento,cotizacion',
-            'mensaje' => 'required|string|min:10|max:1000',
+            'telefono' => 'required|string|min:9|max:15',
+            'mensaje' => 'nullable|string|max:1000',
             'asesor_id' => 'nullable|exists:asesores,id', // Opcional: el cliente puede elegir
         ], [
             'departamento_id.required' => 'Debe seleccionar un departamento.',
             'departamento_id.exists' => 'El departamento seleccionado no existe.',
             'tipo_consulta.required' => 'Debe seleccionar un tipo de consulta.',
             'tipo_consulta.in' => 'El tipo de consulta seleccionado no es válido.',
-            'mensaje.required' => 'El mensaje es obligatorio.',
-            'mensaje.min' => 'El mensaje debe tener al menos 10 caracteres.',
+            'telefono.required' => 'El número de celular es obligatorio.',
+            'telefono.min' => 'El número de celular debe tener al menos 9 dígitos.',
+            'telefono.max' => 'El número de celular no puede exceder los 15 dígitos.',
             'mensaje.max' => 'El mensaje no puede exceder los 1000 caracteres.',
             'asesor_id.exists' => 'El asesor seleccionado no existe.',
         ]);
@@ -145,9 +147,23 @@ class SolicitudController extends Controller
             $cliente = Cliente::create([
                 'usuario_id' => $user->id,
                 'dni' => '00000000', // DNI temporal
-                'telefono' => '000000000', // Teléfono temporal
                 'direccion' => 'Por actualizar', // Dirección temporal
             ]);
+        }
+
+        // Generar mensaje automático según tipo de consulta
+        $tipoConsultaTexto = [
+            'informacion' => 'Información General - Detalles sobre la propiedad',
+            'visita' => 'Agendar Visita - Conocer la propiedad',
+            'financiamiento' => 'Financiamiento - Opciones de pago',
+            'cotizacion' => 'Cotización - Presupuesto detallado',
+        ];
+
+        $mensajeAutomatico = "Tipo de consulta: " . $tipoConsultaTexto[$validated['tipo_consulta']] . "\n";
+        $mensajeAutomatico .= "Teléfono de contacto: " . $validated['telefono'];
+
+        if (!empty($validated['mensaje'])) {
+            $mensajeAutomatico .= "\n\nMensaje adicional del cliente:\n" . $validated['mensaje'];
         }
 
         // Determinar el asesor a asignar
@@ -177,7 +193,7 @@ class SolicitudController extends Controller
             'departamento_id' => $validated['departamento_id'],
             'asesor_id' => $asesor->id,
             'tipo_solicitud' => $validated['tipo_consulta'],
-            'mensaje_solicitud' => $validated['mensaje'],
+            'mensaje_solicitud' => $mensajeAutomatico,
             'monto' => 0, // Se calculará después
             'estado' => 'pendiente',
             'fecha_validez' => now()->addDays(30), // Válida por 30 días

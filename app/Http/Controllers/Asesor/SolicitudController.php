@@ -47,8 +47,8 @@ class SolicitudController extends Controller
         // Agrupar por estado con nombres más descriptivos
         $solicitudesPendientes = $solicitudes->where('estado', 'pendiente')->values();
         $solicitudesEnProceso = $solicitudes->where('estado', 'en_proceso')->values();
-        $solicitudesAprobadas = $solicitudes->whereIn('estado', ['aprobada', 'aceptada'])->values();
-        $solicitudesRechazadas = $solicitudes->whereIn('estado', ['rechazada', 'cancelada'])->values();
+        $solicitudesAprobadas = $solicitudes->whereIn('estado', ['aprobada', 'aceptada', 'respondida'])->values();
+        $solicitudesRechazadas = $solicitudes->whereIn('estado', ['rechazada', 'cancelada', 'finalizada'])->values();
 
         // Clientes sin cotizaciones (nuevos) con datos válidos
         $clientesNuevos = Cliente::with(['usuario', 'cotizaciones', 'departamentoInteres'])
@@ -156,7 +156,7 @@ class SolicitudController extends Controller
         }
 
         $validated = $request->validate([
-            'estado' => 'required|in:pendiente,en_proceso,aprobada,aceptada,rechazada,cancelada',
+            'estado' => 'required|in:pendiente,en_proceso,respondida,aprobada,aceptada,rechazada,cancelada,finalizada',
             'notas' => 'nullable|string|max:1000',
             'observaciones' => 'nullable|string|max:1000', // Alias para compatibilidad
         ]);
@@ -184,8 +184,8 @@ class SolicitudController extends Controller
             'cliente' => $solicitud->cliente->nombre
         ]);
 
-        return redirect()->back()
-            ->with('success', "Solicitud de {$solicitud->cliente->nombre} actualizada a: " . ucfirst($validated['estado']));
+        // Retornar respuesta de Inertia
+        return back()->with('success', "Solicitud de {$solicitud->cliente->nombre} actualizada a: " . ucfirst($validated['estado']));
     }
 
     /**
@@ -261,9 +261,70 @@ class SolicitudController extends Controller
             ->where('asesor_id', $asesor->id)
             ->findOrFail($solicitudId);
 
-        // TODO: crear vista Asesor/Solicitudes/Detalle.jsx
-        return redirect()->route('asesor.solicitudes')
-            ->with('solicitud_detalle', $solicitud);
+        // Extraer el teléfono del mensaje si está presente
+        $telefono = null;
+        if (preg_match('/Teléfono de contacto:\s*(.+?)(\n|$)/i', $solicitud->mensaje_solicitud, $matches)) {
+            $telefono = trim($matches[1]);
+        }
+
+        // Extraer el tipo de consulta
+        $tipoConsulta = null;
+        if (preg_match('/Tipo de consulta:\s*(.+?)(\n|$)/i', $solicitud->mensaje_solicitud, $matches)) {
+            $tipoConsulta = trim($matches[1]);
+        }
+
+        // Extraer el mensaje adicional si existe
+        $mensajeAdicional = null;
+        if (preg_match('/Mensaje adicional del cliente:\s*(.+)/is', $solicitud->mensaje_solicitud, $matches)) {
+            $mensajeAdicional = trim($matches[1]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'solicitud' => [
+                'id' => $solicitud->id,
+                'estado' => $solicitud->estado,
+                'tipo_solicitud' => $solicitud->tipo_solicitud,
+                'tipo_consulta_texto' => $tipoConsulta,
+                'telefono' => $telefono,
+                'mensaje_solicitud' => $solicitud->mensaje_solicitud,
+                'mensaje_adicional' => $mensajeAdicional,
+                'monto' => $solicitud->monto,
+                'fecha_validez' => $solicitud->fecha_validez,
+                'created_at' => $solicitud->created_at,
+                'cliente' => [
+                    'id' => $solicitud->cliente->id,
+                    'nombre' => $solicitud->cliente->usuario->name ?? 'Cliente',
+                    'email' => $solicitud->cliente->usuario->email ?? '',
+                    'dni' => $solicitud->cliente->dni ?? '',
+                ],
+                'departamento' => [
+                    'id' => $solicitud->departamento->id,
+                    'codigo' => $solicitud->departamento->codigo,
+                    'titulo' => $solicitud->departamento->titulo,
+                    'precio' => $solicitud->departamento->precio,
+                    'ubicacion' => $solicitud->departamento->ubicacion,
+                    'area' => $solicitud->departamento->area,
+                    'dormitorios' => $solicitud->departamento->dormitorios,
+                    'banos' => $solicitud->departamento->banos,
+                    'imagen_principal' => $solicitud->departamento->imagenes->first()?->url ?? null,
+                    'atributos' => $solicitud->departamento->atributos->pluck('nombre'),
+                ],
+            ]
+        ]);
+    }
+
+    /**
+     * Ver detalle de solicitud con query params (para compatibilidad con Inertia route())
+     */
+    public function verDetalleQuery(Request $request)
+    {
+        $solicitudId = $request->query('id');
+        if (!$solicitudId) {
+            abort(400, 'ID de solicitud no proporcionado');
+        }
+
+        return $this->verDetalle($solicitudId);
     }
 
     /**
