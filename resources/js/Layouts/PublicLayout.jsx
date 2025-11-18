@@ -47,12 +47,15 @@ export default function PublicLayout({ auth, user, children }) {
                             >
                                 Catálogo
                             </Link>
-                            <Link
-                                href="/sobre-nosotros"
-                                className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
-                            >
-                                Sobre Nosotros
-                            </Link>
+                            {/* Sobre Nosotros solo para usuarios NO autenticados */}
+                            {!currentUser && (
+                                <Link
+                                    href="/sobre-nosotros"
+                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                                >
+                                    Sobre Nosotros
+                                </Link>
+                            )}
                             <Link
                                 href="/contacto"
                                 className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
@@ -200,13 +203,16 @@ export default function PublicLayout({ auth, user, children }) {
                                 >
                                     Catálogo
                                 </Link>
-                                <Link
-                                    href="/sobre-nosotros"
-                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Sobre Nosotros
-                                </Link>
+                                {/* Sobre Nosotros solo para usuarios NO autenticados */}
+                                {!currentUser && (
+                                    <Link
+                                        href="/sobre-nosotros"
+                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        Sobre Nosotros
+                                    </Link>
+                                )}
                                 <Link
                                     href="/contacto"
                                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
