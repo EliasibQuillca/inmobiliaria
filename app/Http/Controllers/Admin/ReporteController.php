@@ -677,4 +677,227 @@ class ReporteController extends Controller
                 return response()->json(['error' => 'Tipo de reporte no válido'], 400);
         }
     }
+
+    /**
+     * Exportar reporte a Excel
+     */
+    public function exportarExcel(Request $request)
+    {
+        try {
+            $tipoReporte = $request->get('tipo_reporte', 'ventas');
+            $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $fechaFin = $request->get('fecha_fin', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+            // Obtener los datos según el tipo de reporte
+            $datos = $this->obtenerDatosParaExportar($tipoReporte, $fechaInicio, $fechaFin);
+
+            // Crear spreadsheet
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Configurar estilos del título
+            $sheet->getStyle('A1:F1')->getFont()->setBold(true)->setSize(14);
+            $sheet->getStyle('A2:F2')->getFont()->setSize(10);
+
+            // Título del reporte
+            $sheet->mergeCells('A1:F1');
+            $sheet->setCellValue('A1', 'Reporte de ' . ucfirst($tipoReporte));
+            $sheet->mergeCells('A2:F2');
+            $sheet->setCellValue('A2', 'Período: ' . Carbon::parse($fechaInicio)->format('d/m/Y') . ' - ' . Carbon::parse($fechaFin)->format('d/m/Y'));
+            $sheet->mergeCells('A3:F3');
+            $sheet->setCellValue('A3', 'Generado el: ' . Carbon::now()->format('d/m/Y H:i'));
+
+            $row = 5;
+
+            // Encabezados según tipo de reporte
+            if ($tipoReporte === 'ventas') {
+                $sheet->setCellValue('A' . $row, 'ID');
+                $sheet->setCellValue('B' . $row, 'Fecha');
+                $sheet->setCellValue('C' . $row, 'Cliente');
+                $sheet->setCellValue('D' . $row, 'Asesor');
+                $sheet->setCellValue('E' . $row, 'Propiedad');
+                $sheet->setCellValue('F' . $row, 'Monto');
+                $sheet->setCellValue('G' . $row, 'Comisión');
+                $sheet->getStyle('A' . $row . ':G' . $row)->getFont()->setBold(true);
+                $row++;
+
+                // Datos
+                foreach ($datos as $venta) {
+                    $sheet->setCellValue('A' . $row, $venta['id']);
+                    $sheet->setCellValue('B' . $row, $venta['fecha']);
+                    $sheet->setCellValue('C' . $row, $venta['cliente']);
+                    $sheet->setCellValue('D' . $row, $venta['asesor']);
+                    $sheet->setCellValue('E' . $row, $venta['departamento']);
+                    $sheet->setCellValue('F' . $row, 'S/. ' . number_format($venta['precio'], 2));
+                    $sheet->setCellValue('G' . $row, 'S/. ' . number_format($venta['comision'], 2));
+                    $row++;
+                }
+            } elseif ($tipoReporte === 'asesores') {
+                $sheet->setCellValue('A' . $row, 'Nombre');
+                $sheet->setCellValue('B' . $row, 'Email');
+                $sheet->setCellValue('C' . $row, 'Ventas');
+                $sheet->setCellValue('D' . $row, 'Total Vendido');
+                $sheet->setCellValue('E' . $row, 'Comisiones');
+                $sheet->getStyle('A' . $row . ':E' . $row)->getFont()->setBold(true);
+                $row++;
+
+                foreach ($datos as $asesor) {
+                    $sheet->setCellValue('A' . $row, $asesor['nombre']);
+                    $sheet->setCellValue('B' . $row, $asesor['email']);
+                    $sheet->setCellValue('C' . $row, $asesor['ventas']);
+                    $sheet->setCellValue('D' . $row, 'S/. ' . number_format($asesor['total_vendido'], 2));
+                    $sheet->setCellValue('E' . $row, 'S/. ' . number_format($asesor['comisiones'], 2));
+                    $row++;
+                }
+            }
+
+            // Auto-ajustar columnas
+            foreach(range('A','G') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            // Generar archivo
+            $writer = new Xlsx($spreadsheet);
+            $filename = "reporte_{$tipoReporte}_" . date('Y-m-d_His') . ".xlsx";
+            $tempFile = tempnam(sys_get_temp_dir(), 'excel_report');
+
+            $writer->save($tempFile);
+
+            return response()->download($tempFile, $filename)->deleteFileAfterSend(true);
+
+        } catch (\Exception $e) {
+            Log::error('Error al exportar Excel: ' . $e->getMessage());
+            return back()->with('error', 'Error al generar el archivo Excel: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Exportar reporte a PDF
+     */
+    public function exportarPdf(Request $request)
+    {
+        try {
+            $tipoReporte = $request->get('tipo_reporte', 'ventas');
+            $fechaInicio = $request->get('fecha_inicio', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $fechaFin = $request->get('fecha_fin', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+            // Obtener los datos según el tipo de reporte
+            $datos = $this->obtenerDatosParaExportar($tipoReporte, $fechaInicio, $fechaFin);
+
+            // Preparar datos para la vista
+            $datosVista = [
+                'tipo' => ucfirst($tipoReporte),
+                'fechaInicio' => Carbon::parse($fechaInicio)->format('d/m/Y'),
+                'fechaFin' => Carbon::parse($fechaFin)->format('d/m/Y'),
+                'fecha_generacion' => Carbon::now()->format('d/m/Y H:i'),
+                'datos' => $datos,
+                'tipoReporte' => $tipoReporte
+            ];
+
+            // Generar PDF
+            $pdf = Pdf::loadView('reportes.pdf-template', $datosVista);
+            $pdf->setPaper('A4', 'landscape');
+
+            $filename = "reporte_{$tipoReporte}_" . date('Y-m-d_His') . ".pdf";
+
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            Log::error('Error al exportar PDF: ' . $e->getMessage());
+            return back()->with('error', 'Error al generar el archivo PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Obtener datos para exportar según tipo de reporte
+     */
+    private function obtenerDatosParaExportar($tipo, $fechaInicio, $fechaFin)
+    {
+        switch ($tipo) {
+            case 'ventas':
+                $ventas = Venta::with(['reserva.departamento', 'reserva.cliente', 'reserva.asesor'])
+                    ->whereBetween('fecha_venta', [$fechaInicio, $fechaFin])
+                    ->get();
+
+                if ($ventas->isEmpty()) {
+                    // Datos de ejemplo si no hay ventas
+                    return [
+                        [
+                            'id' => 1,
+                            'fecha' => Carbon::now()->format('d/m/Y'),
+                            'cliente' => 'Ana Martínez (Demo)',
+                            'asesor' => 'Juan Pérez',
+                            'departamento' => 'Departamento Premium Vista Mar',
+                            'precio' => 150000,
+                            'comision' => 7500,
+                        ],
+                        [
+                            'id' => 2,
+                            'fecha' => Carbon::now()->format('d/m/Y'),
+                            'cliente' => 'Roberto Silva (Demo)',
+                            'asesor' => 'María García',
+                            'departamento' => 'Departamento Moderno Centro',
+                            'precio' => 200000,
+                            'comision' => 10000,
+                        ]
+                    ];
+                }
+
+                return $ventas->map(function ($venta) {
+                    return [
+                        'id' => $venta->id,
+                        'fecha' => Carbon::parse($venta->fecha_venta)->format('d/m/Y'),
+                        'cliente' => $venta->reserva->cliente->name ?? 'Sin asignar',
+                        'asesor' => $venta->reserva->asesor->name ?? 'Sin asignar',
+                        'departamento' => $venta->reserva->departamento->titulo ?? 'Sin asignar',
+                        'precio' => $venta->monto_final,
+                        'comision' => $venta->comision ?? ($venta->monto_final * 0.05),
+                    ];
+                })->toArray();
+
+            case 'asesores':
+                $asesores = User::where('role', 'asesor')->get();
+
+                if ($asesores->isEmpty()) {
+                    return [
+                        [
+                            'nombre' => 'Juan Pérez Rodríguez (Demo)',
+                            'email' => 'juan.perez@empresa.com',
+                            'ventas' => 5,
+                            'total_vendido' => 750000,
+                            'comisiones' => 37500,
+                        ],
+                        [
+                            'nombre' => 'María García López (Demo)',
+                            'email' => 'maria.garcia@empresa.com',
+                            'ventas' => 3,
+                            'total_vendido' => 450000,
+                            'comisiones' => 22500,
+                        ]
+                    ];
+                }
+
+                return $asesores->map(function ($asesor) use ($fechaInicio, $fechaFin) {
+                    $ventas = Venta::whereHas('reserva', function ($query) use ($asesor) {
+                        $query->where('asesor_id', $asesor->id);
+                    })
+                    ->whereBetween('fecha_venta', [$fechaInicio, $fechaFin])
+                    ->get();
+
+                    $totalVendido = $ventas->sum('monto_final');
+                    $comisiones = $ventas->sum('comision') ?: ($totalVendido * 0.05);
+
+                    return [
+                        'nombre' => $asesor->name,
+                        'email' => $asesor->email,
+                        'ventas' => $ventas->count(),
+                        'total_vendido' => $totalVendido,
+                        'comisiones' => $comisiones,
+                    ];
+                })->toArray();
+
+            default:
+                return [];
+        }
+    }
 }

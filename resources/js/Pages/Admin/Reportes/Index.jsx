@@ -78,76 +78,98 @@ export default function Reportes() {
         }
     }, [reporteActivo, fechaInicio, fechaFin]);
 
-    // Función para exportar PDF
-    const exportarPDF = async () => {
-        try {
-            const params = new URLSearchParams();
-            if (fechaInicio) params.append('fecha_inicio', fechaInicio);
-            if (fechaFin) params.append('fecha_fin', fechaFin);
-            params.append('formato', 'pdf');
+    // Función para exportar PDF - Método directo con formulario
+    const exportarPDF = () => {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/admin/reportes/exportar-pdf';
+        form.style.display = 'none';
 
-            const response = await fetch(`/api/v1/test-reportes/${reporteActivo}/export?${params}`);
-
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error desconocido');
-            }
-
-            const blob = await response.blob();
-
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = `reporte_${reporteActivo}_${fechaInicio}_${fechaFin}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Error al exportar PDF:', error);
-            alert(`Error al generar el PDF: ${error.message}`);
+        // Token CSRF
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
         }
+
+        // Tipo de reporte
+        const tipoInput = document.createElement('input');
+        tipoInput.type = 'hidden';
+        tipoInput.name = 'tipo_reporte';
+        tipoInput.value = reporteActivo;
+        form.appendChild(tipoInput);
+
+        // Fecha inicio
+        if (fechaInicio) {
+            const inicioInput = document.createElement('input');
+            inicioInput.type = 'hidden';
+            inicioInput.name = 'fecha_inicio';
+            inicioInput.value = fechaInicio;
+            form.appendChild(inicioInput);
+        }
+
+        // Fecha fin
+        if (fechaFin) {
+            const finInput = document.createElement('input');
+            finInput.type = 'hidden';
+            finInput.name = 'fecha_fin';
+            finInput.value = fechaFin;
+            form.appendChild(finInput);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     };
 
-    // Función para exportar Excel
-    const exportarExcel = async () => {
-        try {
-            const params = new URLSearchParams();
-            if (fechaInicio) params.append('fecha_inicio', fechaInicio);
-            if (fechaFin) params.append('fecha_fin', fechaFin);
-            params.append('formato', 'excel');
+    // Función para exportar Excel - Método directo con formulario
+    const exportarExcel = () => {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/admin/reportes/exportar-excel';
+        form.style.display = 'none';
 
-            const response = await fetch(`/api/v1/test-reportes/${reporteActivo}/export?${params}`);
-
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error desconocido');
-            }
-
-            const blob = await response.blob();
-
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = `reporte_${reporteActivo}_${fechaInicio}_${fechaFin}.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Error al exportar Excel:', error);
-            alert(`Error al generar el Excel: ${error.message}`);
+        // Token CSRF
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
         }
+
+        // Tipo de reporte
+        const tipoInput = document.createElement('input');
+        tipoInput.type = 'hidden';
+        tipoInput.name = 'tipo_reporte';
+        tipoInput.value = reporteActivo;
+        form.appendChild(tipoInput);
+
+        // Fecha inicio
+        if (fechaInicio) {
+            const inicioInput = document.createElement('input');
+            inicioInput.type = 'hidden';
+            inicioInput.name = 'fecha_inicio';
+            inicioInput.value = fechaInicio;
+            form.appendChild(inicioInput);
+        }
+
+        // Fecha fin
+        if (fechaFin) {
+            const finInput = document.createElement('input');
+            finInput.type = 'hidden';
+            finInput.name = 'fecha_fin';
+            finInput.value = fechaFin;
+            form.appendChild(finInput);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     };
 
     const renderReporteVentas = () => {
