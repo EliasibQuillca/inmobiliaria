@@ -147,6 +147,16 @@ class UserController extends Controller
                 ]);
             }
 
+            // Registrar auditoría
+            \App\Models\AuditoriaAdmin::registrar(
+                'crear',
+                'Usuario',
+                $user->id,
+                "Creó usuario {$user->name} con rol {$user->role}",
+                null,
+                $user->toArray()
+            );
+
             DB::commit();
 
             return redirect()->route('admin.usuarios.index')
@@ -178,7 +188,18 @@ class UserController extends Controller
                 'role' => 'sometimes|required|string'
             ]);
 
+            $datosAnteriores = $usuario->toArray();
             $usuario->update($validated);
+
+            // Registrar auditoría
+            \App\Models\AuditoriaAdmin::registrar(
+                'editar',
+                'Usuario',
+                $usuario->id,
+                "Editó usuario {$usuario->name}",
+                $datosAnteriores,
+                $usuario->fresh()->toArray()
+            );
 
             return redirect()->route('admin.usuarios.index')
                 ->with('success', 'Usuario actualizado correctamente');

@@ -28,7 +28,7 @@ class DashboardController extends Controller
         $crecimiento = $this->calcularCrecimiento();
         $actividadesRecientes = $this->obtenerActividadesRecientes();
         $infoDebug = $this->obtenerInfoDepuracion();
-        
+
         return Inertia::render('Admin/Dashboard/Index', [
             'estadisticas' => $estadisticas,
             'crecimiento' => $crecimiento,
@@ -46,7 +46,7 @@ class DashboardController extends Controller
     private function obtenerEstadisticasPrincipales(): array
     {
         $mesActual = Carbon::now();
-        
+
         return [
             'totalUsuarios' => User::count(),
             'propiedadesActivas' => Departamento::where('estado', 'disponible')->count(),
@@ -61,7 +61,12 @@ class DashboardController extends Controller
                                      ->whereYear('created_at', $mesActual->year)
                                      ->count(),
             'reservasActivas' => Reserva::where('estado', 'confirmada')->count(),
-            'comisionesPendientes' => 0, // Valor temporal hasta implementar funcionalidad de comisiones
+            'comisionesPendientes' => Venta::whereMonth('fecha_venta', $mesActual->month)
+                                   ->whereYear('fecha_venta', $mesActual->year)
+                                   ->sum('comision'),
+            'comisionesDelMes' => Venta::whereMonth('fecha_venta', $mesActual->month)
+                                   ->whereYear('fecha_venta', $mesActual->year)
+                                   ->sum('comision'),
         ];
     }
 
@@ -74,24 +79,24 @@ class DashboardController extends Controller
     {
         $mesAnterior = Carbon::now()->subMonth();
         $mesActual = Carbon::now();
-        
+
         // Datos del mes anterior
         $usuariosMesAnterior = User::whereMonth('created_at', $mesAnterior->month)
                                  ->whereYear('created_at', $mesAnterior->year)
                                  ->count();
-        
+
         $propiedadesMesAnterior = Departamento::whereMonth('created_at', $mesAnterior->month)
                                             ->whereYear('created_at', $mesAnterior->year)
                                             ->count();
-        
+
         $ventasMesAnterior = Venta::whereMonth('fecha_venta', $mesAnterior->month)
                                 ->whereYear('fecha_venta', $mesAnterior->year)
                                 ->count();
-        
+
         $ingresosMesAnterior = Venta::whereMonth('fecha_venta', $mesAnterior->month)
                                  ->whereYear('fecha_venta', $mesAnterior->year)
                                  ->sum('monto_final');
-        
+
         // Datos del mes actual
         $totalUsuarios = User::count();
         $propiedadesActivas = Departamento::where('estado', 'disponible')->count();
@@ -101,7 +106,7 @@ class DashboardController extends Controller
         $ingresosDelMes = Venta::whereMonth('fecha_venta', $mesActual->month)
                             ->whereYear('fecha_venta', $mesActual->year)
                             ->sum('monto_final');
-        
+
         return [
             'usuarios' => $this->calcularPorcentajeCrecimiento($totalUsuarios, $usuariosMesAnterior),
             'propiedades' => $this->calcularPorcentajeCrecimiento($propiedadesActivas, $propiedadesMesAnterior),
@@ -122,7 +127,7 @@ class DashboardController extends Controller
         if ($valorAnterior <= 0) {
             return 0;
         }
-        
+
         return round((($valorActual - $valorAnterior) / $valorAnterior) * 100, 1);
     }
 
@@ -133,25 +138,33 @@ class DashboardController extends Controller
      */
     private function obtenerActividadesRecientes()
     {
-        $actividades = collect();
-        
-        // Agregar ventas recientes
-        $actividades = $actividades->concat($this->obtenerVentasRecientes());
-        
-        // Agregar asesores recientes
-        $actividades = $actividades->concat($this->obtenerAsesoresRecientes());
-        
-        // Agregar propiedades recientes
-        $actividades = $actividades->concat($this->obtenerPropiedadesRecientes());
-        
-        // Ordenar por fecha y tomar las 6 más recientes
-        return $actividades->sortByDesc('fecha_orden')
-                          ->take(6)
-                          ->map(function($item) {
-                              unset($item['fecha_orden']);
-                              return $item;
-                          })
-                          ->values();
+        // Obtener de la tabla de auditoría
+        $auditorias = \App\Models\AuditoriaAdmin::with('usuario')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return $auditorias->map(function($auditoria) {
+            $iconos = [
+                'crear' => '✅',
+                'editar' => '✏️',
+                'eliminar' => '🗑️',
+                'activar' => '✅',
+                'desactivar' => '❌',
+                'venta' => '💰',
+            ];
+
+            return [
+                'tipo' => $auditoria->accion,
+                'titulo' => ucfirst($auditoria->accion) . ' ' . $auditoria->modelo,
+                'descripcion' => $auditoria->descripcion,
+                'usuario' => $auditoria->usuario->name ?? 'Sistema',
+                'tiempo' => $auditoria->created_at->diffForHumans(),
+                'fecha_orden' => $auditoria->created_at,
+                'tag' => $auditoria->accion,
+                'icono' => $iconos[$auditoria->accion] ?? '📝',
+            ];
+        });
     }
 
     /**
@@ -165,7 +178,7 @@ class DashboardController extends Controller
                       ->orderBy('created_at', 'desc')
                       ->take(3)
                       ->get();
-        
+
         return $ventas->map(function($venta) {
             return [
                 'tipo' => 'venta',
@@ -191,7 +204,7 @@ class DashboardController extends Controller
                          ->orderBy('created_at', 'desc')
                          ->take(2)
                          ->get();
-        
+
         return $asesores->map(function($asesor) {
             return [
                 'tipo' => 'usuario',
@@ -215,7 +228,7 @@ class DashboardController extends Controller
         $propiedades = Departamento::orderBy('created_at', 'desc')
                                  ->take(2)
                                  ->get();
-        
+
         return $propiedades->map(function($propiedad) {
             return [
                 'tipo' => 'propiedad',
@@ -247,7 +260,7 @@ class DashboardController extends Controller
             'version_laravel' => app()->version(),
         ];
     }
-    
+
     /**
      * Obtener estadísticas para gráficos.
      *
@@ -257,23 +270,23 @@ class DashboardController extends Controller
     public function estadisticas(Request $request)
     {
         $periodo = $request->get('periodo', '30'); // días
-        
+
         $fechaInicio = Carbon::now()->subDays($periodo);
-        
+
         // Ventas por día
         $ventasPorDia = Venta::selectRaw('DATE(fecha_venta) as fecha, COUNT(*) as total, SUM(monto_final) as ingresos')
                            ->where('fecha_venta', '>=', $fechaInicio)
                            ->groupBy('fecha')
                            ->orderBy('fecha')
                            ->get();
-        
+
         // Nuevos usuarios por día
         $usuariosPorDia = User::selectRaw('DATE(created_at) as fecha, COUNT(*) as total')
                             ->where('created_at', '>=', $fechaInicio)
                             ->groupBy('fecha')
                             ->orderBy('fecha')
                             ->get();
-        
+
         return response()->json([
             'ventas' => $ventasPorDia,
             'usuarios' => $usuariosPorDia,

@@ -75,7 +75,7 @@ Route::prefix('v1')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('v1/admin')->middleware(['auth:sanctum'])->group(function () {
+Route::prefix('v1/admin')->middleware(['auth'])->group(function () {
     // === GESTIÓN DE USUARIOS ===
     Route::prefix('usuarios')->group(function () {
         Route::get('/', [UserController::class, 'index']);
@@ -89,13 +89,12 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum'])->group(function () {
 
     // === GESTIÓN DE ASESORES ===
     Route::prefix('asesores')->group(function () {
-        Route::get('/', [AsesorController::class, 'admin']);
-        Route::get('/{id}', [AsesorController::class, 'showApi']);
-        Route::get('/{id}/estadisticas', [AsesorController::class, 'estadisticas']);
-        Route::get('/{id}/actividades', [AsesorController::class, 'actividades']);
-        Route::get('/{id}/clientes', [AsesorController::class, 'clientesAsesor']);
-        Route::put('/{id}', [AsesorController::class, 'update']);
-        Route::patch('/{id}/estado', [AsesorController::class, 'cambiarEstado']);
+        Route::get('/', [\App\Http\Controllers\Admin\AsesorController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Admin\AsesorController::class, 'store']);
+        Route::get('/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'show']);
+        Route::put('/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'update']);
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'destroy']);
+        Route::patch('/{id}/estado', [\App\Http\Controllers\Admin\AsesorController::class, 'cambiarEstado']);
     });
 
     // === GESTIÓN DE PROPIETARIOS ===
@@ -105,6 +104,16 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}', [\App\Http\Controllers\Api\PropietarioController::class, 'show']);
         Route::put('/{id}', [\App\Http\Controllers\Api\PropietarioController::class, 'update']);
         Route::delete('/{id}', [\App\Http\Controllers\Api\PropietarioController::class, 'destroy']);
+    });
+
+    // === GESTIÓN DE ASESORES ===
+    Route::prefix('asesores')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AsesorController::class, 'index']);
+        Route::get('/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'show']);
+        Route::post('/', [\App\Http\Controllers\Admin\AsesorController::class, 'store']);
+        Route::put('/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'update']);
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\AsesorController::class, 'destroy']);
+        Route::patch('/{id}/estado', [\App\Http\Controllers\Admin\AsesorController::class, 'cambiarEstado']);
     });
 
     // === GESTIÓN DE DEPARTAMENTOS ===

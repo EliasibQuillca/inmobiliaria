@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\VentaController as AdminVentaController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\ReporteController as AdminReporteController;
 use App\Http\Controllers\Admin\PerfilController as AdminPerfilController;
+use App\Http\Controllers\Admin\ActividadController as AdminActividadController;
 use App\Http\Controllers\Asesor\ConfiguracionController as AsesorConfiguracionController;
 use App\Http\Controllers\Asesor\DashboardController as AsesorDashboardController;
 use App\Http\Controllers\Asesor\ClienteController as AsesorClienteController;
@@ -145,6 +146,16 @@ Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->na
     Route::get('/ventas/{id}/pdf', [AdminVentaController::class, 'generarPDF'])->name('ventas.pdf');
     Route::patch('/ventas/{id}/estado', [AdminVentaController::class, 'cambiarEstado'])->name('ventas.cambiar-estado');
 
+    // Rutas para asesores
+    Route::get('/asesores', [AdminAsesorController::class, 'index'])->name('asesores.index');
+    Route::get('/asesores/crear', [AdminAsesorController::class, 'create'])->name('asesores.create');
+    Route::post('/asesores', [AdminAsesorController::class, 'store'])->name('asesores.store');
+    Route::get('/asesores/{id}', [AdminAsesorController::class, 'show'])->name('asesores.show');
+    Route::get('/asesores/{id}/editar', [AdminAsesorController::class, 'edit'])->name('asesores.edit');
+    Route::patch('/asesores/{id}', [AdminAsesorController::class, 'update'])->name('asesores.update');
+    Route::delete('/asesores/{id}', [AdminAsesorController::class, 'destroy'])->name('asesores.destroy');
+    Route::patch('/asesores/{id}/estado', [AdminAsesorController::class, 'cambiarEstado'])->name('asesores.cambiar-estado');
+
     // Rutas para reportes
     Route::get('/reportes', [AdminReporteController::class, 'index'])->name('reportes.index');
     Route::get('/reportes/crear', [AdminReporteController::class, 'create'])->name('reportes.create');
@@ -152,6 +163,9 @@ Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->na
     Route::post('/reportes/ventas', [AdminReporteController::class, 'reporteVentas'])->name('reportes.ventas');
     Route::post('/reportes/exportar-excel', [AdminReporteController::class, 'exportarExcel'])->name('reportes.exportar-excel');
     Route::post('/reportes/exportar-pdf', [AdminReporteController::class, 'exportarPdf'])->name('reportes.exportar-pdf');
+
+    // Rutas para actividades/auditoría
+    Route::get('/actividades', [AdminActividadController::class, 'index'])->name('actividades.index');
 
     // Otras rutas de administrador...
 });

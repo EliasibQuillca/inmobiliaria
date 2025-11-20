@@ -1,13 +1,46 @@
 import { useState, useEffect } from 'react';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
+
+// Componente NavLink con detección de ruta activa
+function NavLink({ href, active, children }) {
+    const classes = active
+        ? 'inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out'
+        : 'inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out';
+
+    return (
+        <Link href={href} className={classes}>
+            {children}
+        </Link>
+    );
+}
 
 export default function AdminLayout({ user, auth, header, children }) {
+    const { url } = usePage();
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
 
     // Aceptar tanto user como auth.user para compatibilidad
     const currentUser = user || (auth && auth.user);
+
+    // Función para verificar si la ruta está activa
+    const route = () => ({
+        current: (name) => {
+            if (name === 'admin.usuarios.*') {
+                return url.startsWith('/admin/usuarios');
+            }
+            if (name === 'admin.departamentos.*') {
+                return url.startsWith('/admin/departamentos');
+            }
+            if (name === 'admin.ventas.*') {
+                return url.startsWith('/admin/ventas');
+            }
+            if (name === 'admin.reportes.*') {
+                return url.startsWith('/admin/reportes');
+            }
+            return false;
+        }
+    });
 
     const logout = () => {
         router.post("/logout");
@@ -49,90 +82,70 @@ export default function AdminLayout({ user, auth, header, children }) {
                         <div className="flex">
                             {/* Logo */}
                             <div className="shrink-0 flex items-center">
-                                <Link href="/admin/dashboard">
-                                    <div className="flex items-center">
-                                        <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                                            <span className="text-white font-bold text-sm">A</span>
-                                        </div>
-                                        <span className="ml-2 text-xl font-bold text-gray-900">Admin Panel</span>
+                                <div className="flex items-center cursor-default">
+                                    <div className="w-8 h-8 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
+                                        <span className="text-white font-bold text-sm">A</span>
                                     </div>
-                                </Link>
+                                    <span className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Admin Panel</span>
+                                </div>
                             </div>
 
                             {/* Navegación Principal */}
                             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <Link
-                                    href="/admin/dashboard"
-                                    className="inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out"
-                                >
-                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2v0a2 2 0 012-2h6l2 2h6a2 2 0 012 2z" />
-                                    </svg>
-                                    Dashboard
-                                </Link>
-
-                                <Link
+                                <NavLink
                                     href="/admin/usuarios"
-                                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+                                    active={route().current('admin.usuarios.*')}
                                 >
                                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                     </svg>
                                     Usuarios
-                                </Link>
+                                </NavLink>
 
-                                <Link
+                                <NavLink
                                     href="/admin/departamentos"
-                                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+                                    active={route().current('admin.departamentos.*')}
                                 >
                                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                     </svg>
                                     Propiedades
-                                </Link>
+                                </NavLink>
 
-                                <Link
+                                <NavLink
                                     href="/admin/ventas"
-                                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+                                    active={route().current('admin.ventas.*')}
                                 >
                                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                     </svg>
                                     Ventas
-                                </Link>
+                                </NavLink>
 
-                                <Link
+                                <NavLink
                                     href="/admin/reportes"
-                                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+                                    active={route().current('admin.reportes.*')}
                                 >
                                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                     </svg>
                                     Reportes
-                                </Link>
+                                </NavLink>
                             </div>
                         </div>
 
                         {/* Configuraciones del Usuario */}
                         <div className="hidden sm:flex sm:items-center sm:ml-6">
-                            {/* Notificaciones */}
-                            <button className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3">
-                                <span className="sr-only">Ver notificaciones</span>
-                                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                </svg>
-                            </button>
-
                             {/* Dropdown del Perfil */}
-                            <div className="ml-3 relative">
+                            <div className="relative">
                                 <div>
                                     <button
                                         type="button"
-                                        className="bg-white flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        className="bg-white flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm hover:shadow-md transition-shadow"
                                         onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                                     >
                                         <span className="sr-only">Abrir menú de usuario</span>
-                                        <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center">
                                             <span className="text-white font-medium text-sm">
                                                 {currentUser?.name?.charAt(0).toUpperCase()}
                                             </span>
@@ -220,22 +233,44 @@ export default function AdminLayout({ user, auth, header, children }) {
                 <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
                     <div className="pt-2 pb-3 space-y-1">
                         <Link
-                            href="/admin/dashboard"
-                            className="block pl-3 pr-4 py-2 border-l-4 border-indigo-500 text-base font-medium text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700 transition duration-150 ease-in-out"
-                        >
-                            Dashboard
-                        </Link>
-                        <Link
                             href="/admin/usuarios"
-                            className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out"
+                            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
+                                url.startsWith('/admin/usuarios')
+                                    ? 'border-indigo-500 text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700'
+                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
+                            }`}
                         >
                             Usuarios
                         </Link>
                         <Link
-                            href="/admin/propiedades"
-                            className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out"
+                            href="/admin/departamentos"
+                            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
+                                url.startsWith('/admin/departamentos')
+                                    ? 'border-indigo-500 text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700'
+                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
+                            }`}
                         >
                             Propiedades
+                        </Link>
+                        <Link
+                            href="/admin/ventas"
+                            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
+                                url.startsWith('/admin/ventas')
+                                    ? 'border-indigo-500 text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700'
+                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
+                            }`}
+                        >
+                            Ventas
+                        </Link>
+                        <Link
+                            href="/admin/reportes"
+                            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
+                                url.startsWith('/admin/reportes')
+                                    ? 'border-indigo-500 text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700'
+                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
+                            }`}
+                        >
+                            Reportes
                         </Link>
                     </div>
 

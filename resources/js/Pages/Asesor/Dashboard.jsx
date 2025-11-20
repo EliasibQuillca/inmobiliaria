@@ -9,40 +9,50 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
             description: 'Gestionar y responder solicitudes de clientes',
             icon: '📧',
             href: '/asesor/solicitudes',
-            color: 'bg-blue-500',
-            count: estadisticas.solicitudes_pendientes || 0
+            color: 'bg-blue-600',
+            iconBg: 'bg-blue-100',
+            count: estadisticas.solicitudes_pendientes || 0,
+            countLabel: 'pendientes'
         },
         {
             title: 'Cotizaciones',
             description: 'Crear y gestionar cotizaciones de departamentos',
             icon: '💰',
             href: '/asesor/cotizaciones',
-            color: 'bg-green-500',
-            count: estadisticas.cotizaciones_activas || 0
+            color: 'bg-emerald-600',
+            iconBg: 'bg-emerald-100',
+            count: estadisticas.cotizaciones_activas || 0,
+            countLabel: 'pendientes'
         },
         {
             title: 'Reservas',
             description: 'Crear y gestionar reservas de departamentos',
             icon: '📋',
             href: '/asesor/reservas',
-            color: 'bg-yellow-500',
-            count: estadisticas.reservas_pendientes || 0
+            color: 'bg-amber-600',
+            iconBg: 'bg-amber-100',
+            count: estadisticas.reservas_pendientes || 0,
+            countLabel: 'pendientes'
         },
         {
             title: 'Ventas',
             description: 'Formalizar ventas y gestionar documentación',
             icon: '🏡',
             href: '/asesor/ventas',
-            color: 'bg-purple-500',
-            count: estadisticas.ventas_mes || 0
+            color: 'bg-purple-600',
+            iconBg: 'bg-purple-100',
+            count: estadisticas.ventas_mes || 0,
+            countLabel: 'pendientes'
         },
         {
             title: 'Clientes',
             description: 'Gestionar base de datos de clientes',
             icon: '👥',
             href: '/asesor/clientes',
-            color: 'bg-indigo-500',
-            count: estadisticas.clientes_activos || 0
+            color: 'bg-slate-600',
+            iconBg: 'bg-slate-100',
+            count: estadisticas.clientes_activos || 0,
+            countLabel: 'pendientes'
         }
     ];
 
@@ -52,51 +62,47 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* Banner de nueva versión */}
-                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 overflow-hidden shadow-lg sm:rounded-lg mb-8 animate-pulse">
+                    {/* Banner de bienvenida */}
+                    <div className="bg-gradient-to-r from-slate-700 to-slate-900 overflow-hidden shadow-sm sm:rounded-lg mb-6">
                         <div className="p-6 text-white">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                        <span className="text-2xl">🌟</span>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="w-12 h-12 bg-white bg-opacity-10 rounded-full flex items-center justify-center">
+                                            <span className="text-2xl">👋</span>
+                                        </div>
+                                    </div>
+                                    <div className="ml-4">
+                                        <h2 className="text-2xl font-bold">¡Bienvenido, {auth.user?.name}!</h2>
+                                        <p className="text-white text-opacity-80 text-sm">Gestiona tus actividades diarias como asesor inmobiliario</p>
                                     </div>
                                 </div>
-                                <div className="ml-4">
-                                    <h2 className="text-xl font-bold">¡Nueva interfaz actualizada!</h2>
-                                    <p className="text-white text-opacity-80">Hemos mejorado tu experiencia como asesor</p>
+                                <div>
+                                    <Link
+                                        href={route('asesor.perfil')}
+                                        className="px-4 py-2 bg-white bg-opacity-10 hover:bg-opacity-20 text-white text-sm rounded-lg transition-colors inline-flex items-center"
+                                    >
+                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        Configurar Perfil
+                                    </Link>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* Bienvenida modificada */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8 border-l-4 border-green-500">
-                        <div className="p-6 text-gray-900">
-                            <h1 className="text-3xl font-bold mb-2 text-green-600">
-                                ¡Bienvenido a tu nuevo panel, {auth.user?.name}! 🎉
-                            </h1>
-                            <p className="text-gray-600">
-                                Gestiona tus actividades diarias como asesor inmobiliario con nuestra interfaz renovada
-                            </p>
-                            <div className="mt-4 flex space-x-4">
-                                <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
-                                    Ver tutorial 📚
-                                </button>
-                                <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                                    Configurar perfil ⚙️
-                                </button>
                             </div>
                         </div>
                     </div>
 
                     {/* Estadísticas rápidas */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-blue-500">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                            <span className="text-white text-sm">📧</span>
+                                        <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div className="ml-5 w-0 flex-1">
@@ -104,7 +110,7 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
                                             <dt className="text-sm font-medium text-gray-500 truncate">
                                                 Solicitudes Pendientes
                                             </dt>
-                                            <dd className="text-lg font-medium text-gray-900">
+                                            <dd className="text-2xl font-semibold text-gray-900">
                                                 {estadisticas.solicitudes_pendientes || 0}
                                             </dd>
                                         </dl>
@@ -113,12 +119,14 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
                             </div>
                         </div>
 
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-emerald-500">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                            <span className="text-white text-sm">💰</span>
+                                        <div className="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center">
+                                            <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div className="ml-5 w-0 flex-1">
@@ -126,7 +134,7 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
                                             <dt className="text-sm font-medium text-gray-500 truncate">
                                                 Cotizaciones Activas
                                             </dt>
-                                            <dd className="text-lg font-medium text-gray-900">
+                                            <dd className="text-2xl font-semibold text-gray-900">
                                                 {estadisticas.cotizaciones_activas || 0}
                                             </dd>
                                         </dl>
@@ -135,12 +143,14 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
                             </div>
                         </div>
 
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-amber-500">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                                            <span className="text-white text-sm">📋</span>
+                                        <div className="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center">
+                                            <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div className="ml-5 w-0 flex-1">
@@ -148,7 +158,7 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
                                             <dt className="text-sm font-medium text-gray-500 truncate">
                                                 Reservas Activas
                                             </dt>
-                                            <dd className="text-lg font-medium text-gray-900">
+                                            <dd className="text-2xl font-semibold text-gray-900">
                                                 {estadisticas.reservas_activas || 0}
                                             </dd>
                                         </dl>
@@ -157,12 +167,14 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
                             </div>
                         </div>
 
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-purple-500">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                                            <span className="text-white text-sm">🏡</span>
+                                        <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
+                                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div className="ml-5 w-0 flex-1">
@@ -170,8 +182,8 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
                                             <dt className="text-sm font-medium text-gray-500 truncate">
                                                 Ventas Este Mes
                                             </dt>
-                                            <dd className="text-lg font-medium text-gray-900">
-                                                {estadisticas.ventas_mes || 0}
+                                            <dd className="text-2xl font-semibold text-gray-900">
+                                                {estadisticas.ventas_mes || 1}
                                             </dd>
                                         </dl>
                                     </div>
@@ -186,33 +198,30 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
                             <Link
                                 key={index}
                                 href={item.href}
-                                className="group bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition-shadow duration-300"
+                                className="group bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-all duration-200 border border-gray-100"
                             >
                                 <div className="p-6">
-                                    <div className="flex items-center">
-                                        <div className={`flex-shrink-0 w-12 h-12 ${item.color} rounded-lg flex items-center justify-center text-white text-xl group-hover:scale-110 transition-transform duration-300`}>
-                                            {item.icon}
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex items-center space-x-4">
+                                            <div className={`flex-shrink-0 w-14 h-14 ${item.iconBg} rounded-xl flex items-center justify-center text-2xl group-hover:scale-105 transition-transform duration-200`}>
+                                                {item.icon}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-slate-700 transition-colors">
+                                                    {item.title}
+                                                </h3>
+                                                <p className="text-sm text-gray-500 mt-1">
+                                                    {item.description}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="ml-4 flex-1">
-                                            <h3 className="text-lg font-medium text-gray-900 group-hover:text-blue-600">
-                                                {item.title}
-                                            </h3>
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                {item.description}
-                                            </p>
-                                            {item.count > 0 && (
-                                                <div className="mt-2">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                        {item.count} pendientes
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="ml-4">
-                                            <svg className="w-5 h-5 text-gray-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </div>
+                                        {item.count > 0 && (
+                                            <div className="flex-shrink-0">
+                                                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${item.color} text-white`}>
+                                                    {item.count}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </Link>

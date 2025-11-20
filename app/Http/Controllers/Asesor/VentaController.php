@@ -86,8 +86,7 @@ class VentaController extends Controller
             $departamento = Departamento::find($reserva->departamento_id);
             if ($departamento) {
                 $departamento->update([
-                    'estado' => 'vendido',
-                    'disponible' => false
+                    'estado' => 'vendido'
                 ]);
             }
         }

@@ -105,6 +105,7 @@ class VentaController extends Controller
             'reserva_id' => 'required|exists:reservas,id',
             'fecha_venta' => 'required|date|before_or_equal:today',
             'monto_final' => 'required|numeric|min:0',
+            'porcentaje_comision' => 'nullable|numeric|min:0|max:100',
             'documentos_entregados' => 'required|boolean',
             'observaciones' => 'nullable|string|max:1000',
         ]);

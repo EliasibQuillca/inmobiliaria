@@ -16,6 +16,8 @@ class Venta extends Model
         'reserva_id',
         'fecha_venta',
         'monto_final',
+        'comision',
+        'porcentaje_comision',
         'documentos_entregados',
         'observaciones',
         'fecha_entrega_documentos',
@@ -30,6 +32,8 @@ class Venta extends Model
     protected $casts = [
         'fecha_venta' => 'datetime',
         'monto_final' => 'decimal:2',
+        'comision' => 'decimal:2',
+        'porcentaje_comision' => 'decimal:2',
         'documentos_entregados' => 'boolean',
         'fecha_entrega_documentos' => 'datetime',
         'bloqueada_edicion' => 'boolean',
@@ -123,7 +127,39 @@ class Venta extends Model
 
         // Marcar el departamento como vendido
         $this->getDepartamento()->marcarComoVendido();
-    }    public function estaCompleta()
+    }
+
+    /**
+     * Calcular comisión basada en el monto final y porcentaje
+     */
+    public function calcularComision()
+    {
+        $porcentaje = $this->porcentaje_comision ?? 5.00;
+        $this->comision = ($this->monto_final * $porcentaje) / 100;
+        return $this->comision;
+    }
+
+    /**
+     * Boot method para calcular comisión automáticamente
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($venta) {
+            if (!$venta->comision) {
+                $venta->calcularComision();
+            }
+        });
+
+        static::updating(function ($venta) {
+            if ($venta->isDirty('monto_final') || $venta->isDirty('porcentaje_comision')) {
+                $venta->calcularComision();
+            }
+        });
+    }
+
+    public function estaCompleta()
     {
         return $this->documentos_entregados;
     }

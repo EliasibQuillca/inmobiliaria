@@ -14,12 +14,42 @@ class AsesorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $asesores = Asesor::with('usuario')->paginate(10);
+        $query = Asesor::query();
 
+        // Aplicar filtros
+        if ($request->filled('busqueda')) {
+            $busqueda = $request->busqueda;
+            $query->where(function($q) use ($busqueda) {
+                $q->where('nombre', 'like', "%{$busqueda}%")
+                  ->orWhere('apellidos', 'like', "%{$busqueda}%")
+                  ->orWhere('documento', 'like', "%{$busqueda}%")
+                  ->orWhere('telefono', 'like', "%{$busqueda}%");
+            });
+        }
+
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        if ($request->filled('especialidad')) {
+            $query->where('especialidad', $request->especialidad);
+        }
+
+        // Aplicar ordenamiento
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        $query->orderBy($sortBy, $sortDirection);
+
+        // Paginación
+        $perPage = $request->get('per_page', 10);
+        $asesores = $query->paginate($perPage)->withQueryString();
+
+        // Retornar vista Inertia
         return Inertia::render('Admin/Asesores/Index', [
-            'asesores' => $asesores
+            'asesores' => $asesores,
+            'filtros' => $request->only(['busqueda', 'estado', 'especialidad']),
         ]);
     }
 
@@ -90,8 +120,24 @@ class AsesorController extends Controller
         $asesor = Asesor::with(['usuario', 'clientes.usuario', 'cotizaciones.departamento'])
             ->findOrFail($id);
 
+        // Estadísticas del asesor
+        $estadisticas = [
+            'total_clientes' => $asesor->clientes()->count(),
+            'cotizaciones_totales' => $asesor->cotizaciones()->count(),
+            'cotizaciones_aceptadas' => $asesor->cotizaciones()->where('estado', 'aceptada')->count(),
+            'reservas_totales' => $asesor->reservas()->count(),
+            'ventas_totales' => $asesor->ventas()->count(),
+            'monto_total_ventas' => $asesor->ventas()->sum('monto_final'),
+            'comisiones_totales' => $asesor->ventas()->sum('comision'),
+            'comisiones_mes_actual' => $asesor->ventas()
+                ->whereMonth('fecha_venta', now()->month)
+                ->whereYear('fecha_venta', now()->year)
+                ->sum('comision'),
+        ];
+
         return Inertia::render('Admin/Asesores/Detalle', [
             'asesor' => $asesor,
+            'estadisticas' => $estadisticas,
             'id' => $id
         ]);
     }

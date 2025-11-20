@@ -166,6 +166,19 @@ class SolicitudController extends Controller
 
         if ($validated['estado'] === 'aprobada') {
             $updateData['fecha_aprobacion'] = now();
+
+            // IMPORTANTE: Asignar el cliente al asesor automáticamente
+            if ($solicitud->cliente && !$solicitud->cliente->asesor_id) {
+                $solicitud->cliente->update([
+                    'asesor_id' => $asesor->id,
+                    'estado' => 'interesado'
+                ]);
+
+                Log::info('Cliente asignado automáticamente al asesor', [
+                    'cliente_id' => $solicitud->cliente->id,
+                    'asesor_id' => $asesor->id
+                ]);
+            }
         } elseif ($validated['estado'] === 'rechazada') {
             $updateData['fecha_rechazo'] = now();
             $updateData['motivo_rechazo'] = $validated['motivo_rechazo'] ?? null;

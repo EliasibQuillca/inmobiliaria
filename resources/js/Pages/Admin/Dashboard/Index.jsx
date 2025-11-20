@@ -50,14 +50,14 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
         >
             <Head title="Panel de Administración" />
 
-            <div className="py-12 bg-gray-50 min-h-screen">
+            <div className="py-12 bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
                     {/* Tarjetas de Estadísticas Principales */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
                         {/* Total Usuarios */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-blue-200 transition-all duration-300">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Total Usuarios</p>
@@ -68,7 +68,7 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                                         {formatGrowth(crecimiento?.usuarios || 0)} este mes
                                     </span>
                                 </div>
-                                <div className="p-3 bg-blue-100 rounded-full">
+                                <div className="p-3 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full">
                                     <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                     </svg>
@@ -77,7 +77,7 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                         </div>
 
                         {/* Propiedades Activas */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-cyan-200 transition-all duration-300">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Propiedades Activas</p>
@@ -88,8 +88,8 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                                         {formatGrowth(crecimiento?.propiedades || 0)} este mes
                                     </span>
                                 </div>
-                                <div className="p-3 bg-green-100 rounded-full">
-                                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="p-3 bg-gradient-to-br from-cyan-100 to-blue-100 rounded-full">
+                                    <svg className="w-8 h-8 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                     </svg>
                                 </div>
@@ -97,7 +97,7 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                         </div>
 
                         {/* Ventas del Mes */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-300">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Ventas del Mes</p>
@@ -108,8 +108,8 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                                         {formatGrowth(crecimiento?.ventas || 0)} vs mes anterior
                                     </span>
                                 </div>
-                                <div className="p-3 bg-purple-100 rounded-full">
-                                    <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="p-3 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full">
+                                    <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                     </svg>
                                 </div>
@@ -117,7 +117,7 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                         </div>
 
                         {/* Ingresos del Mes */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-blue-200 transition-all duration-300">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">Ingresos del Mes</p>
@@ -128,8 +128,8 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                                         {formatGrowth(crecimiento?.ingresos || 0)} vs mes anterior
                                     </span>
                                 </div>
-                                <div className="p-3 bg-yellow-100 rounded-full">
-                                    <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="p-3 bg-gradient-to-br from-blue-100 to-sky-100 rounded-full">
+                                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                                     </svg>
                                 </div>
@@ -143,7 +143,7 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                         {/* Asesores Activos */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <div className="flex items-center">
-                                <div className="p-2 bg-indigo-100 rounded-lg">
+                                <div className="p-2 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-lg">
                                     <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                     </svg>
@@ -158,8 +158,8 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                         {/* Clientes Nuevos */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <div className="flex items-center">
-                                <div className="p-2 bg-green-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="p-2 bg-gradient-to-br from-cyan-100 to-teal-100 rounded-lg">
+                                    <svg className="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                                     </svg>
                                 </div>
@@ -173,8 +173,8 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                         {/* Reservas Activas */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <div className="flex items-center">
-                                <div className="p-2 bg-orange-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="p-2 bg-gradient-to-br from-sky-100 to-blue-100 rounded-lg">
+                                    <svg className="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
@@ -185,17 +185,18 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                             </div>
                         </div>
 
-                        {/* Comisiones Pendientes */}
+                        {/* Comisiones del Mes */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <div className="flex items-center">
-                                <div className="p-2 bg-red-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <div className="p-2 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-lg">
+                                    <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">Comisiones Pendientes</p>
-                                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(estadisticas?.comisionesPendientes || 0)}</p>
+                                    <p className="text-sm font-medium text-gray-600">Comisiones del Mes</p>
+                                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(estadisticas?.comisionesDelMes || 0)}</p>
+                                    <p className="text-xs text-gray-500 mt-1">Generadas en ventas</p>
                                 </div>
                             </div>
                         </div>
@@ -218,8 +219,8 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                                                 <div key={index} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                                     <div className="flex-shrink-0">
                                                         <span className="text-2xl">
-                                                            {actividad.tipo === 'venta' ? '💰' : 
-                                                             actividad.tipo === 'usuario' ? '👤' : 
+                                                            {actividad.tipo === 'venta' ? '💰' :
+                                                             actividad.tipo === 'usuario' ? '👤' :
                                                              actividad.tipo === 'propiedad' ? '🏠' : '📅'}
                                                         </span>
                                                     </div>
@@ -234,10 +235,10 @@ export default function AdminDashboard({ auth, estadisticas, crecimiento, activi
                                                         )}
                                                     </div>
                                                     <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                        actividad.tag === 'venta' ? 'bg-green-100 text-green-800' :
-                                                        actividad.tag === 'usuario' ? 'bg-blue-100 text-blue-800' :
-                                                        actividad.tag === 'propiedad' ? 'bg-purple-100 text-purple-800' :
-                                                        'bg-orange-100 text-orange-800'
+                                                        actividad.tag === 'venta' ? 'bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800' :
+                                                        actividad.tag === 'usuario' ? 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800' :
+                                                        actividad.tag === 'propiedad' ? 'bg-gradient-to-r from-cyan-100 to-teal-100 text-cyan-800' :
+                                                        'bg-gradient-to-r from-sky-100 to-blue-100 text-sky-800'
                                                     }`}>
                                                         {actividad.tag || actividad.tipo}
                                                     </div>
