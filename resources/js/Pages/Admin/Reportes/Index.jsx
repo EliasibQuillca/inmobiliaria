@@ -383,22 +383,6 @@ export default function Reportes() {
                         <p className="text-2xl font-bold text-indigo-600">3</p>
                     </div>
                 </div>
-
-                <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Gestión de Usuarios</h3>
-                    <p className="text-gray-600">
-                        Como administrador, desde aquí puedes supervisar la actividad de todos los usuarios del sistema,
-                        gestionar roles y permisos, y generar reportes de uso.
-                    </p>
-                    <div className="mt-4">
-                        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 mr-2">
-                            Ver Gestión de Usuarios
-                        </button>
-                        <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                            Crear Nuevo Usuario
-                        </button>
-                    </div>
-                </div>
             </div>
         );
     };

@@ -128,6 +128,7 @@
         <p><strong>Generado el:</strong> {{ $fecha_generacion }}</p>
     </div>
 
+    {{-- Resumen ejecutivo (solo para reportes financiero y ventas) --}}
     @if(isset($datos['resumen']))
     <div class="summary">
         <h2>Resumen Ejecutivo</h2>
@@ -135,7 +136,13 @@
             @foreach($datos['resumen'] as $key => $value)
                 <div class="summary-item">
                     <span class="label">{{ ucfirst(str_replace('_', ' ', $key)) }}</span>
-                    <span class="value">{{ is_numeric($value) ? number_format($value, 2) : $value }}</span>
+                    <span class="value">
+                        @if(str_contains($key, 'total') || str_contains($key, 'ingresos') || str_contains($key, 'comisiones') || str_contains($key, 'neto'))
+                            ${{ number_format($value, 2) }}
+                        @else
+                            {{ is_numeric($value) ? number_format($value, 0) : $value }}
+                        @endif
+                    </span>
                 </div>
             @endforeach
         </div>
@@ -168,7 +175,41 @@
     </div>
     @endif
 
-    @if(isset($datos['asesores']) && count($datos['asesores']) > 0)
+    {{-- Reporte de Ventas --}}
+    @if($tipoReporte == 'ventas' && is_array($datos) && !isset($datos['resumen']))
+    <div class="data-section">
+        <h3>Detalle de Ventas</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Asesor</th>
+                    <th>Departamento</th>
+                    <th>Precio</th>
+                    <th>Comisión</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($datos as $venta)
+                <tr>
+                    <td>{{ $venta['id'] }}</td>
+                    <td>{{ $venta['fecha'] }}</td>
+                    <td>{{ $venta['cliente'] }}</td>
+                    <td>{{ $venta['asesor'] }}</td>
+                    <td>{{ $venta['departamento'] }}</td>
+                    <td>${{ number_format($venta['precio'], 2) }}</td>
+                    <td>${{ number_format($venta['comision'], 2) }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
+
+    {{-- Reporte de Asesores --}}
+    @if($tipoReporte == 'asesores' && is_array($datos))
     <div class="data-section">
         <h3>Rendimiento de Asesores</h3>
         <table>
@@ -182,7 +223,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($datos['asesores'] as $asesor)
+                @foreach($datos as $asesor)
                 <tr>
                     <td>{{ $asesor['nombre'] }}</td>
                     <td>{{ $asesor['email'] }}</td>
@@ -196,29 +237,36 @@
     </div>
     @endif
 
-    @if(isset($datos['propiedades']) && count($datos['propiedades']) > 0)
+    {{-- Reporte de Propiedades --}}
+    @if($tipoReporte == 'propiedades' && is_array($datos))
     <div class="data-section">
         <h3>Estado de Propiedades</h3>
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Título</th>
-                    <th>Precio</th>
-                    <th>Área</th>
-                    <th>Habitaciones</th>
+                    <th>Ubicación</th>
                     <th>Estado</th>
+                    <th>Precio</th>
+                    <th>Habitaciones</th>
+                    <th>Baños</th>
+                    <th>Propietario</th>
+                    <th>Destacado</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($datos['propiedades'] as $propiedad)
+                @foreach($datos as $propiedad)
                 <tr>
-                    <td>{{ $propiedad['id'] }}</td>
                     <td>{{ $propiedad['titulo'] }}</td>
+                    <td>{{ $propiedad['ubicacion'] }}</td>
+                    <td style="color: {{ $propiedad['estado'] == 'disponible' ? '#10b981' : ($propiedad['estado'] == 'ocupado' ? '#f59e0b' : '#ef4444') }};">
+                        {{ ucfirst($propiedad['estado']) }}
+                    </td>
                     <td>${{ number_format($propiedad['precio'], 2) }}</td>
-                    <td>{{ $propiedad['area'] }} m²</td>
                     <td>{{ $propiedad['habitaciones'] }}</td>
-                    <td>{{ $propiedad['estado'] }}</td>
+                    <td>{{ $propiedad['baños'] }}</td>
+                    <td>{{ $propiedad['propietario'] }}</td>
+                    <td style="text-align: center;">{{ $propiedad['destacado'] ? '⭐' : '-' }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -226,7 +274,8 @@
     </div>
     @endif
 
-    @if(isset($datos['usuarios']) && count($datos['usuarios']) > 0)
+    {{-- Reporte de Usuarios --}}
+    @if($tipoReporte == 'usuarios' && is_array($datos))
     <div class="data-section">
         <h3>Usuarios del Sistema</h3>
         <table>
@@ -236,17 +285,21 @@
                     <th>Email</th>
                     <th>Rol</th>
                     <th>Estado</th>
-                    <th>Fecha Registro</th>
+                    <th>Último Acceso</th>
+                    <th>Registrado</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($datos['usuarios'] as $usuario)
+                @foreach($datos as $usuario)
                 <tr>
                     <td>{{ $usuario['nombre'] }}</td>
                     <td>{{ $usuario['email'] }}</td>
-                    <td>{{ $usuario['role'] }}</td>
-                    <td>{{ $usuario['activo'] ? 'Activo' : 'Inactivo' }}</td>
-                    <td>{{ \Carbon\Carbon::parse($usuario['fecha_registro'])->format('d/m/Y') }}</td>
+                    <td style="color: {{ $usuario['role'] == 'administrador' ? '#ef4444' : ($usuario['role'] == 'asesor' ? '#3b82f6' : '#10b981') }};">
+                        {{ ucfirst($usuario['role']) }}
+                    </td>
+                    <td>{{ $usuario['estado'] }}</td>
+                    <td>{{ $usuario['ultimo_acceso'] }}</td>
+                    <td>{{ $usuario['registrado'] }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -254,21 +307,28 @@
     </div>
     @endif
 
-    @if(isset($datos['desglose']))
+    {{-- Reporte Financiero --}}
+    @if($tipoReporte == 'financiero' && isset($datos['detalle']))
     <div class="data-section">
-        <h3>Desglose Financiero</h3>
+        <h3>Desglose Mensual</h3>
         <table>
             <thead>
                 <tr>
-                    <th>Concepto</th>
-                    <th>Monto</th>
+                    <th>Mes</th>
+                    <th>Ventas</th>
+                    <th>Ingresos</th>
+                    <th>Comisiones</th>
+                    <th>Ingreso Neto</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($datos['desglose'] as $concepto => $monto)
+                @foreach($datos['detalle'] as $mes)
                 <tr>
-                    <td>{{ ucfirst(str_replace('_', ' ', $concepto)) }}</td>
-                    <td>${{ number_format($monto, 2) }}</td>
+                    <td>{{ $mes['mes'] }}</td>
+                    <td>{{ $mes['ventas'] }}</td>
+                    <td style="color: #10b981;">${{ number_format($mes['ingresos'], 2) }}</td>
+                    <td style="color: #ef4444;">${{ number_format($mes['comisiones'], 2) }}</td>
+                    <td style="color: #3b82f6; font-weight: bold;">${{ number_format($mes['neto'], 2) }}</td>
                 </tr>
                 @endforeach
             </tbody>
