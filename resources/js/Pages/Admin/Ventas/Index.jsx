@@ -93,7 +93,7 @@ export default function Ventas({ auth, ventas, estadisticas, filtros }) {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
                         <div className="bg-white shadow-sm sm:rounded-lg p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">

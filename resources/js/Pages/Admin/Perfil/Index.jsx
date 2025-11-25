@@ -113,8 +113,8 @@ export default function AdminPerfil({ auth }) {
             <Head title="Mi Perfil - Administrador" />
 
             <div className="py-12 bg-gray-50 min-h-screen">
-                <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
 
                         {/* Información del perfil */}
                         <div className="lg:col-span-1">

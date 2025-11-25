@@ -23,12 +23,12 @@ export default function AdminConfiguracion({ auth }) {
             <div className="py-12 bg-gray-50 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
 
                         {/* Configuración General */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                             <div className="px-6 py-4 border-b border-gray-200">
-                                <h3 className="text-lg font-semibold text-gray-900">Configuración General</h3>
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Configuración General</h3>
                                 <p className="text-sm text-gray-600">Configuraciones básicas del sistema</p>
                             </div>
                             <div className="p-6 space-y-6">

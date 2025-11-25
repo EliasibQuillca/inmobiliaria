@@ -40,9 +40,9 @@ export default function Index({ usuarios, filters }) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 bg-white border-b border-gray-200">
                             {/* Encabezado */}
-                            <div className="flex justify-between items-center mb-6">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                                 <div>
-                                    <h2 className="text-2xl font-semibold text-gray-900">
+                                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">
                                         Gestión de Usuarios
                                     </h2>
                                     <p className="mt-1 text-sm text-gray-600">
@@ -64,7 +64,7 @@ export default function Index({ usuarios, filters }) {
 
                             {/* Filtros por Rol (Tabs) */}
                             <div className="mb-6 border-b border-gray-200">
-                                <nav className="-mb-px flex space-x-8">
+                                <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto pb-2">
                                     <button
                                         onClick={() => router.get('/admin/usuarios', { role: '' }, { preserveState: true })}
                                         className={`${
@@ -119,7 +119,7 @@ export default function Index({ usuarios, filters }) {
 
                             {/* Búsqueda */}
                             <div className="mb-6">
-                                <form onSubmit={handleSearch} className="flex space-x-2">
+                                <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
                                     <input
                                         type="text"
                                         value={searchQuery}

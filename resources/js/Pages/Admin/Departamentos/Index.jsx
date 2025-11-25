@@ -919,16 +919,16 @@ export default function Departamentos({ auth, departamentos, pagination, filters
 
             <div className="py-12 bg-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center mb-6">
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
                         <div>
-                            <h2 className="text-3xl font-bold text-gray-900">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
                                 Lista de Propiedades
                             </h2>
-                            <p className="mt-1 text-lg text-gray-600">
+                            <p className="mt-1 text-sm sm:text-lg text-gray-600">
                                 Administre las propiedades del sistema
                             </p>
                         </div>
-                        <div className="flex space-x-3">
+                        <div className="flex flex-wrap gap-3">
                             <button
                                 onClick={() => exportarDatos('pdf')}
                                 className="px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -945,7 +945,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                     </div>
 
                     {/* Panel de Estadísticas */}
-                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
                         <div className="bg-white rounded-lg shadow-md p-4 text-center">
                             <div className="text-2xl font-bold text-blue-600">{estadisticas.total}</div>
                             <div className="text-sm text-gray-600">Total</div>
@@ -981,7 +981,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
 
                     {/* Filtros */}
                     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
                                 <label htmlFor="busqueda" className="block text-sm font-medium text-gray-700 mb-1">
                                     Buscar
@@ -1065,7 +1065,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                         Limpiar selección
                                     </button>
                                 </div>
-                                <div className="flex space-x-2">
+                                <div className="flex flex-wrap gap-2">
                                     <button
                                         onClick={() => ejecutarAccionMasiva('activar')}
                                         className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
@@ -1201,7 +1201,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                        <div className="flex space-x-2 justify-end">
+                                                        <div className="flex flex-wrap gap-2 justify-end text-xs sm:text-sm">
                                                             <button
                                                                 onClick={() => verDepartamento(departamento)}
                                                                 className="text-blue-600 hover:text-blue-900 font-medium"
@@ -1365,8 +1365,8 @@ export default function Departamentos({ auth, departamentos, pagination, filters
 
             {/* Modal Ver Departamento - Mejorado con animación */}
             {showVerModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 animate-fade-in">
-                    <div className={`bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-xl transform transition-all duration-300 ${departamentoSeleccionado && !loadingVisualizacion ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-2 sm:p-4 z-50 animate-fade-in">
+                    <div className={`bg-white rounded-lg max-w-5xl w-full max-h-[95vh] overflow-y-auto shadow-xl transform transition-all duration-300 ${departamentoSeleccionado && !loadingVisualizacion ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
                         {loadingVisualizacion ? (
                             <div className="flex flex-col items-center justify-center p-12">
                                 <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -1405,8 +1405,8 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                     </div>
                                 </div>
 
-                                <div className="p-6">
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                                <div className="p-4 sm:p-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
                                         <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
                                             <div className="flex items-center mb-4">
                                                 <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

@@ -131,7 +131,7 @@ export default function Reportes() {
         return (
             <div className="space-y-6">
                 {/* Resumen de ventas */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div className="bg-white p-6 rounded-lg shadow">
                         <h3 className="text-sm font-medium text-gray-500">Total Ventas</h3>
                         <p className="text-2xl font-bold text-green-600">
@@ -211,8 +211,8 @@ export default function Reportes() {
 
         return (
             <div className="space-y-6">
-                {/* Resumen de asesores */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Resumen de ventas */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div className="bg-white p-6 rounded-lg shadow">
                         <h3 className="text-sm font-medium text-gray-500">Total Asesores</h3>
                         <p className="text-2xl font-bold text-blue-600">
@@ -293,7 +293,7 @@ export default function Reportes() {
         return (
             <div className="space-y-6">
                 {/* Estadísticas de propiedades */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div className="bg-white p-6 rounded-lg shadow">
                         <h3 className="text-sm font-medium text-gray-500">Total Propiedades</h3>
                         <p className="text-2xl font-bold text-blue-600">
@@ -326,7 +326,7 @@ export default function Reportes() {
                         <h3 className="text-lg font-medium text-gray-900">Propiedades por Rango de Precios</h3>
                     </div>
                     <div className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                             <div className="text-center">
                                 <p className="text-lg font-bold text-blue-600">
                                     {datosReporte.rango_precios?.menos_200k || 0}
@@ -365,7 +365,7 @@ export default function Reportes() {
         return (
             <div className="space-y-6">
                 {/* Estadísticas básicas de demostración */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div className="bg-white p-6 rounded-lg shadow">
                         <h3 className="text-sm font-medium text-gray-500">Total Usuarios</h3>
                         <p className="text-2xl font-bold text-blue-600">6</p>
@@ -394,7 +394,7 @@ export default function Reportes() {
         return (
             <div className="space-y-6">
                 {/* KPIs Financieros usando datos reales */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div className="bg-white p-6 rounded-lg shadow">
                         <h3 className="text-sm font-medium text-gray-500">Ingresos Totales</h3>
                         <p className="text-2xl font-bold text-green-600">S/. 150,000</p>
@@ -452,7 +452,7 @@ export default function Reportes() {
 
                     {/* Filtros de fecha */}
                     <div className="bg-white p-4 rounded-lg shadow mb-6">
-                        <div className="flex flex-wrap gap-4 items-end">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-3 sm:gap-4 items-end">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Fecha Inicio</label>
                                 <input
@@ -489,7 +489,7 @@ export default function Reportes() {
 
                     {/* Pestañas de reportes */}
                     <div className="border-b border-gray-200 mb-6">
-                        <nav className="-mb-px flex space-x-8">
+                        <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto pb-2">
                             {[
                                 { id: 'ventas', label: 'Reportes de Ventas' },
                                 { id: 'asesores', label: 'Rendimiento Asesores' },
