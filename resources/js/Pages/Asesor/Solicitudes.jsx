@@ -179,16 +179,16 @@ export default function Solicitudes({
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* Header */}
                     <div className="mb-8">
-                        <div className="md:flex md:items-center md:justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div className="flex-1 min-w-0">
-                                <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold leading-7 text-gray-900">
                                     Solicitudes de Información
                                 </h2>
                                 <p className="mt-1 text-sm text-gray-500">
                                     Gestiona las solicitudes de información de departamentos de tus clientes
                                 </p>
                             </div>
-                            <div className="mt-4 flex md:mt-0 md:ml-4">
+                            <div className="flex">
                                 <button
                                     onClick={() => setShowContactForm(true)}
                                     className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -204,7 +204,7 @@ export default function Solicitudes({
 
                     {/* Panel de Estadísticas */}
                     {estadisticas && Object.keys(estadisticas).length > 0 && (
-                        <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-5">
                             {/* Total Solicitudes */}
                             <div className="bg-white overflow-hidden shadow rounded-lg">
                                 <div className="p-5">
@@ -278,8 +278,8 @@ export default function Solicitudes({
 
                     {/* Tabs de filtrado */}
                     <div className="mb-6">
-                        <div className="border-b border-gray-200">
-                            <nav className="-mb-px flex space-x-8">
+                        <div className="border-b border-gray-200 overflow-x-auto">
+                            <nav className="-mb-px flex space-x-4 sm:space-x-8 min-w-max">
                                 <button
                                     onClick={() => setActiveTab('pendientes')}
                                     className={`${
@@ -478,7 +478,7 @@ export default function Solicitudes({
                                                             {solicitud.reserva && (
                                                                 <Link
                                                                     href={route('asesor.reservas.show', { id: solicitud.reserva.id })}
-                                                                    className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700"
+                                                                    className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
                                                                 >
                                                                     Ver Reserva
                                                                 </Link>

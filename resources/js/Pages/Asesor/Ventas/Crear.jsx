@@ -13,14 +13,14 @@ export default function Crear({ auth, reservas, reservaSeleccionada }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         // Asegurar que el token CSRF esté presente
         const token = document.head.querySelector('meta[name="csrf-token"]');
         if (!token) {
             console.error('Token CSRF no encontrado');
             return;
         }
-        
+
         post('/asesor/ventas', {
             headers: {
                 'X-CSRF-TOKEN': token.content
@@ -43,7 +43,7 @@ export default function Crear({ auth, reservas, reservaSeleccionada }) {
 
     const handleReservaChange = (reservaId) => {
         setData('reserva_id', reservaId);
-        
+
         if (reservaId) {
             const reserva = reservas.find(r => r.id == reservaId);
             if (reserva && reserva.cotizacion) {
@@ -84,7 +84,7 @@ export default function Crear({ auth, reservas, reservaSeleccionada }) {
                                     </p>
                                     <a
                                         href={route('asesor.reservas')}
-                                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                     >
                                         <i className="fas fa-calendar-check mr-2"></i>
                                         Ver Reservas
@@ -121,8 +121,8 @@ export default function Crear({ auth, reservas, reservaSeleccionada }) {
                                                 <option value="">Seleccionar reserva...</option>
                                                 {reservas.map((reserva) => (
                                                     <option key={reserva.id} value={reserva.id}>
-                                                        {reserva.cotizacion?.departamento?.codigo || 'N/A'} - 
-                                                        {reserva.cotizacion?.cliente?.usuario?.name || reserva.cotizacion?.cliente?.nombre || 'Cliente'} - 
+                                                        {reserva.cotizacion?.departamento?.codigo || 'N/A'} -
+                                                        {reserva.cotizacion?.cliente?.usuario?.name || reserva.cotizacion?.cliente?.nombre || 'Cliente'} -
                                                         {formatCurrency(reserva.cotizacion?.monto || 0)}
                                                     </option>
                                                 ))}

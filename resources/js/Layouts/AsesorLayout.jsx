@@ -17,6 +17,18 @@ export default function AsesorLayout({ user, header, children }) {
         router.post("/logout");
     };
 
+    // Cerrar dropdown al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showProfileDropdown && !event.target.closest('.profile-dropdown-container')) {
+                setShowProfileDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showProfileDropdown]);
+
     // Temporizador de cierre de sesión automático para asesor (15 minutos)
     useEffect(() => {
         // Aviso 30 segundos antes
@@ -53,13 +65,11 @@ export default function AsesorLayout({ user, header, children }) {
                         <div className="flex">
                             {/* Logo */}
                             <div className="shrink-0 flex items-center">
-                                <Link href="/asesor/dashboard">
-                                    <div className="flex items-center">
-                                        <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg flex items-center justify-center">
-                                            <span className="text-white font-bold text-sm">AS</span>
-                                        </div>
-                                        <span className="ml-2 text-xl font-bold text-gray-900">Panel Asesor</span>
+                                <Link href="/asesor/dashboard" className="flex items-center hover:opacity-80 transition-opacity">
+                                    <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg flex items-center justify-center">
+                                        <span className="text-white font-bold text-sm">AS</span>
                                     </div>
+                                    <span className="ml-2 text-lg sm:text-xl font-bold text-gray-900">Panel Asesor</span>
                                 </Link>
                             </div>
 
@@ -148,7 +158,7 @@ export default function AsesorLayout({ user, header, children }) {
                             </button>
 
                             {/* Dropdown del Perfil */}
-                            <div className="ml-3 relative">
+                            <div className="ml-3 relative profile-dropdown-container">
                                 <div>
                                     <button
                                         type="button"
@@ -205,7 +215,8 @@ export default function AsesorLayout({ user, header, children }) {
                         <div className="-mr-2 flex items-center sm:hidden">
                             <button
                                 onClick={() => setShowingNavigationDropdown(!showingNavigationDropdown)}
-                                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
+                                className="inline-flex items-center justify-center p-3 rounded-lg text-gray-600 hover:text-green-600 hover:bg-green-50 focus:outline-none focus:bg-green-50 focus:text-green-600 transition duration-150 ease-in-out shadow-sm border border-gray-200"
+                                aria-label="Menú de navegación"
                             >
                                 <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                     <path
@@ -229,64 +240,108 @@ export default function AsesorLayout({ user, header, children }) {
                 </div>
 
                 {/* Navegación responsive */}
-                <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
+                <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden max-h-screen overflow-y-auto'}>
                     <div className="pt-2 pb-3 space-y-1">
                         <Link
-                            href="/asesor/dashboard"
-                            className="block pl-3 pr-4 py-2 border-l-4 border-green-500 text-base font-medium text-green-700 bg-green-50 focus:outline-none focus:text-green-800 focus:bg-green-100 focus:border-green-700 transition duration-150 ease-in-out"
-                        >
-                            Dashboard
-                        </Link>
-                        <Link
                             href="/asesor/clientes"
-                            className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out"
+                            className={`flex items-center pl-3 pr-4 py-3 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
+                                isActive('/asesor/clientes')
+                                    ? 'border-green-500 text-green-700 bg-green-50'
+                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300'
+                            }`}
                         >
+                            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
                             Mis Clientes
                         </Link>
                         <Link
                             href="/asesor/solicitudes"
-                            className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out"
+                            className={`flex items-center pl-3 pr-4 py-3 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
+                                isActive('/asesor/solicitudes')
+                                    ? 'border-green-500 text-green-700 bg-green-50'
+                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300'
+                            }`}
                         >
+                            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
                             Solicitudes
                         </Link>
                         <Link
                             href="/asesor/cotizaciones"
-                            className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out"
+                            className={`flex items-center pl-3 pr-4 py-3 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
+                                isActive('/asesor/cotizaciones')
+                                    ? 'border-green-500 text-green-700 bg-green-50'
+                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300'
+                            }`}
                         >
+                            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
                             Cotizaciones
                         </Link>
                         <Link
                             href="/asesor/reservas"
-                            className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out"
+                            className={`flex items-center pl-3 pr-4 py-3 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
+                                isActive('/asesor/reservas')
+                                    ? 'border-green-500 text-green-700 bg-green-50'
+                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300'
+                            }`}
                         >
+                            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
                             Reservas
                         </Link>
                         <Link
                             href="/asesor/ventas"
-                            className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out"
+                            className={`flex items-center pl-3 pr-4 py-3 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
+                                isActive('/asesor/ventas')
+                                    ? 'border-green-500 text-green-700 bg-green-50'
+                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300'
+                            }`}
                         >
+                            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
                             Mis Ventas
                         </Link>
                     </div>
 
                     {/* Usuario responsive */}
-                    <div className="pt-4 pb-1 border-t border-gray-200">
-                        <div className="px-4">
-                            <div className="font-medium text-base text-gray-800">{user.name}</div>
-                            <div className="font-medium text-sm text-gray-500">{user.email}</div>
+                    <div className="pt-4 pb-3 border-t border-gray-200 bg-gray-50">
+                        <div className="px-4 py-3 bg-white border-b border-gray-200">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0">
+                                    <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center">
+                                        <span className="text-white font-bold text-lg">{user.name?.charAt(0).toUpperCase()}</span>
+                                    </div>
+                                </div>
+                                <div className="ml-3">
+                                    <div className="font-medium text-base text-gray-800">{user.name}</div>
+                                    <div className="text-sm text-gray-500">{user.email}</div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="mt-3 space-y-1">
+                        <div className="mt-3 space-y-1 px-2">
                             <Link
                                 href="/asesor/perfil"
-                                className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:text-gray-800 focus:bg-gray-100 transition duration-150 ease-in-out"
+                                className="flex items-center px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 focus:outline-none focus:text-green-600 focus:bg-green-50 transition duration-150 ease-in-out"
                             >
+                                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
                                 Mi Perfil
                             </Link>
                             <button
                                 onClick={logout}
-                                className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:text-gray-800 focus:bg-gray-100 transition duration-150 ease-in-out"
+                                className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 focus:outline-none focus:text-red-700 focus:bg-red-50 transition duration-150 ease-in-out"
                             >
+                                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
                                 Cerrar Sesión
                             </button>
                         </div>

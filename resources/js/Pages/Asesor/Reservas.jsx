@@ -7,6 +7,7 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
     const [reservaSeleccionada, setReservaSeleccionada] = useState(null);
     const [mostrarModal, setMostrarModal] = useState(false);
     const [mostrarAlerta, setMostrarAlerta] = useState(!!flash.warning || !!flash.success || !!flash.error);
+    const [loadingAction, setLoadingAction] = useState(null);
 
     const filtrarReservas = () => {
         switch (filtro) {
@@ -33,40 +34,50 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
     };
 
     const confirmarReserva = (id) => {
+        if (!confirm('¿Estás seguro de confirmar esta reserva?\n\nUna vez confirmada, el cliente deberá proceder con el pago.')) {
+            return;
+        }
+
+        setLoadingAction(`confirmar-${id}`);
         router.patch(`/asesor/reservas/${id}/confirmar`, {}, {
             onSuccess: () => {
+                setLoadingAction(null);
                 router.reload({ only: ['reservas'] });
             },
             onError: (error) => {
+                setLoadingAction(null);
                 console.error('Error al confirmar reserva:', error);
-                alert('Error al confirmar la reserva. Por favor, intenta de nuevo.');
+                alert('❌ Error al confirmar la reserva.\n\nPor favor, verifica:\n- La reserva está en estado pendiente\n- Tienes permisos suficientes\n\nIntenta nuevamente.');
             }
         });
     };
 
     const cancelarReserva = (id) => {
         // Confirmar la acción con el usuario
-        const motivo = prompt('¿Por qué deseas cancelar esta reserva?\n(Este campo es obligatorio)');
+        const motivo = prompt('📝 Motivo de cancelación:\n\n¿Por qué deseas cancelar esta reserva?\n(Mínimo 10 caracteres)');
 
         if (!motivo || motivo.trim() === '') {
-            alert('Es necesario proporcionar un motivo para cancelar la reserva.');
+            alert('⚠️ Es necesario proporcionar un motivo para cancelar la reserva.');
             return;
         }
 
         if (motivo.trim().length < 10) {
-            alert('El motivo debe tener al menos 10 caracteres.');
+            alert('⚠️ El motivo debe tener al menos 10 caracteres.\nActualmente: ' + motivo.trim().length + ' caracteres');
             return;
         }
 
+        setLoadingAction(`cancelar-${id}`);
         router.patch(`/asesor/reservas/${id}/cancelar`, {
             motivo: motivo.trim()
         }, {
             onSuccess: () => {
+                setLoadingAction(null);
                 router.reload({ only: ['reservas'] });
             },
             onError: (error) => {
+                setLoadingAction(null);
                 console.error('Error al cancelar reserva:', error);
-                alert('Error al cancelar la reserva. Por favor, intenta de nuevo.');
+                alert(' Error al cancelar la reserva.\n\nDetalles: ' + (error.message || 'Error desconocido') + '\n\nPor favor, intenta de nuevo.');
             }
         });
     };
@@ -181,18 +192,18 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
 
                     {/* Header */}
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                        <div className="p-6">
-                            <div className="flex justify-between items-center">
+                        <div className="p-4 sm:p-6">
+                            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                                 <div>
-                                    <h1 className="text-2xl font-bold text-gray-900">
+                                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                                         Reservas
                                     </h1>
-                                    <p className="text-gray-600 mt-1">
+                                    <p className="text-gray-600 mt-1 text-sm">
                                         Gestiona las reservas de departamentos de tus clientes
                                     </p>
                                 </div>
-                                <div className="flex items-center space-x-4">
-                                    <div className="flex space-x-2">
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                                    <div className="flex flex-wrap gap-2">
                                         <button
                                             onClick={() => setFiltro('todas')}
                                             className={`px-4 py-2 rounded-lg text-sm font-medium ${
@@ -225,7 +236,7 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
                                         </button>
                                     </div>
                                     <Link
-                                        href="/asesor/reservas/crear"
+                                        href={route('asesor.reservas.crear')}
                                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
                                     >
                                         Nueva Reserva
@@ -236,7 +247,7 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
                     </div>
 
                     {/* Lista de reservas */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {filtrarReservas().map((reserva) => (
                             <div key={reserva.id} className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                                 <div className="p-6">
@@ -364,7 +375,7 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
                                     </p>
                                     <div className="mt-6">
                                         <Link
-                                            href="/asesor/reservas/crear"
+                                            href={route('asesor.reservas.crear')}
                                             className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                         >
                                             <svg className="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

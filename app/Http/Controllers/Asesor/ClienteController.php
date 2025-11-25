@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class ClienteController extends Controller
@@ -68,14 +69,28 @@ class ClienteController extends Controller
 
         // Crear usuario solo si proporcionó email
         $usuario = null;
+        $passwordTemporal = null;
         if ($validated['email']) {
+            // Generar password temporal aleatorio y seguro
+            $passwordTemporal = Str::random(10) . rand(100, 999);
+
             $usuario = User::create([
                 'name' => $validated['nombre'],
                 'email' => $validated['email'],
-                'password' => Hash::make('123456'), // Password temporal
+                'password' => Hash::make($passwordTemporal),
                 'role' => 'cliente',
                 'telefono' => $validated['telefono'],
                 'estado' => 'activo',
+            ]);
+
+            // TODO: Enviar email con la contraseña temporal al cliente
+            // Mail::to($usuario->email)->send(new WelcomeClient($passwordTemporal));
+
+            // Log para el asesor (en producción, esto debería enviarse por email al cliente)
+            \Log::info('Cliente creado con password temporal', [
+                'cliente_id' => $usuario->id,
+                'email' => $usuario->email,
+                'password_temporal' => $passwordTemporal // Solo para desarrollo
             ]);
         }
 

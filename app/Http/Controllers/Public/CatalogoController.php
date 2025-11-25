@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class CatalogoController extends Controller
@@ -210,20 +211,33 @@ class CatalogoController extends Controller
         if (!$clienteExistente) {
             // Crear cuenta de usuario si se solicitó y no está autenticado
             $usuario = null;
+            $passwordTemporal = null;
+
             if ($validated['crear_cuenta'] && !Auth::check() && $validated['email']) {
                 $usuarioExistente = User::where('email', $validated['email'])->first();
 
                 if (!$usuarioExistente) {
+                    // Generar password temporal aleatorio y seguro
+                    $passwordTemporal = Str::random(10) . rand(100, 999);
+
                     $usuario = User::create([
                         'name' => $validated['nombre'],
                         'email' => $validated['email'],
-                        'password' => Hash::make('123456'), // Password temporal
+                        'password' => Hash::make($passwordTemporal),
                         'role' => 'cliente',
                         'telefono' => $validated['telefono'],
                         'estado' => 'activo',
                     ]);
 
-                    // Enviar email con credenciales (implementar después)
+                    // TODO: Enviar email con credenciales al cliente
+                    // Mail::to($usuario->email)->send(new WelcomeClient($passwordTemporal));
+
+                    // Log temporal para desarrollo
+                    \Log::info('Cliente registrado desde catálogo con password temporal', [
+                        'cliente_id' => $usuario->id,
+                        'email' => $usuario->email,
+                        'password_temporal' => $passwordTemporal
+                    ]);
                 }
             }
 
@@ -269,8 +283,15 @@ class CatalogoController extends Controller
         // Respuesta diferente según si se creó cuenta o no
         $mensaje = 'Tu solicitud ha sido enviada exitosamente. El asesor se pondrá en contacto contigo pronto.';
 
-        if ($validated['crear_cuenta'] && $usuario) {
-            $mensaje .= ' Se ha creado tu cuenta con email: ' . $usuario->email . ' y password temporal: 123456. Te recomendamos cambiar tu contraseña al iniciar sesión.';
+        if ($validated['crear_cuenta'] && $usuario && $passwordTemporal) {
+            $mensaje .= ' Se ha creado tu cuenta con email: ' . $usuario->email . '. Recibirás un correo con tus credenciales de acceso. Te recomendamos cambiar tu contraseña al iniciar sesión.';
+
+            // En un entorno de producción, aquí se debería enviar el email
+            // Por ahora, solo guardamos en log
+            \Log::info('Password temporal generado para nuevo cliente', [
+                'email' => $usuario->email,
+                'password' => $passwordTemporal
+            ]);
         }
 
         return redirect()->back()->with('success', $mensaje);

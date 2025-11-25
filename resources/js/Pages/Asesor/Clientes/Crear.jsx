@@ -33,17 +33,30 @@ export default function CrearCliente({ auth }) {
         const maxBudget = 10000000; // S/ 10 millones
 
         if (data.presupuesto_min && parseFloat(data.presupuesto_min) > maxBudget) {
-            alert(`El presupuesto mínimo no puede exceder S/ 10,000,000 (diez millones de soles)\nValor actual: S/ ${parseFloat(data.presupuesto_min).toLocaleString('es-PE')}`);
+            alert(`⚠️ Presupuesto Mínimo Excedido\n\nEl presupuesto mínimo no puede exceder:\nS/ 10,000,000 (diez millones de soles)\n\nValor ingresado:\nS/ ${parseFloat(data.presupuesto_min).toLocaleString('es-PE', {minimumFractionDigits: 2})}\n\nPor favor, ajusta el monto.`);
             return;
         }
 
         if (data.presupuesto_max && parseFloat(data.presupuesto_max) > maxBudget) {
-            alert(`El presupuesto máximo no puede exceder S/ 10,000,000 (diez millones de soles)\nValor actual: S/ ${parseFloat(data.presupuesto_max).toLocaleString('es-PE')}`);
+            alert(`⚠️ Presupuesto Máximo Excedido\n\nEl presupuesto máximo no puede exceder:\nS/ 10,000,000 (diez millones de soles)\n\nValor ingresado:\nS/ ${parseFloat(data.presupuesto_max).toLocaleString('es-PE', {minimumFractionDigits: 2})}\n\nPor favor, ajusta el monto.`);
             return;
         }
 
         if (data.presupuesto_min && data.presupuesto_max && parseFloat(data.presupuesto_max) < parseFloat(data.presupuesto_min)) {
-            alert('El presupuesto máximo debe ser mayor o igual al presupuesto mínimo');
+            alert(`❌ Error en Presupuestos\n\nEl presupuesto máximo debe ser mayor o igual al mínimo:\n\n• Mínimo: S/ ${parseFloat(data.presupuesto_min).toLocaleString('es-PE', {minimumFractionDigits: 2})}\n• Máximo: S/ ${parseFloat(data.presupuesto_max).toLocaleString('es-PE', {minimumFractionDigits: 2})}\n\nPor favor, corrige los valores.`);
+            return;
+        }
+
+        // Validación de campos requeridos
+        if (!data.nombre || data.nombre.trim().length < 3) {
+            alert('⚠️ Campo Requerido\n\nEl nombre completo es obligatorio y debe tener al menos 3 caracteres.');
+            document.getElementById('nombre')?.focus();
+            return;
+        }
+
+        if (!data.telefono || data.telefono.trim().length < 9) {
+            alert('⚠️ Campo Requerido\n\nEl teléfono es obligatorio y debe tener al menos 9 dígitos.');
+            document.getElementById('telefono')?.focus();
             return;
         }
 
@@ -52,20 +65,44 @@ export default function CrearCliente({ auth }) {
                 preserveScroll: true,
                 onSuccess: () => {
                     reset();
+                    // Mostrar mensaje de éxito antes de redirigir
+                    alert('✅ ¡Cliente Registrado Exitosamente!\n\nEl cliente ha sido agregado a tu cartera.\nAhora puedes crear cotizaciones y gestionar su proceso de compra.');
                     window.location.href = window.location.origin + '/asesor/clientes';
                 },
                 onError: (errors) => {
+                    console.error('Errores de validación:', errors);
+
                     if (errors.response && errors.response.status === 419) {
-                        // Error de CSRF token
-                        console.error('Error de CSRF token. Recargando página...');
+                        alert('⚠️ Sesión Expirada\n\nTu sesión ha expirado por seguridad.\nLa página se recarga automáticamente.');
                         window.location.reload();
+                        return;
                     }
+
+                    // Construir mensaje de error detallado
+                    let errorMsg = '❌ Error al Registrar Cliente\n\n';
+                    if (typeof errors === 'object' && errors !== null) {
+                        const errorKeys = Object.keys(errors);
+                        if (errorKeys.length > 0) {
+                            errorMsg += 'Por favor, corrige los siguientes campos:\n\n';
+                            errorKeys.forEach(key => {
+                                errorMsg += `• ${key}: ${errors[key]}\n`;
+                            });
+                        } else {
+                            errorMsg += 'Verifica que todos los campos estén correctamente llenos.';
+                        }
+                    } else {
+                        errorMsg += 'Error desconocido. Por favor, intenta nuevamente.';
+                    }
+                    alert(errorMsg);
                 }
             });
         } catch (error) {
             console.error('Error al enviar formulario:', error);
             if (error.response && error.response.status === 419) {
+                alert('⚠️ Sesión Expirada\n\nPor seguridad, la página se recarga automáticamente.');
                 window.location.reload();
+            } else {
+                alert('❌ Error Inesperado\n\nOcurrió un error al procesar tu solicitud.\nPor favor, verifica tu conexión e intenta nuevamente.\n\nSi el problema persiste, contacta al administrador.');
             }
         }
     };
@@ -89,7 +126,7 @@ export default function CrearCliente({ auth }) {
                             </div>
                             <div className="mt-4 flex md:mt-0 md:ml-4">
                                 <Link
-                                    href="/asesor/clientes"
+                                    href={route('asesor.clientes.index')}
                                     className="ml-3 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 >
                                     ← Volver a Clientes
@@ -347,7 +384,7 @@ export default function CrearCliente({ auth }) {
                             {/* Botones */}
                             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
                                 <Link
-                                    href="/asesor/clientes"
+                                    href={route('asesor.clientes.index')}
                                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 >
                                     Cancelar
