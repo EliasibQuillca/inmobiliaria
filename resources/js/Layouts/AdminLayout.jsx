@@ -224,7 +224,8 @@ export default function AdminLayout({ user, auth, header, children }) {
                                             Mi Perfil
                                         </Link>
 
-                                        <Link
+                                        {/* Configuración - Ocultado temporalmente */}
+                                        {/* <Link
                                             href="/admin/configuracion"
                                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                             onClick={() => setShowProfileDropdown(false)}
@@ -234,7 +235,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
                                             Configuración
-                                        </Link>
+                                        </Link> */}
 
                                         <div className="border-t">
                                             <button
@@ -363,7 +364,8 @@ export default function AdminLayout({ user, auth, header, children }) {
                                 </svg>
                                 Mi Perfil
                             </Link>
-                            <Link
+                            {/* Configuración - Ocultado temporalmente */}
+                            {/* <Link
                                 href="/admin/configuracion"
                                 className="flex items-center px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:text-indigo-600 focus:bg-indigo-50 transition duration-150 ease-in-out"
                             >
@@ -372,7 +374,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 Configuración
-                            </Link>
+                            </Link> */}
                             <button
                                 onClick={logout}
                                 className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 focus:outline-none focus:text-red-700 focus:bg-red-50 transition duration-150 ease-in-out"

@@ -72,7 +72,7 @@ class PerfilController extends Controller
             'telefono' => $validated['telefono'],
         ]);
 
-        return back()->with('message', 'Perfil actualizado exitosamente');
+        return redirect()->route('admin.perfil.index')->with('message', '✅ Perfil actualizado exitosamente');
     }
 
     /**
@@ -104,6 +104,6 @@ class PerfilController extends Controller
             'password' => Hash::make($validated['password'])
         ]);
 
-        return back()->with('message', 'Contraseña actualizada exitosamente');
+        return redirect()->route('admin.perfil.index')->with('message', '🔒 Contraseña actualizada exitosamente');
     }
 }

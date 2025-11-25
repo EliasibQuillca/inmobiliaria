@@ -2,7 +2,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
-export default function AdminPerfil({ auth }) {
+export default function AdminPerfil({ auth, flash }) {
     const { csrf_token } = usePage().props;
 
     // Asegurar que el token CSRF esté disponible
@@ -113,12 +113,24 @@ export default function AdminPerfil({ auth }) {
             <Head title="Mi Perfil - Administrador" />
 
             <div className="py-12 bg-gray-50 min-h-screen">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Mensaje de éxito */}
+                    {flash?.message && (
+                        <div className="mb-6 rounded-lg bg-green-50 border border-green-200 p-4">
+                            <div className="flex items-center">
+                                <svg className="h-5 w-5 text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p className="text-sm font-medium text-green-800">{flash.message}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
 
                         {/* Información del perfil */}
                         <div className="lg:col-span-1">
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
                                 <div className="text-center">
                                     <div className="h-24 w-24 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center mx-auto mb-4">
                                         <span className="text-white font-bold text-2xl">
@@ -154,11 +166,11 @@ export default function AdminPerfil({ auth }) {
 
                             {/* Actualizar información del perfil */}
                             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                                <div className="px-6 py-4 border-b border-gray-200">
+                                <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
                                     <h3 className="text-lg font-semibold text-gray-900">Información Personal</h3>
                                     <p className="text-sm text-gray-600">Actualiza tu información básica</p>
                                 </div>
-                                <div className="p-6">
+                                <div className="p-4 sm:p-6">
                                     <form onSubmit={updateProfile} className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
@@ -255,11 +267,11 @@ export default function AdminPerfil({ auth }) {
 
                             {/* Cambiar contraseña */}
                             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                                <div className="px-6 py-4 border-b border-gray-200">
+                                <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
                                     <h3 className="text-lg font-semibold text-gray-900">Cambiar Contraseña</h3>
                                     <p className="text-sm text-gray-600">Actualiza tu contraseña para mantener tu cuenta segura</p>
                                 </div>
-                                <div className="p-6">
+                                <div className="p-4 sm:p-6">
                                     <form onSubmit={updatePassword} className="space-y-6">
                                         <div>
                                             <label htmlFor="current_password" className="block text-sm font-medium text-gray-700 mb-1">
@@ -318,45 +330,6 @@ export default function AdminPerfil({ auth }) {
                                             </button>
                                         </div>
                                     </form>
-                                </div>
-                            </div>
-
-                            {/* Configuración del sistema */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                                <div className="px-6 py-4 border-b border-gray-200">
-                                    <h3 className="text-lg font-semibold text-gray-900">Configuración del Sistema</h3>
-                                    <p className="text-sm text-gray-600">Configuraciones adicionales de administrador</p>
-                                </div>
-                                <div className="p-6">
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-900">Notificaciones por email</p>
-                                                <p className="text-sm text-gray-500">Recibir notificaciones de nuevas actividades</p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-indigo-600 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                            >
-                                                <span className="sr-only">Use setting</span>
-                                                <span className="translate-x-5 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-900">Modo oscuro</p>
-                                                <p className="text-sm text-gray-500">Cambiar el tema de la interfaz</p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                            >
-                                                <span className="sr-only">Use setting</span>
-                                                <span className="translate-x-0 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
-                                            </button>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
