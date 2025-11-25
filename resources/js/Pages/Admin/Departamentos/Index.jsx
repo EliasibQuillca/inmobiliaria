@@ -818,15 +818,37 @@ export default function Departamentos({ auth, departamentos, pagination, filters
         }).format(precio);
     };
 
-    // Exportar datos
+    // Exportar datos a PDF
     const exportarDatos = (formato) => {
-        const params = new URLSearchParams({
-            ...filtros,
-            formato: formato,
-            export: true
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/admin/departamentos/exportar-pdf';
+        form.style.display = 'none';
+
+        // Token CSRF
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+        }
+
+        // Filtros actuales
+        Object.keys(filtros).forEach(key => {
+            if (filtros[key]) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = filtros[key];
+                form.appendChild(input);
+            }
         });
 
-        window.open(`/admin/departamentos/exportar?${params.toString()}`, '_blank');
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     };
 
     // Obtener color del estado
@@ -908,10 +930,10 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                         </div>
                         <div className="flex space-x-3">
                             <button
-                                onClick={() => exportarDatos('excel')}
-                                className="px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                onClick={() => exportarDatos('pdf')}
+                                className="px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                             >
-                                📊 Exportar Excel
+                                📊 Exportar PDF
                             </button>
                             <button
                                 onClick={() => router.visit('/admin/departamentos/crear')}

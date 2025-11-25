@@ -125,53 +125,6 @@ export default function Reportes() {
         document.body.removeChild(form);
     };
 
-    // Función para exportar Excel - Método directo con formulario
-    const exportarExcel = () => {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/admin/reportes/exportar-excel';
-        form.style.display = 'none';
-
-        // Token CSRF
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (csrfToken) {
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = '_token';
-            csrfInput.value = csrfToken;
-            form.appendChild(csrfInput);
-        }
-
-        // Tipo de reporte
-        const tipoInput = document.createElement('input');
-        tipoInput.type = 'hidden';
-        tipoInput.name = 'tipo_reporte';
-        tipoInput.value = reporteActivo;
-        form.appendChild(tipoInput);
-
-        // Fecha inicio
-        if (fechaInicio) {
-            const inicioInput = document.createElement('input');
-            inicioInput.type = 'hidden';
-            inicioInput.name = 'fecha_inicio';
-            inicioInput.value = fechaInicio;
-            form.appendChild(inicioInput);
-        }
-
-        // Fecha fin
-        if (fechaFin) {
-            const finInput = document.createElement('input');
-            finInput.type = 'hidden';
-            finInput.name = 'fecha_fin';
-            finInput.value = fechaFin;
-            form.appendChild(finInput);
-        }
-
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-    };
-
     const renderReporteVentas = () => {
         if (!datosReporte) return null;
 
@@ -546,13 +499,6 @@ export default function Reportes() {
                                 disabled={cargando || !datosReporte}
                             >
                                 Exportar PDF
-                            </button>
-                            <button
-                                onClick={() => exportarExcel()}
-                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                disabled={cargando || !datosReporte}
-                            >
-                                Exportar Excel
                             </button>
                         </div>
                     </div>

@@ -26,6 +26,9 @@ export default function AdminLayout({ user, auth, header, children }) {
     // Función para verificar si la ruta está activa
     const route = () => ({
         current: (name) => {
+            if (name === 'admin.dashboard') {
+                return url === '/admin/dashboard' || url === '/admin';
+            }
             if (name === 'admin.usuarios.*') {
                 return url.startsWith('/admin/usuarios');
             }
@@ -42,20 +45,67 @@ export default function AdminLayout({ user, auth, header, children }) {
         }
     });
 
+    // Cerrar dropdown al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showProfileDropdown && !event.target.closest('.profile-dropdown-container')) {
+                setShowProfileDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showProfileDropdown]);
+
+    // Generar breadcrumbs basado en la URL
+    const getBreadcrumbs = () => {
+        const segments = url.split('/').filter(Boolean);
+        const breadcrumbs = [];
+
+        if (segments[0] === 'admin') {
+            breadcrumbs.push({ name: 'Dashboard', href: '/admin/dashboard' });
+
+            if (segments[1]) {
+                const sectionNames = {
+                    'usuarios': 'Usuarios',
+                    'departamentos': 'Propiedades',
+                    'ventas': 'Ventas',
+                    'reportes': 'Reportes',
+                    'perfil': 'Mi Perfil',
+                    'configuracion': 'Configuración',
+                    'actividades': 'Actividades'
+                };
+
+                const sectionName = sectionNames[segments[1]] || segments[1];
+                breadcrumbs.push({ name: sectionName, href: `/admin/${segments[1]}` });
+
+                if (segments[2] === 'crear') {
+                    breadcrumbs.push({ name: 'Crear', href: null });
+                } else if (segments[2] && segments[2] !== 'index') {
+                    breadcrumbs.push({ name: 'Detalle', href: null });
+                }
+            }
+        }
+
+        return breadcrumbs;
+    };
+
+    const breadcrumbs = getBreadcrumbs();
+
     const logout = () => {
         router.post("/logout");
     };
 
-    // Temporizador de cierre de sesión automático para admin (5 minutos)
+    // Temporizador de cierre de sesión automático para admin (15 minutos)
     useEffect(() => {
-        // Aviso 30 segundos antes
+        // Aviso 1 minuto antes
         const warningTimer = setTimeout(() => {
             setShowTimeoutWarning(true);
-        }, 270000); // 4.5 minutos
+        }, 840000); // 14 minutos
         // Logout real
         const timer = setTimeout(() => {
             logout();
-        }, 300000); // 5 minutos
+        }, 900000); // 15 minutos
         return () => {
             clearTimeout(timer);
             clearTimeout(warningTimer);
@@ -69,7 +119,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
                     <div className="bg-white rounded-lg shadow-lg p-6 text-center">
                         <h2 className="text-lg font-bold mb-2">Sesión por expirar</h2>
-                        <p className="mb-4">Por seguridad, tu sesión se cerrará en 30 segundos por inactividad.</p>
+                        <p className="mb-4">Por seguridad, tu sesión se cerrará en 1 minuto por inactividad.</p>
                         <button className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => { setShowTimeoutWarning(false); window.location.reload(); }}>Seguir conectado</button>
                     </div>
                 </div>
@@ -92,6 +142,16 @@ export default function AdminLayout({ user, auth, header, children }) {
 
                             {/* Navegación Principal */}
                             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                                <NavLink
+                                    href="/admin/dashboard"
+                                    active={route().current('admin.dashboard')}
+                                >
+                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                    </svg>
+                                    Dashboard
+                                </NavLink>
+
                                 <NavLink
                                     href="/admin/usuarios"
                                     active={route().current('admin.usuarios.*')}
@@ -137,7 +197,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                         {/* Configuraciones del Usuario */}
                         <div className="hidden sm:flex sm:items-center sm:ml-6">
                             {/* Dropdown del Perfil */}
-                            <div className="relative">
+                            <div className="relative profile-dropdown-container">
                                 <div>
                                     <button
                                         type="button"
@@ -146,8 +206,8 @@ export default function AdminLayout({ user, auth, header, children }) {
                                     >
                                         <span className="sr-only">Abrir menú de usuario</span>
                                         <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center">
-                                            <span className="text-white font-medium text-sm">
-                                                {currentUser?.name?.charAt(0).toUpperCase()}
+                                            <span className="text-white font-bold text-sm">
+                                                A
                                             </span>
                                         </div>
                                     </button>
@@ -233,6 +293,16 @@ export default function AdminLayout({ user, auth, header, children }) {
                 <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
                     <div className="pt-2 pb-3 space-y-1">
                         <Link
+                            href="/admin/dashboard"
+                            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
+                                url === '/admin/dashboard' || url === '/admin'
+                                    ? 'border-indigo-500 text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700'
+                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
+                            }`}
+                        >
+                            Dashboard
+                        </Link>
+                        <Link
                             href="/admin/usuarios"
                             className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
                                 url.startsWith('/admin/usuarios')
@@ -298,6 +368,37 @@ export default function AdminLayout({ user, auth, header, children }) {
                     </div>
                 </div>
             </nav>
+
+            {/* Breadcrumbs */}
+            {breadcrumbs.length > 1 && (
+                <div className="bg-white border-b">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <nav className="flex py-3 text-sm" aria-label="Breadcrumb">
+                            <ol className="inline-flex items-center space-x-1 md:space-x-3">
+                                {breadcrumbs.map((crumb, index) => (
+                                    <li key={index} className="inline-flex items-center">
+                                        {index > 0 && (
+                                            <svg className="w-3 h-3 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                        )}
+                                        {crumb.href ? (
+                                            <Link
+                                                href={crumb.href}
+                                                className="inline-flex items-center text-gray-700 hover:text-indigo-600 transition-colors"
+                                            >
+                                                {crumb.name}
+                                            </Link>
+                                        ) : (
+                                            <span className="text-gray-500">{crumb.name}</span>
+                                        )}
+                                    </li>
+                                ))}
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            )}
 
             {/* Encabezado de la página */}
             {header && (

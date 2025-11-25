@@ -155,27 +155,14 @@ class DepartamentoController extends Controller
 
     /**
      * Mostrar el formulario de edición de un departamento
+     * Redirige al index ya que la edición se hace mediante modal
      */
     public function edit($id)
     {
-        try {
-            $response = $this->apiController->show($id);
-            $data = json_decode($response->getContent(), true);
-
-            if ($response->getStatusCode() === 200) {
-                // Obtener lista de propietarios para el formulario
-                $propietarios = \App\Models\Propietario::all();
-
-                return Inertia::render('Admin/EditarDepartamento', [
-                    'departamento' => $data['data'],
-                    'propietarios' => $propietarios
-                ]);
-            } else {
-                return redirect()->route('admin.departamentos')->with('error', 'Departamento no encontrado');
-            }
-        } catch (\Exception $e) {
-            return redirect()->route('admin.departamentos')->with('error', 'Error al cargar departamento');
-        }
+        // Redirigir al index con el departamento seleccionado
+        // La edición se realiza mediante el modal en Index.jsx
+        return redirect()->route('admin.departamentos.index')
+            ->with('info', 'Use el botón de edición en la tabla para modificar el departamento');
     }
 
     /**
@@ -209,22 +196,26 @@ class DepartamentoController extends Controller
             if ($response->getStatusCode() === 200) {
                 Log::info('Departamento actualizado correctamente', ['id' => $departamento]);
 
-                // Si hay imágenes nuevas, procesarlas
-                if ($request->hasFile('imagenes')) {
-                    $this->subirImagenes($request, $departamento);
-                }
+                // Procesar imágenes individuales si existen
+                $imagenesSubidas = $this->procesarImagenesIndividuales($request, $departamento);
 
                 // Para solicitudes AJAX/API
                 if ($request->expectsJson()) {
                     return response()->json([
                         'message' => 'Departamento actualizado correctamente',
-                        'data' => $data['data'] ?? null
+                        'data' => $data['data'] ?? null,
+                        'imagenes' => $imagenesSubidas
                     ]);
                 }
 
                 // Para solicitudes web normales
-                session()->flash('success', 'Departamento actualizado correctamente');
-                return redirect()->route('admin.departamentos.edit', $departamento);
+                $mensaje = 'Departamento actualizado correctamente';
+                if (count($imagenesSubidas) > 0) {
+                    $mensaje .= '. ' . count($imagenesSubidas) . ' imagen(es) subida(s).';
+                }
+
+                return redirect()->route('admin.departamentos.index')
+                    ->with('success', $mensaje);
             }
 
             if ($response->getStatusCode() === 422) {
@@ -569,5 +560,148 @@ class DepartamentoController extends Controller
             ]);
             return redirect()->back()->with('error', 'Error al exportar departamentos: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Exportar departamentos a PDF
+     */
+    public function exportarPdf(Request $request)
+    {
+        try {
+            // Aplicar filtros si existen
+            $response = $this->apiController->admin($request);
+            $data = json_decode($response->getContent(), true);
+
+            if ($response->getStatusCode() === 200) {
+                $departamentos = $data['data'] ?? [];
+
+                // Si no hay datos, usar datos demo
+                if (empty($departamentos)) {
+                    $departamentos = [
+                        [
+                            'codigo' => 'DEMO-001',
+                            'titulo' => 'Departamento Premium Vista Mar',
+                            'ubicacion' => 'San Isidro, Lima',
+                            'precio' => 250000,
+                            'habitaciones' => 3,
+                            'banos' => 2,
+                            'area' => 120,
+                            'estado' => 'disponible',
+                            'destacado' => true,
+                            'propietario' => ['nombre' => 'Juan Pérez'],
+                        ],
+                        [
+                            'codigo' => 'DEMO-002',
+                            'titulo' => 'Departamento Moderno Centro',
+                            'ubicacion' => 'Miraflores, Lima',
+                            'precio' => 180000,
+                            'habitaciones' => 2,
+                            'banos' => 1,
+                            'area' => 85,
+                            'estado' => 'disponible',
+                            'destacado' => false,
+                            'propietario' => ['nombre' => 'María García'],
+                        ],
+                    ];
+                }
+
+                // Preparar datos para la vista
+                $datosVista = [
+                    'fecha_generacion' => \Carbon\Carbon::now()->format('d/m/Y H:i'),
+                    'departamentos' => $departamentos,
+                    'filtros' => $request->only(['busqueda', 'estado', 'ubicacion', 'destacado']),
+                    'total' => count($departamentos),
+                ];
+
+                // Generar PDF
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('departamentos.pdf-template', $datosVista);
+                $pdf->setPaper('A4', 'landscape');
+
+                $filename = "propiedades_" . date('Y-m-d_His') . ".pdf";
+
+                return $pdf->download($filename);
+
+            } else {
+                return redirect()->back()->with('error', 'Error al obtener los datos');
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error al exportar PDF de departamentos', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Error al generar el archivo PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Procesar imágenes individuales del formulario de edición
+     */
+    private function procesarImagenesIndividuales(Request $request, $departamentoId)
+    {
+        $imagenesSubidas = [];
+
+        try {
+            // Lista de campos de imagen
+            $camposImagen = [
+                'imagen_principal',
+                'imagen_galeria_1',
+                'imagen_galeria_2',
+                'imagen_galeria_3',
+                'imagen_galeria_4',
+                'imagen_galeria_5'
+            ];
+
+            foreach ($camposImagen as $index => $campo) {
+                if ($request->hasFile($campo)) {
+                    $archivo = $request->file($campo);
+
+                    // Validar archivo
+                    if (!$archivo->isValid()) {
+                        continue;
+                    }
+
+                    // Generar nombre único
+                    $nombreArchivo = time() . '_' . $index . '.' . $archivo->getClientOriginalExtension();
+
+                    // Guardar en storage/app/public/departamentos
+                    $ruta = $archivo->storeAs('public/departamentos', $nombreArchivo);
+
+                    // Determinar si es imagen principal
+                    $esPrincipal = ($campo === 'imagen_principal');
+
+                    // Si es principal, desmarcar otras como principales
+                    if ($esPrincipal) {
+                        \App\Models\Imagen::where('departamento_id', $departamentoId)
+                            ->update(['es_principal' => false]);
+                    }
+
+                    // Crear o actualizar registro en base de datos
+                    $imagen = \App\Models\Imagen::create([
+                        'departamento_id' => $departamentoId,
+                        'ruta' => str_replace('public/', 'storage/', $ruta),
+                        'nombre' => $archivo->getClientOriginalName(),
+                        'es_principal' => $esPrincipal,
+                        'orden' => $index
+                    ]);
+
+                    $imagenesSubidas[] = $imagen;
+
+                    Log::info('Imagen subida', [
+                        'departamento_id' => $departamentoId,
+                        'campo' => $campo,
+                        'ruta' => $imagen->ruta
+                    ]);
+                }
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error al procesar imágenes individuales', [
+                'departamento_id' => $departamentoId,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return $imagenesSubidas;
     }
 }

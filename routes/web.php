@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\ReporteController as AdminReporteController;
 use App\Http\Controllers\Admin\PerfilController as AdminPerfilController;
 use App\Http\Controllers\Admin\ActividadController as AdminActividadController;
+use App\Http\Controllers\Admin\ConfiguracionController as AdminConfiguracionController;
 use App\Http\Controllers\Asesor\ConfiguracionController as AsesorConfiguracionController;
 use App\Http\Controllers\Asesor\DashboardController as AsesorDashboardController;
 use App\Http\Controllers\Asesor\ClienteController as AsesorClienteController;
@@ -133,6 +134,9 @@ Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->na
         Route::post('/{id}/imagenes', [AdminDepartamentoController::class, 'subirImagenes'])->name('subir-imagenes');
         Route::delete('/{id}/imagenes/{imagen}', [AdminDepartamentoController::class, 'eliminarImagen'])->name('eliminar-imagen');
         Route::put('/{id}/imagenes/{imagen}/orden', [AdminDepartamentoController::class, 'cambiarOrdenImagen'])->name('cambiar-orden-imagen');
+
+        // Exportar a PDF
+        Route::post('/exportar-pdf', [AdminDepartamentoController::class, 'exportarPdf'])->name('exportar-pdf');
     });
 
     // Rutas para usuarios
@@ -166,6 +170,10 @@ Route::middleware(['auth', 'active', 'role:administrador'])->prefix('admin')->na
 
     // Rutas para actividades/auditoría
     Route::get('/actividades', [AdminActividadController::class, 'index'])->name('actividades.index');
+
+    // Configuración del sistema
+    Route::get('/configuracion', [AdminConfiguracionController::class, 'index'])->name('configuracion.index');
+    Route::patch('/configuracion', [AdminConfiguracionController::class, 'update'])->name('configuracion.update');
 
     // Otras rutas de administrador...
 });
