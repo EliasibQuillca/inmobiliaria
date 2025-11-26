@@ -76,10 +76,19 @@ class CotizacionController extends Controller
             $clienteSeleccionado = $solicitudSeleccionada->cliente;
         }
 
-        // Obtener solo clientes del asesor actual
-        $clientes = Cliente::where('asesor_id', $asesor->id)
-            ->orderBy('nombre')
-            ->get();
+        // Obtener solo clientes del asesor actual con sus datos completos
+        $clientes = Cliente::with('usuario')
+            ->where('asesor_id', $asesor->id)
+            ->get()
+            ->map(function($cliente) {
+                return [
+                    'id' => $cliente->id,
+                    'nombre' => $cliente->nombre_completo, // Usa el accessor
+                    'dni' => $cliente->dni,
+                    'telefono' => $cliente->telefono,
+                    'email' => $cliente->email_completo, // Usa el accessor
+                ];
+            });
 
         // Obtener departamentos disponibles
         $departamentosQuery = Departamento::where('estado', 'disponible');

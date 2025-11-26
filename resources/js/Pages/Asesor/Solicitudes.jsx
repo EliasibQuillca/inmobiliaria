@@ -7,6 +7,7 @@ export default function Solicitudes({
     auth,
     solicitudes = [],
     solicitudesPendientes = [],
+    solicitudesEnProceso = [],
     solicitudesAprobadas = [],
     solicitudesRechazadas = [],
     clientesNuevos = [],
@@ -251,6 +252,29 @@ export default function Solicitudes({
                                 </div>
                             </div>
 
+                            {/* En Proceso */}
+                            <div className="bg-white overflow-hidden shadow rounded-lg">
+                                <div className="p-5">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt className="text-sm font-medium text-gray-500 truncate">
+                                                    En Proceso
+                                                </dt>
+                                                <dd className="text-lg font-medium text-blue-600">
+                                                    {estadisticas.en_proceso || 0}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Aprobadas */}
                             <div className="bg-white overflow-hidden shadow rounded-lg">
                                 <div className="p-5">
@@ -292,6 +316,21 @@ export default function Solicitudes({
                                     {solicitudesPendientes.length > 0 && (
                                         <span className="ml-2 bg-yellow-100 text-yellow-800 py-0.5 px-2.5 rounded-full text-xs font-medium">
                                             {solicitudesPendientes.length}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('en_proceso')}
+                                    className={`${
+                                        activeTab === 'en_proceso'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                                >
+                                    En Proceso
+                                    {solicitudesEnProceso.length > 0 && (
+                                        <span className="ml-2 bg-blue-100 text-blue-800 py-0.5 px-2.5 rounded-full text-xs font-medium">
+                                            {solicitudesEnProceso.length}
                                         </span>
                                     )}
                                 </button>
@@ -350,6 +389,7 @@ export default function Solicitudes({
                             <div className="px-4 py-5 sm:p-6">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
                                     {activeTab === 'pendientes' && `Solicitudes Pendientes (${solicitudesPendientes.length})`}
+                                    {activeTab === 'en_proceso' && `Solicitudes En Proceso (${solicitudesEnProceso.length})`}
                                     {activeTab === 'aprobadas' && `Solicitudes Aprobadas (${solicitudesAprobadas.length})`}
                                     {activeTab === 'rechazadas' && `Solicitudes Rechazadas (${solicitudesRechazadas.length})`}
                                 </h3>
@@ -357,6 +397,7 @@ export default function Solicitudes({
                                 {(() => {
                                     let solicitudesFiltradas = [];
                                     if (activeTab === 'pendientes') solicitudesFiltradas = solicitudesPendientes;
+                                    else if (activeTab === 'en_proceso') solicitudesFiltradas = solicitudesEnProceso;
                                     else if (activeTab === 'aprobadas') solicitudesFiltradas = solicitudesAprobadas;
                                     else if (activeTab === 'rechazadas') solicitudesFiltradas = solicitudesRechazadas;
 
@@ -397,10 +438,12 @@ export default function Solicitudes({
                                                                     {solicitud.estado}
                                                                 </span>
                                                             </div>
-                                                            {solicitud.mensaje && (
-                                                                <p className="mt-2 text-sm text-gray-600 ml-14">
-                                                                    💬 {solicitud.mensaje}
-                                                                </p>
+                                                            {(solicitud.mensaje_solicitud || solicitud.mensaje) && (
+                                                                <div className="mt-2 ml-14 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
+                                                                    <p className="text-sm text-gray-700 whitespace-pre-line">
+                                                                        {solicitud.mensaje_solicitud || solicitud.mensaje}
+                                                                    </p>
+                                                                </div>
                                                             )}
                                                         </div>
                                                         <div className="ml-4 flex flex-wrap gap-2">

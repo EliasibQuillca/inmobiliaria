@@ -146,9 +146,20 @@ class SolicitudController extends Controller
         if (!$cliente) {
             $cliente = Cliente::create([
                 'usuario_id' => $user->id,
+                'nombre' => $user->name,
+                'email' => $user->email,
+                'telefono' => $validated['telefono'],
                 'dni' => '00000000', // DNI temporal
                 'direccion' => 'Por actualizar', // Dirección temporal
+                'fecha_registro' => now(),
             ]);
+        } else {
+            // Actualizar teléfono si no tiene o si cambió
+            if (!$cliente->telefono || $cliente->telefono !== $validated['telefono']) {
+                $cliente->update([
+                    'telefono' => $validated['telefono']
+                ]);
+            }
         }
 
         // Generar mensaje automático según tipo de consulta
@@ -187,6 +198,20 @@ class SolicitudController extends Controller
             ])->withInput();
         }
 
+        // 🔥 ASIGNAR el asesor al cliente automáticamente cuando envía su primera solicitud
+        if (!$cliente->asesor_id) {
+            $cliente->update([
+                'asesor_id' => $asesor->id,
+                'estado' => 'interesado', // Cliente ahora está interesado
+            ]);
+            
+            Log::info('Cliente asignado automáticamente a asesor por solicitud', [
+                'cliente_id' => $cliente->id,
+                'asesor_id' => $asesor->id,
+                'departamento_id' => $validated['departamento_id']
+            ]);
+        }
+
         // Crear la solicitud con asesor asignado automáticamente
         $solicitud = Cotizacion::create([
             'cliente_id' => $cliente->id,
@@ -194,6 +219,7 @@ class SolicitudController extends Controller
             'asesor_id' => $asesor->id,
             'tipo_solicitud' => $validated['tipo_consulta'],
             'mensaje_solicitud' => $mensajeAutomatico,
+            'telefono_contacto' => $validated['telefono'], // Guardar teléfono de contacto
             'monto' => 0, // Se calculará después
             'estado' => 'pendiente',
             'fecha_validez' => now()->addDays(30), // Válida por 30 días

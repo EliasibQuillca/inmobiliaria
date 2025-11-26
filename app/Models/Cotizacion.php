@@ -175,6 +175,11 @@ class Cotizacion extends Model
         return $this->update(['estado' => 'completada']);
     }
 
+    public function marcarReservada()
+    {
+        return $this->update(['estado' => 'reservada']);
+    }
+
     public function tieneReserva(): bool
     {
         return !is_null($this->reserva);

@@ -40,10 +40,49 @@ class SolicitudController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // 🔥 NUEVO: Obtener COTIZACIONES que actúan como solicitudes de clientes
+        $cotizacionesSolicitudes = Cotizacion::with([
+            'cliente.usuario',
+            'departamento.imagenes' => function ($q) {
+                $q->where('activa', true)->orderBy('orden')->limit(1);
+            },
+            'departamento.atributos',
+            'asesor.usuario'
+        ])
+            ->where('asesor_id', $asesor->id)
+            ->whereIn('estado', ['pendiente', 'en_proceso', 'aceptada', 'rechazada'])
+            ->whereNotNull('tipo_solicitud') // Solo las que son solicitudes de clientes
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($cot) {
+                // Mapear cotizaciones al formato de solicitudes para compatibilidad con el frontend
+                return [
+                    'id' => $cot->id,
+                    'cliente' => $cot->cliente,
+                    'departamento' => $cot->departamento,
+                    'asesor' => $cot->asesor,
+                    'tipo_consulta' => $cot->tipo_solicitud,
+                    'mensaje_solicitud' => $cot->mensaje_solicitud,
+                    'telefono' => $cot->telefono_contacto,
+                    'estado' => $cot->estado,
+                    'notas_asesor' => $cot->notas,
+                    'created_at' => $cot->created_at,
+                    'updated_at' => $cot->updated_at,
+                    'es_cotizacion' => true, // Flag para identificar
+                    'monto' => $cot->monto,
+                    'descuento' => $cot->descuento,
+                    'fecha_validez' => $cot->fecha_validez,
+                ];
+            });
+
+        // Combinar solicitudes y cotizaciones
+        $todasLasSolicitudes = $solicitudes->concat($cotizacionesSolicitudes)->sortByDesc('created_at')->values();
+
         // Agrupar por estado
-        $solicitudesPendientes = $solicitudes->where('estado', 'pendiente')->values();
-        $solicitudesAprobadas = $solicitudes->where('estado', 'aprobada')->values();
-        $solicitudesRechazadas = $solicitudes->where('estado', 'rechazada')->values();
+        $solicitudesPendientes = $todasLasSolicitudes->where('estado', 'pendiente')->values();
+        $solicitudesAprobadas = $todasLasSolicitudes->where('estado', 'aprobada')->values();
+        $solicitudesRechazadas = $todasLasSolicitudes->where('estado', 'rechazada')->values();
+        $solicitudesEnProceso = $todasLasSolicitudes->where('estado', 'en_proceso')->values();
 
         // Clientes sin solicitudes (nuevos)
         $clientesNuevos = Cliente::with(['usuario', 'departamentoInteres'])
@@ -64,16 +103,18 @@ class SolicitudController extends Controller
 
         // Estadísticas adicionales
         $estadisticas = [
-            'total_solicitudes' => $solicitudes->count(),
+            'total_solicitudes' => $todasLasSolicitudes->count(),
             'pendientes' => $solicitudesPendientes->count(),
+            'en_proceso' => $solicitudesEnProceso->count(),
             'aprobadas' => $solicitudesAprobadas->count(),
             'rechazadas' => $solicitudesRechazadas->count(),
             'clientes_nuevos' => $clientesNuevos->count(),
         ];
 
         return Inertia::render('Asesor/Solicitudes', [
-            'solicitudes' => $solicitudes,
+            'solicitudes' => $todasLasSolicitudes,
             'solicitudesPendientes' => $solicitudesPendientes,
+            'solicitudesEnProceso' => $solicitudesEnProceso,
             'solicitudesAprobadas' => $solicitudesAprobadas,
             'solicitudesRechazadas' => $solicitudesRechazadas,
             'clientesNuevos' => $clientesNuevos,
@@ -139,7 +180,7 @@ class SolicitudController extends Controller
     }
 
     /**
-     * Actualizar estado de una solicitud
+     * Actualizar estado de una solicitud (busca en ambas tablas: solicitudes y cotizaciones)
      */
     public function actualizarEstado(Request $request, $solicitudId)
     {
@@ -149,25 +190,55 @@ class SolicitudController extends Controller
         }
 
         $validated = $request->validate([
-            'estado' => 'required|in:pendiente,aprobada,rechazada,finalizada',
+            'estado' => 'required|in:pendiente,en_proceso,aprobada,aceptada,rechazada,finalizada',
             'notas' => 'nullable|string|max:1000',
             'motivo_rechazo' => 'nullable|string|max:1000',
         ]);
 
-        $solicitud = Solicitud::where('asesor_id', $asesor->id)
+        // 🔥 Buscar primero en cotizaciones (solicitudes de clientes)
+        $solicitud = Cotizacion::where('asesor_id', $asesor->id)
             ->with(['cliente', 'departamento'])
-            ->findOrFail($solicitudId);
+            ->find($solicitudId);
 
-        // Actualizar campos según el estado
-        $updateData = [
-            'estado' => $validated['estado'],
-            'notas_asesor' => $validated['notas'] ?? $solicitud->notas_asesor,
-        ];
+        // Si no existe en cotizaciones, buscar en solicitudes
+        if (!$solicitud) {
+            $solicitud = Solicitud::where('asesor_id', $asesor->id)
+                ->with(['cliente', 'departamento'])
+                ->findOrFail($solicitudId);
+            
+            $esSolicitudTabla = true;
+        } else {
+            $esSolicitudTabla = false;
+        }
 
-        if ($validated['estado'] === 'aprobada') {
-            $updateData['fecha_aprobacion'] = now();
+        // Actualizar campos según el estado y el tipo (solicitud o cotización)
+        if ($esSolicitudTabla) {
+            // Tabla solicitudes
+            $updateData = [
+                'estado' => $validated['estado'],
+                'notas_asesor' => $validated['notas'] ?? $solicitud->notas_asesor,
+            ];
 
-            // IMPORTANTE: Asignar el cliente al asesor automáticamente
+            if ($validated['estado'] === 'aprobada') {
+                $updateData['fecha_aprobacion'] = now();
+            } elseif ($validated['estado'] === 'rechazada') {
+                $updateData['fecha_rechazo'] = now();
+                $updateData['motivo_rechazo'] = $validated['motivo_rechazo'] ?? null;
+            }
+        } else {
+            // Tabla cotizaciones
+            $updateData = [
+                'estado' => $validated['estado'],
+                'notas' => $validated['notas'] ?? $solicitud->notas,
+            ];
+
+            if ($validated['estado'] === 'rechazada') {
+                $updateData['motivo_rechazo_cliente'] = $validated['motivo_rechazo'] ?? null;
+            }
+        }
+
+        // IMPORTANTE: Asignar el cliente al asesor automáticamente si acepta
+        if (in_array($validated['estado'], ['aprobada', 'aceptada', 'en_proceso'])) {
             if ($solicitud->cliente && !$solicitud->cliente->asesor_id) {
                 $solicitud->cliente->update([
                     'asesor_id' => $asesor->id,
@@ -179,9 +250,6 @@ class SolicitudController extends Controller
                     'asesor_id' => $asesor->id
                 ]);
             }
-        } elseif ($validated['estado'] === 'rechazada') {
-            $updateData['fecha_rechazo'] = now();
-            $updateData['motivo_rechazo'] = $validated['motivo_rechazo'] ?? null;
         }
 
         $solicitud->update($updateData);
@@ -216,27 +284,55 @@ class SolicitudController extends Controller
             'condiciones' => 'nullable|string|max:2000',
         ]);
 
+        // Buscar la solicitud (puede estar en cotizaciones o solicitudes)
         $solicitud = Cotizacion::where('asesor_id', $asesor->id)
             ->with(['cliente', 'departamento'])
-            ->findOrFail($solicitudId);
+            ->find($solicitudId);
 
-        // Calcular monto final con descuento
-        $montoFinal = $validated['monto'];
-        if (!empty($validated['descuento'])) {
-            $descuentoMonto = ($validated['monto'] * $validated['descuento']) / 100;
-            $montoFinal = $validated['monto'] - $descuentoMonto;
+        // Si no existe en cotizaciones, buscar en solicitudes
+        if (!$solicitud) {
+            $solicitudOriginal = Solicitud::where('asesor_id', $asesor->id)
+                ->with(['cliente', 'departamento'])
+                ->findOrFail($solicitudId);
+            
+            // Crear una cotización basada en la solicitud
+            $solicitud = Cotizacion::create([
+                'asesor_id' => $asesor->id,
+                'cliente_id' => $solicitudOriginal->cliente_id,
+                'departamento_id' => $solicitudOriginal->departamento_id,
+                'tipo_solicitud' => $solicitudOriginal->tipo_consulta,
+                'mensaje_solicitud' => $solicitudOriginal->mensaje_solicitud,
+                'telefono_contacto' => $solicitudOriginal->telefono,
+                'estado' => 'en_proceso',
+                'monto' => $validated['monto'],
+                'descuento' => $validated['descuento'] ?? 0,
+                'fecha' => now(),
+                'fecha_validez' => $validated['fecha_validez'] ?? now()->addDays(15),
+                'notas' => $validated['notas'] ?? null,
+                'condiciones' => $validated['condiciones'] ?? 'Sujeto a disponibilidad y aprobación crediticia.',
+            ]);
+
+            // Actualizar estado de la solicitud original
+            $solicitudOriginal->update(['estado' => 'aprobada']);
+        } else {
+            // Actualizar la cotización existente con la respuesta del asesor
+            $solicitud->update([
+                'estado' => 'en_proceso',
+                'monto' => $validated['monto'],
+                'descuento' => $validated['descuento'] ?? 0,
+                'fecha' => now(),
+                'fecha_validez' => $validated['fecha_validez'] ?? now()->addDays(15),
+                'notas' => $validated['notas'] ?? null,
+                'condiciones' => $validated['condiciones'] ?? 'Sujeto a disponibilidad y aprobación crediticia.',
+            ]);
         }
 
-        // Actualizar la cotización con la respuesta del asesor
-        $solicitud->update([
-            'estado' => 'en_proceso',
-            'monto' => $validated['monto'],
-            'descuento' => $validated['descuento'] ?? 0,
-            'fecha' => now(),
-            'fecha_validez' => $validated['fecha_validez'] ?? now()->addDays(15),
-            'notas' => $validated['notas'] ?? null,
-            'condiciones' => $validated['condiciones'] ?? 'Sujeto a disponibilidad y aprobación crediticia.',
-        ]);
+        // Calcular monto final con descuento para el mensaje
+        $montoFinal = $solicitud->monto;
+        if (!empty($solicitud->descuento)) {
+            $descuentoMonto = ($solicitud->monto * $solicitud->descuento) / 100;
+            $montoFinal = $solicitud->monto - $descuentoMonto;
+        }
 
         // TODO: Enviar notificación al cliente (email/SMS)
 
@@ -247,7 +343,7 @@ class SolicitudController extends Controller
             'descuento' => $validated['descuento'] ?? 0,
         ]);
 
-        return redirect()->back()
+        return redirect()->route('asesor.solicitudes')
             ->with('success', "Respuesta enviada a {$solicitud->cliente->nombre}. Monto: S/ " . number_format($montoFinal, 2));
     }
 

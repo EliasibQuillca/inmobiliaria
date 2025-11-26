@@ -234,15 +234,15 @@ Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('as
     Route::patch('/reservas/{id}/cancelar', [AsesorReservaController::class, 'cancelar'])->name('reservas.cancelar');
     Route::patch('/reservas/{id}/revertir', [AsesorReservaController::class, 'revertir'])->name('reservas.revertir');
 
-    // Ventas
+    // Ventas - IMPORTANTE: Rutas específicas ANTES de rutas con parámetros dinámicos
     Route::get('/ventas', [AsesorVentaController::class, 'index'])->name('ventas');
     Route::get('/ventas/crear/{reserva_id?}', [AsesorVentaController::class, 'create'])->name('ventas.crear');
     Route::get('/ventas/create/{reserva_id?}', [AsesorVentaController::class, 'create'])->name('ventas.create'); // Alias para compatibilidad
     Route::post('/ventas', [AsesorVentaController::class, 'store'])->name('ventas.store');
-    Route::get('/ventas/{id}', [AsesorVentaController::class, 'show'])->name('ventas.show');
+    // Rutas dinámicas al final
     Route::get('/ventas/{id}/editar', [AsesorVentaController::class, 'edit'])->name('ventas.edit');
-    Route::patch('/ventas/{id}', [AsesorVentaController::class, 'update'])->name('ventas.update');
-    Route::patch('/ventas/{id}/documentos', [AsesorVentaController::class, 'actualizarDocumentos'])->name('ventas.documentos');
-    Route::patch('/ventas/{id}/entregar-documentos', [AsesorVentaController::class, 'marcarDocumentosEntregados'])->name('ventas.entregar-documentos');
     Route::get('/ventas/{id}/pdf', [AsesorVentaController::class, 'generarPDF'])->name('ventas.pdf');
+    Route::get('/ventas/{id}', [AsesorVentaController::class, 'show'])->name('ventas.show');
+    Route::patch('/ventas/{id}', [AsesorVentaController::class, 'update'])->name('ventas.update');
+    Route::patch('/ventas/{id}/entregar-documentos', [AsesorVentaController::class, 'marcarDocumentosEntregados'])->name('ventas.entregar-documentos');
 });

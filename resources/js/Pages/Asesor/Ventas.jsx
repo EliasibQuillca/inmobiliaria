@@ -22,7 +22,7 @@ export default function Ventas({ auth, ventas = [] }) {
 
     const submitDocumentUpdate = (e) => {
         e.preventDefault();
-        patch(route('asesor.ventas.documentos', selectedVenta.id), {
+        patch(route('asesor.ventas.entregar-documentos', selectedVenta.id), {
             onSuccess: () => {
                 setShowDocumentModal(false);
                 setSelectedVenta(null);
