@@ -112,15 +112,15 @@ export default function Catalogo({
             <div className="min-h-screen bg-gray-50">
                 {/* Hero Section */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
                         <div className="text-center">
-                            <h1 className="text-4xl font-bold mb-4">
+                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
                                 Encuentra tu Hogar Ideal
                             </h1>
-                            <p className="text-xl text-blue-100 mb-8">
+                            <p className="text-lg sm:text-xl text-blue-100 mb-6 sm:mb-8">
                                 Explora nuestra selección de propiedades disponibles
                             </p>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
                                 <div className="bg-blue-700 bg-opacity-50 rounded-lg p-4">
                                     <div className="text-3xl font-bold">{estadisticas.total_disponibles || 0}</div>
                                     <div className="text-blue-100">Propiedades Disponibles</div>
@@ -140,8 +140,9 @@ export default function Catalogo({
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     {/* Filtros */}
-                    <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4 sm:hidden">Filtrar Propiedades</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
                             {/* Tipo de Propiedad */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
@@ -242,7 +243,7 @@ export default function Catalogo({
                     </div>
 
                     {/* Grid de Departamentos */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                         {departamentos.data.map((departamento) => (
                             <div key={departamento.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                                 {/* Imagen */}
@@ -263,8 +264,8 @@ export default function Catalogo({
                                 </div>
 
                                 {/* Contenido */}
-                                <div className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
+                                <div className="p-4 sm:p-6">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-4">
                                         <div>
                                             <h3 className="text-lg font-semibold text-gray-900">
                                                 {departamento.titulo || departamento.codigo}
@@ -319,13 +320,14 @@ export default function Catalogo({
                                     )}
 
                                     {/* Acciones */}
-                                    <div className="flex space-x-2">
-                                        <Link
-                                            href={`/catalogo/${departamento.id}`}
-                                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium text-center transition-colors"
-                                        >
-                                            Ver Detalles
-                                        </Link>
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
+                                        <div className="flex gap-2">
+                                            <Link
+                                                href={`/catalogo/${departamento.id}`}
+                                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium text-center transition-colors"
+                                            >
+                                                Ver Detalles
+                                            </Link>
 
                                         {/* Botón de favoritos */}
                                         {auth.user && auth.user.role === 'cliente' ? (
@@ -361,6 +363,7 @@ export default function Catalogo({
                                                 </svg>
                                             </Link>
                                         )}
+                                        </div>
 
                                         {/* Botón "Solicitar Información" */}
                                         {auth.user && auth.user.role === 'cliente' ? (
@@ -464,8 +467,8 @@ export default function Catalogo({
 
                 {/* Modal de Contacto */}
                 {mostrarModalContacto && (
-                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                        <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+                        <div className="relative mx-auto p-4 sm:p-6 border w-full max-w-2xl shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
                             <div className="mt-3">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">

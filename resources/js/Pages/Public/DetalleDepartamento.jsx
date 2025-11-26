@@ -56,7 +56,7 @@ export default function DetalleDepartamento({
             <div className="min-h-screen bg-gray-50">
                 {/* Breadcrumb */}
                 <div className="bg-white border-b">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
                         <nav className="flex" aria-label="Breadcrumb">
                             <ol className="flex items-center space-x-4">
                                 <li>
@@ -80,8 +80,8 @@ export default function DetalleDepartamento({
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                         {/* Galería de Imágenes */}
                         <div className="lg:col-span-2">
                             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -94,7 +94,7 @@ export default function DetalleDepartamento({
                                                         departamento.imagenes[imagenActual].url :
                                                         `/storage/${departamento.imagenes[imagenActual].url}`}
                                                     alt={`${departamento.titulo || departamento.codigo} - Imagen ${imagenActual + 1}`}
-                                                    className="w-full h-96 object-cover"
+                                                    className="w-full h-64 sm:h-80 md:h-96 object-cover"
                                                 />
                                             </div>
 
@@ -102,7 +102,7 @@ export default function DetalleDepartamento({
                                                 <>
                                                     <button
                                                         onClick={anteriorImagen}
-                                                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-2 rounded-full"
+                                                        className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-1.5 sm:p-2 rounded-full transition-all"
                                                     >
                                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -110,7 +110,7 @@ export default function DetalleDepartamento({
                                                     </button>
                                                     <button
                                                         onClick={siguienteImagen}
-                                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-2 rounded-full"
+                                                        className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-1.5 sm:p-2 rounded-full transition-all"
                                                     >
                                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -167,8 +167,8 @@ export default function DetalleDepartamento({
                             </div>
 
                             {/* Descripción Detallada */}
-                            <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
-                                <h2 className="text-xl font-semibold text-gray-900 mb-4">Descripción</h2>
+                            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mt-4 sm:mt-6">
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Descripción</h2>
                                 {departamento.descripcion ? (
                                     <p className="text-gray-700 leading-relaxed">
                                         {departamento.descripcion}
@@ -181,9 +181,9 @@ export default function DetalleDepartamento({
                             </div>
 
                             {/* Características Detalladas */}
-                            <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
-                                <h2 className="text-xl font-semibold text-gray-900 mb-4">Características</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mt-4 sm:mt-6">
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Características</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <div className="space-y-3">
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Código:</span>
@@ -241,8 +241,8 @@ export default function DetalleDepartamento({
 
                             {/* Ubicación */}
                             {departamento.ubicacion && (
-                                <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
-                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Ubicación</h2>
+                                <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mt-4 sm:mt-6">
+                                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Ubicación</h2>
                                     <p className="text-gray-700">
                                         {departamento.ubicacion}
                                     </p>
@@ -252,7 +252,7 @@ export default function DetalleDepartamento({
 
                         {/* Sidebar - Información de Contacto */}
                         <div className="lg:col-span-1">
-                            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-8">
+                            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 sticky top-4 lg:top-8">
                                 <div className="text-center mb-6">
                                     <div className="text-3xl font-bold text-blue-600 mb-2">
                                         {formatCurrency(departamento.precio)}
@@ -333,8 +333,8 @@ export default function DetalleDepartamento({
                                 </div>
 
                                 {/* Resumen Rápido */}
-                                <div className="mt-6 pt-6 border-t">
-                                    <h4 className="font-medium text-gray-900 mb-3">Resumen</h4>
+                                <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t">
+                                    <h4 className="font-medium text-gray-900 mb-2 sm:mb-3">Resumen</h4>
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">🏠 Habitaciones:</span>
@@ -362,9 +362,9 @@ export default function DetalleDepartamento({
 
                     {/* Propiedades Relacionadas */}
                     {relacionados && relacionados.length > 0 && (
-                        <div className="mt-12">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-8">Propiedades Similares</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="mt-8 sm:mt-12">
+                            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">Propiedades Similares</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                 {relacionados.map((relacionado) => (
                                     <div key={relacionado.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                                         <div className="aspect-w-16 aspect-h-9 bg-gray-200">
@@ -383,7 +383,7 @@ export default function DetalleDepartamento({
                                             )}
                                         </div>
 
-                                        <div className="p-6">
+                                        <div className="p-4 sm:p-6">
                                             <div className="flex justify-between items-start mb-4">
                                                 <h3 className="text-lg font-semibold text-gray-900">
                                                     {relacionado.codigo}
@@ -421,8 +421,8 @@ export default function DetalleDepartamento({
 
                 {/* Modal de Contacto */}
                 {mostrarModalContacto && (
-                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                        <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+                        <div className="relative mx-auto p-4 sm:p-6 border w-full max-w-2xl shadow-lg rounded-lg bg-white max-h-[90vh] overflow-y-auto">
                             <div className="mt-3">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">

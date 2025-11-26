@@ -78,7 +78,7 @@ export default function CrearDepartamento({ auth, propietarios }) {
                 </h2>
             }
         >
-            <Head title="Crear Propiedad - Inmobiliaria" />
+            <Head title="Crear Propiedad - Inmobiliaria Imperial Cusco" />
 
             <div className="py-12 bg-gray-100">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

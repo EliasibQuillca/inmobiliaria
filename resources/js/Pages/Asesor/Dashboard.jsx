@@ -58,7 +58,7 @@ export default function Dashboard({ auth, estadisticas = {}, clientesRecientes =
 
     return (
         <AsesorLayout user={auth.user}>
-            <Head title="Dashboard - Asesor Inmobiliaria" />
+            <Head title="Dashboard - Asesor Inmobiliaria Imperial Cusco" />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">

@@ -330,7 +330,7 @@ export default function ClienteLayout({ children, header }) {
                 <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center">
                         <div className="text-sm text-gray-500">
-                            © 2025 Portal Inmobiliario. Todos los derechos reservados.
+                            © {new Date().getFullYear()} Inmobiliaria Imperial Cusco. Todos los derechos reservados.
                         </div>
                         <div className="flex space-x-4">
                             <Link href="/ayuda" className="text-sm text-gray-500 hover:text-blue-600">

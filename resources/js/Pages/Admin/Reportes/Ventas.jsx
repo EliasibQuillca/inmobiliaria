@@ -148,7 +148,7 @@ export default function ReportesVentas({ auth }) {
 
     return (
         <AdminLayout auth={auth} title="Reportes de Ventas">
-            <Head title="Reportes de Ventas - Inmobiliaria" />
+            <Head title="Reportes de Ventas - Inmobiliaria Imperial Cusco" />
 
             <div className="py-12 bg-gray-100">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">

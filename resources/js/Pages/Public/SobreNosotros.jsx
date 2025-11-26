@@ -9,42 +9,40 @@ export default function SobreNosotros({ auth }) {
 
             <div className="min-h-screen bg-gray-50">
                 {/* Hero Section */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
+                <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 text-white py-12 sm:py-16 lg:py-20">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h1 className="text-4xl md:text-5xl font-bold mb-4">Sobre Nosotros</h1>
-                        <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-                            Más de 10 años ayudando a familias a encontrar su hogar ideal
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Inmobiliaria Imperial Cusco</h1>
+                        <p className="text-xl text-amber-50 max-w-3xl mx-auto">
+                            Los mejores departamentos en la ciudad imperial del Perú
                         </p>
                     </div>
                 </div>
 
                 {/* Nuestra Historia */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                    <div className="grid md:grid-cols-2 gap-12 items-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
                         <div>
-                            <h2 className="text-3xl font-bold text-gray-900 mb-6">Nuestra Historia</h2>
+                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">Nuestra Historia</h2>
                             <div className="space-y-4 text-gray-600">
                                 <p>
-                                    Fundada en 2015, nuestra inmobiliaria nació con la visión de transformar
-                                    la experiencia de compra y venta de propiedades. Comenzamos como un pequeño
-                                    equipo de profesionales apasionados por el sector inmobiliario.
+                                    <strong className="text-amber-700">Inmobiliaria Imperial Cusco</strong> es tu mejor aliado en la búsqueda 
+                                    del departamento ideal. Especializados en la comercialización de propiedades en Cusco, ofrecemos 
+                                    departamentos de primera calidad en las mejores ubicaciones de la ciudad imperial.
                                 </p>
                                 <p>
-                                    A lo largo de los años, hemos crecido hasta convertirnos en una de las
-                                    inmobiliarias más confiables de la región, ayudando a más de 1,000 familias
-                                    a encontrar su hogar perfecto.
+                                    Contamos con un equipo de asesores inmobiliarios altamente capacitados que comprenden las 
+                                    necesidades del mercado cusqueño y brindan atención personalizada a cada cliente.
                                 </p>
                                 <p>
-                                    Nuestro compromiso es brindar un servicio personalizado, transparente y
-                                    profesional en cada transacción, garantizando la satisfacción total de
-                                    nuestros clientes.
+                                    Nuestro compromiso es facilitar la adquisición de tu departamento ideal en Cusco, ofreciendo 
+                                    transparencia, profesionalismo y acompañamiento en cada etapa del proceso de compra.
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-blue-50 rounded-lg p-8">
-                            <div className="grid grid-cols-2 gap-6">
+                        <div className="bg-amber-50 rounded-lg p-6 sm:p-8 border-2 border-amber-200">
+                            <div className="grid grid-cols-2 gap-4 sm:gap-6">
                                 <div className="text-center">
-                                    <div className="text-4xl font-bold text-blue-600 mb-2">10+</div>
+                                    <div className="text-4xl font-bold text-amber-700 mb-2">10+</div>
                                     <div className="text-sm text-gray-600">Años de Experiencia</div>
                                 </div>
                                 <div className="text-center">
@@ -65,18 +63,18 @@ export default function SobreNosotros({ auth }) {
                 </div>
 
                 {/* Misión y Visión */}
-                <div className="bg-white py-16">
+                <div className="bg-white py-12 sm:py-16">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid md:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                             {/* Misión */}
-                            <div className="bg-gradient-to-br from-blue-50 to-white p-8 rounded-xl shadow-sm border border-blue-100">
+                            <div className="bg-gradient-to-br from-blue-50 to-white p-6 sm:p-8 rounded-xl shadow-sm border border-blue-100">
                                 <div className="flex items-center mb-4">
                                     <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
                                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                         </svg>
                                     </div>
-                                    <h3 className="ml-4 text-2xl font-bold text-gray-900">Nuestra Misión</h3>
+                                    <h3 className="ml-4 text-xl sm:text-2xl font-bold text-gray-900">Nuestra Misión</h3>
                                 </div>
                                 <p className="text-gray-600">
                                     Facilitar el proceso de compra, venta y alquiler de propiedades, ofreciendo
@@ -87,20 +85,20 @@ export default function SobreNosotros({ auth }) {
                             </div>
 
                             {/* Visión */}
-                            <div className="bg-gradient-to-br from-green-50 to-white p-8 rounded-xl shadow-sm border border-green-100">
+                            <div className="bg-gradient-to-br from-amber-50 to-white p-6 sm:p-8 rounded-xl shadow-sm border border-amber-200">
                                 <div className="flex items-center mb-4">
-                                    <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                                    <div className="w-12 h-12 bg-amber-600 rounded-lg flex items-center justify-center">
                                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
                                     </div>
-                                    <h3 className="ml-4 text-2xl font-bold text-gray-900">Nuestra Visión</h3>
+                                    <h3 className="ml-4 text-xl sm:text-2xl font-bold text-gray-900">Nuestra Visión</h3>
                                 </div>
                                 <p className="text-gray-600">
-                                    Ser la inmobiliaria líder y referente en el mercado nacional, reconocida por
-                                    nuestra excelencia en el servicio, innovación tecnológica, ética profesional
-                                    y compromiso con el desarrollo sostenible de las comunidades donde operamos.
+                                    Ser la inmobiliaria líder en Cusco, reconocida por ofrecer los mejores departamentos 
+                                    de la ciudad imperial, con un servicio de excelencia que supere las expectativas de 
+                                    nuestros clientes y contribuya al desarrollo inmobiliario sostenible de la región.
                                 </p>
                             </div>
                         </div>
@@ -108,19 +106,19 @@ export default function SobreNosotros({ auth }) {
                 </div>
 
                 {/* Valores */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Nuestros Valores</h2>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+                    <div className="text-center mb-8 sm:mb-12">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Nuestros Valores</h2>
                         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                             Principios que guían cada una de nuestras acciones
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                         {/* Valor 1 */}
                         <div className="text-center">
-                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                 </svg>
                             </div>

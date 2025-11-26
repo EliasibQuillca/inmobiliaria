@@ -906,7 +906,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                 </h2>
             }
         >
-            <Head title="Gestión de Propiedades - Inmobiliaria" />
+            <Head title="Gestión de Propiedades - Inmobiliaria Imperial Cusco" />
             <ToastContainer />
 
             <div className="py-6">

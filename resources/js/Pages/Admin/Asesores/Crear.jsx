@@ -74,7 +74,7 @@ export default function CrearAsesor({ auth }) {
 
     return (
         <AdminLayout auth={auth} title="Crear Asesor">
-            <Head title="Crear Asesor - Inmobiliaria" />
+            <Head title="Crear Asesor - Inmobiliaria Imperial Cusco" />
 
             <div className="py-12 bg-gray-100">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">

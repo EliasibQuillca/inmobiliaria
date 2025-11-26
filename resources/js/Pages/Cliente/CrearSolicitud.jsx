@@ -90,7 +90,7 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
 
     return (
         <PublicLayout user={auth.user}>
-            <Head title="Nueva Solicitud - Inmobiliaria" />
+            <Head title="Nueva Solicitud - Inmobiliaria Imperial Cusco" />
 
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

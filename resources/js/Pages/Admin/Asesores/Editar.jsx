@@ -157,7 +157,7 @@ export default function EditarAsesor({ auth, id }) {
     if (error) {
         return (
             <AdminLayout auth={auth} title="Editar Asesor">
-                <Head title="Editar Asesor - Inmobiliaria" />
+                <Head title="Editar Asesor - Inmobiliaria Imperial Cusco" />
                 <div className="py-12 bg-gray-100">
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                         <div className="bg-white rounded-lg shadow-md p-6">
@@ -185,7 +185,7 @@ export default function EditarAsesor({ auth, id }) {
 
     return (
         <AdminLayout auth={auth} title="Editar Asesor">
-            <Head title="Editar Asesor - Inmobiliaria" />
+            <Head title="Editar Asesor - Inmobiliaria Imperial Cusco" />
 
             <div className="py-12 bg-gray-100">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
