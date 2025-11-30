@@ -116,7 +116,8 @@ export default function CrearReserva({ auth, cotizaciones, cotizacionSeleccionad
                                             <select
                                                 value={data.cotizacion_id}
                                                 onChange={(e) => handleCotizacionChange(e.target.value)}
-                                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                                                disabled={cotizacionSeleccionada}
                                                 required
                                             >
                                                 <option value="">Seleccionar cotización</option>
@@ -127,6 +128,11 @@ export default function CrearReserva({ auth, cotizaciones, cotizacionSeleccionad
                                                 ))}
                                             </select>
                                             {errors.cotizacion_id && <p className="text-red-500 text-xs mt-1">{errors.cotizacion_id}</p>}
+                                            {cotizacionSeleccionada && (
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    La cotización está vinculada a esta reserva y no puede ser modificada.
+                                                </p>
+                                            )}
                                         </div>
 
                                         {/* Información de la cotización seleccionada */}

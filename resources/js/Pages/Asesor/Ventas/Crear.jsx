@@ -3,12 +3,15 @@ import { Head, useForm } from '@inertiajs/react';
 import AsesorLayout from '@/Layouts/AsesorLayout';
 
 export default function Crear({ auth, reservas, reservaSeleccionada }) {
+    // Verificar si la reserva seleccionada ya tiene una venta
+    const ventaExistente = reservaSeleccionada?.venta;
+
     const { data, setData, post, processing, errors, reset } = useForm({
         reserva_id: reservaSeleccionada ? reservaSeleccionada.id : '',
-        fecha_venta: new Date().toISOString().split('T')[0], // Fecha actual por defecto
-        monto_final: reservaSeleccionada ? reservaSeleccionada.monto_total : '',
-        documentos_entregados: false,
-        observaciones: ''
+        fecha_venta: ventaExistente ? new Date(ventaExistente.fecha_venta).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        monto_final: ventaExistente ? ventaExistente.monto_final : (reservaSeleccionada ? reservaSeleccionada.monto_total : ''),
+        documentos_entregados: ventaExistente ? ventaExistente.documentos_entregados : false,
+        observaciones: ventaExistente ? ventaExistente.observaciones || '' : ''
     });
 
     const handleSubmit = (e) => {
@@ -112,21 +115,44 @@ export default function Crear({ auth, reservas, reservaSeleccionada }) {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Reserva a Convertir en Venta *
                                             </label>
-                                            <select
-                                                value={data.reserva_id}
-                                                onChange={(e) => handleReservaChange(e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                required
-                                            >
-                                                <option value="">Seleccionar reserva...</option>
-                                                {reservas.map((reserva) => (
-                                                    <option key={reserva.id} value={reserva.id}>
-                                                        {reserva.cotizacion?.departamento?.codigo || 'N/A'} -
-                                                        {reserva.cotizacion?.cliente?.usuario?.name || reserva.cotizacion?.cliente?.nombre || 'Cliente'} -
-                                                        {formatCurrency(reserva.cotizacion?.monto || 0)}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            {ventaExistente ? (
+                                                <>
+                                                    <input
+                                                        type="text"
+                                                        value={`${reservaSeleccionada.cotizacion?.departamento?.codigo || 'N/A'} - ${reservaSeleccionada.cotizacion?.cliente?.usuario?.name || reservaSeleccionada.cotizacion?.cliente?.nombre || 'Cliente'} - ${formatCurrency(reservaSeleccionada.cotizacion?.monto || 0)}`}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
+                                                        disabled
+                                                        readOnly
+                                                    />
+                                                    <p className="mt-1 text-xs text-gray-500">
+                                                        Esta reserva ya tiene una venta registrada. Los datos son de solo lectura.
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <select
+                                                        value={data.reserva_id}
+                                                        onChange={(e) => handleReservaChange(e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                                                        disabled={reservaSeleccionada}
+                                                        required
+                                                    >
+                                                        <option value="">Seleccionar reserva...</option>
+                                                        {reservas.map((reserva) => (
+                                                            <option key={reserva.id} value={reserva.id}>
+                                                                {reserva.cotizacion?.departamento?.codigo || 'N/A'} -
+                                                                {reserva.cotizacion?.cliente?.usuario?.name || reserva.cotizacion?.cliente?.nombre || 'Cliente'} -
+                                                                {formatCurrency(reserva.cotizacion?.monto || 0)}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    {reservaSeleccionada && (
+                                                        <p className="mt-1 text-xs text-gray-500">
+                                                            La reserva está vinculada y no puede ser modificada.
+                                                        </p>
+                                                    )}
+                                                </>
+                                            )}
                                             {errors.reserva_id && (
                                                 <p className="mt-1 text-sm text-red-600">{errors.reserva_id}</p>
                                             )}
@@ -142,7 +168,8 @@ export default function Crear({ auth, reservas, reservaSeleccionada }) {
                                                 value={data.fecha_venta}
                                                 onChange={(e) => setData('fecha_venta', e.target.value)}
                                                 max={new Date().toISOString().split('T')[0]}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                                                disabled={ventaExistente}
                                                 required
                                             />
                                             {errors.fecha_venta && (
@@ -162,7 +189,8 @@ export default function Crear({ auth, reservas, reservaSeleccionada }) {
                                                 value={data.monto_final}
                                                 onChange={(e) => setData('monto_final', e.target.value)}
                                                 placeholder="0.00"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                                                disabled={ventaExistente}
                                                 required
                                             />
                                             {errors.monto_final && (
@@ -177,13 +205,14 @@ export default function Crear({ auth, reservas, reservaSeleccionada }) {
                                                     type="checkbox"
                                                     checked={data.documentos_entregados}
                                                     onChange={(e) => setData('documentos_entregados', e.target.checked)}
-                                                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+                                                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    disabled={ventaExistente}
                                                 />
                                                 <span className="ml-2 text-sm text-gray-700">
                                                     Documentos entregados al cliente
                                                 </span>
                                             </label>
-                                            {data.documentos_entregados && (
+                                            {data.documentos_entregados && !ventaExistente && (
                                                 <p className="mt-1 text-xs text-green-600">
                                                     <i className="fas fa-check-circle mr-1"></i>
                                                     Al marcar esta opción, el departamento se marcará como vendido.
@@ -201,7 +230,8 @@ export default function Crear({ auth, reservas, reservaSeleccionada }) {
                                                 onChange={(e) => setData('observaciones', e.target.value)}
                                                 rows={3}
                                                 placeholder="Notas adicionales sobre la venta..."
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:cursor-not-allowed"
+                                                disabled={ventaExistente}
                                             />
                                             {errors.observaciones && (
                                                 <p className="mt-1 text-sm text-red-600">{errors.observaciones}</p>
@@ -209,32 +239,50 @@ export default function Crear({ auth, reservas, reservaSeleccionada }) {
                                         </div>
                                     </div>
 
+                                    {/* Alerta si ya existe venta */}
+                                    {ventaExistente && (
+                                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                            <div className="flex">
+                                                <i className="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                                <div className="text-sm text-green-700">
+                                                    <p className="font-semibold mb-1">Venta ya registrada</p>
+                                                    <p>
+                                                        Esta reserva ya tiene una venta registrada. Los datos mostrados son de solo lectura.
+                                                        Para realizar cambios, ve a la sección de Ventas.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Botones */}
                                     <div className="flex justify-end space-x-3 pt-6">
                                         <a
-                                            href={route('asesor.ventas')}
+                                            href={ventaExistente ? route('asesor.ventas') : route('asesor.reservas')}
                                             className="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                         >
-                                            <i className="fas fa-times mr-2"></i>
-                                            Cancelar
+                                            <i className="fas fa-arrow-left mr-2"></i>
+                                            {ventaExistente ? 'Volver a Ventas' : 'Cancelar'}
                                         </a>
-                                        <button
-                                            type="submit"
-                                            disabled={processing}
-                                            className="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-25"
-                                        >
-                                            {processing ? (
-                                                <>
-                                                    <i className="fas fa-spinner fa-spin mr-2"></i>
-                                                    Procesando...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <i className="fas fa-save mr-2"></i>
-                                                    Registrar Venta
-                                                </>
-                                            )}
-                                        </button>
+                                        {!ventaExistente && (
+                                            <button
+                                                type="submit"
+                                                disabled={processing}
+                                                className="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-25"
+                                            >
+                                                {processing ? (
+                                                    <>
+                                                        <i className="fas fa-spinner fa-spin mr-2"></i>
+                                                        Procesando...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <i className="fas fa-save mr-2"></i>
+                                                        Registrar Venta
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
                                     </div>
                                 </form>
                             )}

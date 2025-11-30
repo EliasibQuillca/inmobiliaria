@@ -11,14 +11,12 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
 
     const filtrarReservas = () => {
         switch (filtro) {
-            case 'activas':
+            case 'pendientes':
                 return reservas.filter(r => r.estado === 'pendiente');
             case 'confirmadas':
                 return reservas.filter(r => r.estado === 'confirmada');
-            case 'vencidas':
-                return reservas.filter(r => r.estado === 'vencida');
-            case 'canceladas':
-                return reservas.filter(r => r.estado === 'cancelada');
+            case 'historial':
+                return reservas.filter(r => ['cancelada', 'vencida'].includes(r.estado));
             default:
                 return reservas;
         }
@@ -215,9 +213,9 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
                                             Todas
                                         </button>
                                         <button
-                                            onClick={() => setFiltro('activas')}
+                                            onClick={() => setFiltro('pendientes')}
                                             className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                                                filtro === 'activas'
+                                                filtro === 'pendientes'
                                                     ? 'bg-blue-600 text-white'
                                                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                             }`}
@@ -234,13 +232,17 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
                                         >
                                             Confirmadas
                                         </button>
+                                        <button
+                                            onClick={() => setFiltro('historial')}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                                                filtro === 'historial'
+                                                    ? 'bg-gray-600 text-white'
+                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                            }`}
+                                        >
+                                            Historial
+                                        </button>
                                     </div>
-                                    <Link
-                                        href={route('asesor.reservas.crear')}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-                                    >
-                                        Nueva Reserva
-                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -375,6 +377,16 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
                                             </span>
                                         )}
                                     </div>
+
+                                    {/* Mostrar motivo de cancelación en la card */}
+                                    {reserva.estado === 'cancelada' && reserva.notas && (
+                                        <div className="mt-4 pt-4 border-t border-gray-200">
+                                            <p className="text-xs font-medium text-gray-700 mb-1">Motivo de cancelación:</p>
+                                            <p className="text-xs text-red-600 bg-red-50 p-2 rounded border border-red-100">
+                                                {reserva.notas}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -526,11 +538,17 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
                                 </div>
                             </div>
 
-                            {reservaSeleccionada.observaciones && (
+                            {reservaSeleccionada.notas && (
                                 <div className="mt-6">
-                                    <h4 className="font-medium text-gray-900 mb-2">Observaciones</h4>
-                                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                                        {reservaSeleccionada.observaciones}
+                                    <h4 className="font-medium text-gray-900 mb-2">
+                                        {reservaSeleccionada.estado === 'cancelada' ? 'Motivo de Cancelación' : 'Notas'}
+                                    </h4>
+                                    <p className={`text-sm p-3 rounded-lg ${
+                                        reservaSeleccionada.estado === 'cancelada'
+                                            ? 'bg-red-50 text-red-700 border border-red-200'
+                                            : 'bg-gray-50 text-gray-600'
+                                    }`}>
+                                        {reservaSeleccionada.notas}
                                     </p>
                                 </div>
                             )}

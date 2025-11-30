@@ -115,10 +115,19 @@ class VentaController extends Controller
             ->whereDoesntHave('venta')
             ->get();
 
-        // Si viene una reserva específica, pre-seleccionarla
+        // Si viene una reserva específica, pre-seleccionarla (incluso si ya tiene venta para mostrar datos)
         $reservaSeleccionada = null;
         if ($request->has('reserva_id')) {
+            // Buscar primero en reservas sin venta
             $reservaSeleccionada = $reservas->where('id', $request->reserva_id)->first();
+            
+            // Si no se encuentra, puede ser que ya tenga venta - cargarla para mostrar datos
+            if (!$reservaSeleccionada) {
+                $reservaSeleccionada = Reserva::with(['cotizacion.cliente.usuario', 'cotizacion.departamento', 'venta'])
+                    ->where('asesor_id', $asesor->id)
+                    ->where('id', $request->reserva_id)
+                    ->first();
+            }
         }
 
         return Inertia::render('Asesor/Ventas/Crear', [

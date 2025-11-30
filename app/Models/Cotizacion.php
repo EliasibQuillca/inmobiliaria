@@ -104,7 +104,15 @@ class Cotizacion extends Model
 
     public function scopeHistorial(Builder $query): Builder
     {
-        return $query->whereIn('estado', ['completada', 'cancelada', 'expirada']);
+        return $query->where(function($q) {
+            // Rechazadas, completadas, canceladas, expiradas siempre van al historial
+            $q->whereIn('estado', ['rechazada', 'completada', 'cancelada', 'expirada'])
+              // Aceptadas SOLO si ya tienen reserva creada
+              ->orWhere(function($subQuery) {
+                  $subQuery->where('estado', 'aceptada')
+                           ->has('reserva');
+              });
+        });
     }
 
     /* ==========================
@@ -173,11 +181,6 @@ class Cotizacion extends Model
     public function marcarFinalizada()
     {
         return $this->update(['estado' => 'completada']);
-    }
-
-    public function marcarReservada()
-    {
-        return $this->update(['estado' => 'reservada']);
     }
 
     public function tieneReserva(): bool

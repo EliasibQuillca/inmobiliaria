@@ -33,7 +33,7 @@ class CotizacionController extends Controller
         } else {
             // Mostrar todas las cotizaciones activas que tienen monto asignado
             // Esto incluye las cotizaciones formales Y las solicitudes que ya fueron aprobadas
-            $cotizaciones = Cotizacion::with(['cliente.usuario', 'departamento'])
+            $cotizaciones = Cotizacion::with(['cliente.usuario', 'departamento', 'reserva'])
                 ->where('asesor_id', $asesor->id)
                 ->where(function($query) {
                     // Mostrar cotizaciones con monto asignado
@@ -47,7 +47,15 @@ class CotizacionController extends Controller
                           ->whereNull('monto');
                     });
                 })
-                ->whereIn('estado', ['en_proceso', 'aprobada', 'aceptada']) // Estados activos
+                ->where(function($query) {
+                    // Estados activos: pendiente, en_proceso, aprobada
+                    $query->whereIn('estado', ['pendiente', 'en_proceso', 'aprobada'])
+                          // O aceptada PERO SIN reserva creada
+                          ->orWhere(function($q) {
+                              $q->where('estado', 'aceptada')
+                                ->doesntHave('reserva');
+                          });
+                })
                 ->orderBy('created_at', 'desc')
                 ->get();
         }
@@ -113,9 +121,14 @@ class CotizacionController extends Controller
 
         // Si hay cliente seleccionado con preferencias específicas, aplicar filtros
         $departamentosFiltrados = [];
+        $clienteTienePreferencias = false;
         if ($clienteSeleccionado) {
             $queryFiltrada = clone $departamentosQuery;
             $hayFiltros = false;
+
+            // Verificar si el cliente tiene preferencias configuradas
+            $clienteTienePreferencias = $clienteSeleccionado->habitaciones_deseadas 
+                || ($clienteSeleccionado->presupuesto_min && $clienteSeleccionado->presupuesto_max);
 
             // Filtrar por preferencias del cliente si existen
             if ($clienteSeleccionado->habitaciones_deseadas) {
@@ -143,6 +156,7 @@ class CotizacionController extends Controller
             'clientes' => $clientes,
             'departamentos' => $departamentos,
             'departamentosFiltrados' => $departamentosFiltrados,
+            'clienteTienePreferencias' => $clienteTienePreferencias,
             'clienteSeleccionado' => $clienteSeleccionado,
             'departamentoSeleccionado' => $departamentoSeleccionado,
             'solicitud' => $solicitudSeleccionada,
@@ -156,15 +170,30 @@ class CotizacionController extends Controller
     {
         $asesor = Auth::user()->asesor;
 
+        // Validación inicial para obtener el monto
+        $request->validate([
+            'monto' => 'required|numeric|min:0',
+        ]);
+
+        $monto = $request->input('monto');
+        $descuentoMaximo = $monto * 0.5;
+
         $validated = $request->validate([
             'cliente_id' => 'required|exists:clientes,id',
             'departamento_id' => 'required|exists:departamentos,id',
             'monto' => 'required|numeric|min:0',
-            'descuento' => 'nullable|numeric|min:0',
+            'descuento' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:' . $descuentoMaximo
+            ],
             'fecha_validez' => 'required|date|after:today',
             'notas' => 'nullable|string|max:1000',
             'condiciones' => 'nullable|string|max:2000',
             'solicitud_id' => 'nullable|exists:solicitudes,id',
+        ], [
+            'descuento.max' => 'El descuento no puede ser mayor al 50% del precio base (máximo S/ ' . number_format($descuentoMaximo, 2) . ')'
         ]);
 
         $cotizacion = Cotizacion::create([
@@ -285,16 +314,23 @@ class CotizacionController extends Controller
     {
         $asesor = Auth::user()->asesor;
 
+        $cotizacion = Cotizacion::where('asesor_id', $asesor->id)
+            ->findOrFail($id);
+
         $validated = $request->validate([
             'monto' => 'required|numeric|min:0',
-            'descuento' => 'nullable|numeric|min:0',
+            'descuento' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:' . ($cotizacion->monto * 0.5)
+            ],
             'fecha_validez' => 'required|date|after:today',
             'notas' => 'nullable|string|max:1000',
             'condiciones' => 'nullable|string|max:2000',
+        ], [
+            'descuento.max' => 'El descuento no puede ser mayor al 50% del precio base (máximo S/ ' . number_format($cotizacion->monto * 0.5, 2) . ')'
         ]);
-
-        $cotizacion = Cotizacion::where('asesor_id', $asesor->id)
-            ->findOrFail($id);
 
         $cotizacion->update($validated);
 

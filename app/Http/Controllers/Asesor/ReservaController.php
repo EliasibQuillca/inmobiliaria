@@ -109,8 +109,8 @@ class ReservaController extends Controller
             'notas' => $validated['notas'],
         ]);
 
-        // Marcar cotización como reservada
-        $cotizacion->marcarReservada();
+        // La cotización mantiene su estado 'aceptada' con una reserva asociada
+        // El scopeHistorial() automáticamente la moverá al historial
 
         // Cambiar estado del departamento a reservado
         $departamento->update(['estado' => 'reservado']);

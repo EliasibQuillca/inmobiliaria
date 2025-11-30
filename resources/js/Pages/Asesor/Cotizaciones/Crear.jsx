@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AsesorLayout from '../../../Layouts/AsesorLayout';
 
-export default function CrearCotizacion({ auth, clientes, departamentos, departamentosFiltrados = [], clienteSeleccionado, departamentoSeleccionado, solicitud }) {
+export default function CrearCotizacion({ auth, clientes, departamentos, departamentosFiltrados = [], clienteSeleccionado, departamentoSeleccionado, solicitud, clienteTienePreferencias = false }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         cliente_id: clienteSeleccionado ? clienteSeleccionado.id : '',
         departamento_id: departamentoSeleccionado ? departamentoSeleccionado.id : '',
@@ -177,8 +177,8 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
                                                 <p className="mt-1 text-sm text-red-600">{errors.departamento_id}</p>
                                             )}
 
-                                            {/* Mensaje informativo si no hay departamentos filtrados */}
-                                            {clienteSeleccionado && departamentosFiltrados.length === 0 && (
+                                            {/* Mensaje informativo si el cliente tiene preferencias pero no hay coincidencias */}
+                                            {clienteSeleccionado && clienteTienePreferencias && departamentosFiltrados.length === 0 && (
                                                 <p className="mt-1 text-sm text-yellow-600">
                                                     <i className="fas fa-info-circle mr-1"></i>
                                                     No hay departamentos que coincidan con las preferencias del cliente.
@@ -218,9 +218,13 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     placeholder="0"
                                                     min="0"
+                                                    max={data.monto * 0.5}
                                                     step="0.01"
                                                 />
-                                                <p className="mt-1 text-xs text-gray-500">Ingresa el monto de descuento en soles (ej: 5000)</p>
+                                                {parseFloat(data.descuento) > (data.monto * 0.5) && (
+                                                    <p className="text-red-500 text-xs mt-1">⚠️ El descuento máximo permitido es S/ {formatCurrency(data.monto * 0.5)} (50% del precio)</p>
+                                                )}
+                                                <p className="mt-1 text-xs text-gray-500">Máximo permitido: 50% del precio base (S/ {formatCurrency(data.monto * 0.5)})</p>
                                                 {errors.descuento && (
                                                     <p className="mt-1 text-sm text-red-600">{errors.descuento}</p>
                                                 )}

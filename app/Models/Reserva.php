@@ -80,6 +80,27 @@ class Reserva extends Model
         return $this->hasOne(Venta::class, 'reserva_id');
     }
 
+    // Scopes
+    public function scopeActivas($query)
+    {
+        return $query->whereIn('estado', ['pendiente', 'confirmada']);
+    }
+
+    public function scopeHistorial($query)
+    {
+        return $query->whereIn('estado', ['cancelada', 'vencida']);
+    }
+
+    public function scopePendientes($query)
+    {
+        return $query->where('estado', 'pendiente');
+    }
+
+    public function scopeConfirmadas($query)
+    {
+        return $query->where('estado', 'confirmada');
+    }
+
     // Métodos de utilidad
     public function getAsesor()
     {
