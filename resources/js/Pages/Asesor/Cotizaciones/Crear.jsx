@@ -3,6 +3,13 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AsesorLayout from '../../../Layouts/AsesorLayout';
 
 export default function CrearCotizacion({ auth, clientes, departamentos, departamentosFiltrados = [], clienteSeleccionado, departamentoSeleccionado, solicitud, clienteTienePreferencias = false }) {
+    // Formatear fecha al formato yyyy-MM-dd requerido por input type="date"
+    const formatearFechaParaInput = (fecha) => {
+        if (!fecha) return '';
+        const date = new Date(fecha);
+        return date.toISOString().split('T')[0];
+    };
+
     const { data, setData, post, processing, errors, reset } = useForm({
         cliente_id: clienteSeleccionado ? clienteSeleccionado.id : '',
         departamento_id: departamentoSeleccionado ? departamentoSeleccionado.id : '',

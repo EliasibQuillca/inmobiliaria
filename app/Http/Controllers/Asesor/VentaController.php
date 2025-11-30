@@ -229,6 +229,7 @@ class VentaController extends Controller
         $validated = $request->validate([
             'fecha_venta' => 'required|date|before_or_equal:today',
             'monto_final' => 'required|numeric|min:0',
+            'documentos_entregados' => 'required|boolean',
             'observaciones' => 'nullable|string|max:1000',
             'motivo_edicion' => 'required|string|min:10|max:500', // Motivo obligatorio
         ]);
@@ -253,24 +254,43 @@ class VentaController extends Controller
                 ->withErrors(['error' => "Has alcanzado el límite máximo de {$venta->max_ediciones} ediciones para esta venta."]);
         }
 
-        // 3. Verificar periodo de tiempo (7 días desde la venta)
+        // 3. Verificar periodo de tiempo (7 días desde el registro)
         if ($venta->diasDesdeVenta() > 7) {
             return redirect()->back()
-                ->withErrors(['error' => 'No puedes editar una venta después de 7 días de registrada.']);
+                ->withErrors(['error' => 'No puedes editar una venta después de 7 días de haberla registrado en el sistema.']);
         }
 
         // GUARDAR DATOS ANTERIORES PARA HISTORIAL
         $datosAnteriores = $venta->only([
             'fecha_venta',
             'monto_final',
-            'observaciones'
+            'observaciones',
+            'documentos_entregados'
         ]);
+
+        // MANEJAR CAMBIO DE ESTADO DE DOCUMENTOS
+        $cambioDocumentos = false;
+        if (isset($validated['documentos_entregados']) && $validated['documentos_entregados'] != $venta->documentos_entregados) {
+            $cambioDocumentos = true;
+            
+            $departamento = Departamento::find($venta->reserva->departamento_id);
+            if ($departamento) {
+                if ($validated['documentos_entregados']) {
+                    // Marcar como vendido
+                    $departamento->update(['estado' => 'vendido']);
+                } else {
+                    // Volver a reservado (NO disponible porque la venta existe)
+                    $departamento->update(['estado' => 'reservado']);
+                }
+            }
+        }
 
         // ACTUALIZAR LA VENTA
         $venta->update([
             'fecha_venta' => $validated['fecha_venta'],
             'monto_final' => $validated['monto_final'],
             'observaciones' => $validated['observaciones'],
+            'documentos_entregados' => $validated['documentos_entregados'] ?? $venta->documentos_entregados,
             'cantidad_ediciones' => $venta->cantidad_ediciones + 1,
             'fecha_primera_edicion' => $venta->fecha_primera_edicion ?? now(),
             'fecha_ultima_edicion' => now(),
@@ -302,7 +322,7 @@ class VentaController extends Controller
             $mensaje = "Venta actualizada. Te quedan {$edicionesRestantes} ediciones disponibles.";
         }
 
-        return redirect()->route('asesor.ventas')
+        return redirect()->route('asesor.ventas.index')
             ->with('success', $mensaje);
     }
 

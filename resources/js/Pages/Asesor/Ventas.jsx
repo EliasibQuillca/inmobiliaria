@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import AsesorLayout from '../../Layouts/AsesorLayout';
 
 export default function Ventas({ auth, ventas = [] }) {
@@ -22,7 +22,7 @@ export default function Ventas({ auth, ventas = [] }) {
 
     const submitDocumentUpdate = (e) => {
         e.preventDefault();
-        patch(route('asesor.ventas.entregar-documentos', selectedVenta.id), {
+        patch(`/asesor/ventas/${selectedVenta.id}/entregar-documentos`, {
             onSuccess: () => {
                 setShowDocumentModal(false);
                 setSelectedVenta(null);
@@ -33,7 +33,7 @@ export default function Ventas({ auth, ventas = [] }) {
 
     const marcarDocumentosEntregados = (ventaId) => {
         if (confirm('¿Estás seguro de marcar los documentos como entregados? Esta acción marcará el departamento como vendido.')) {
-            patch(route('asesor.ventas.entregar-documentos', ventaId), {
+            patch(`/asesor/ventas/${ventaId}/entregar-documentos`, {
                 preserveScroll: true
             });
         }
@@ -84,15 +84,15 @@ export default function Ventas({ auth, ventas = [] }) {
                                 </p>
                             </div>
                             <div className="flex">
-                                <Link
-                                    href={route('asesor.ventas.create')}
+                                <button
+                                    onClick={() => router.get('/asesor/ventas/create')}
                                     className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                 >
                                     <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                     </svg>
                                     Registrar Venta
-                                </Link>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -200,15 +200,15 @@ export default function Ventas({ auth, ventas = [] }) {
                                     Comienza registrando tu primera venta formalizada
                                 </p>
                                 <div className="mt-6">
-                                    <Link
-                                        href={route('asesor.ventas.create')}
+                                    <button
+                                        onClick={() => router.get('/asesor/ventas/create')}
                                         className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                     >
                                         <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                         </svg>
                                         Registrar Primera Venta
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         ) : (
@@ -228,9 +228,9 @@ export default function Ventas({ auth, ventas = [] }) {
 
                                                 <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                                                     <div>
-                                                        <p><strong>Cliente:</strong> {venta.reserva?.cotizacion?.cliente?.nombre || 'No especificado'}</p>
-                                                        <p><strong>Departamento:</strong> {venta.reserva?.cotizacion?.departamento?.nombre || 'No especificado'}</p>
-                                                        <p><strong>Fecha de Venta:</strong> {new Date(venta.fecha_venta).toLocaleDateString()}</p>
+                                                        <p><strong>Cliente:</strong> {venta.reserva?.cotizacion?.cliente?.usuario?.name || venta.reserva?.cotizacion?.cliente?.nombre || 'No especificado'}</p>
+                                                        <p><strong>Departamento:</strong> {venta.reserva?.cotizacion?.departamento?.codigo || venta.reserva?.cotizacion?.departamento?.titulo || 'No especificado'}</p>
+                                                        <p><strong>Fecha de Venta:</strong> {new Date(venta.fecha_venta).toLocaleDateString('es-PE')}</p>
                                                     </div>
                                                     <div>
                                                         <p><strong>Monto Final:</strong> {formatearMoneda(venta.monto_final)}</p>
@@ -280,19 +280,19 @@ export default function Ventas({ auth, ventas = [] }) {
                                                     Gestionar Documentos
                                                 </button>
 
-                                                <Link
-                                                    href={route('asesor.ventas.show', venta.id)}
+                                                <button
+                                                    onClick={() => router.get(`/asesor/ventas/${venta.id}`)}
                                                     className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                                 >
                                                     Ver Detalles
-                                                </Link>
+                                                </button>
 
-                                                <Link
-                                                    href={route('asesor.ventas.edit', venta.id)}
+                                                <button
+                                                    onClick={() => router.get(`/asesor/ventas/${venta.id}/edit`)}
                                                     className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                                 >
                                                     Editar
-                                                </Link>
+                                                </button>
                                             </div>
                                         </div>
                                     </li>

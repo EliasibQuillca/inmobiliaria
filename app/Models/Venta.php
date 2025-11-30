@@ -181,11 +181,11 @@ class Venta extends Model
     }
 
     /**
-     * Obtener días desde la venta
+     * Calcular días desde que se registró la venta en el sistema
      */
     public function diasDesdeVenta()
     {
-        return $this->fecha_venta->diffInDays(now());
+        return $this->created_at->diffInDays(now());
     }
 
     /**

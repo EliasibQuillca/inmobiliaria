@@ -3,12 +3,19 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AsesorLayout from '../../../Layouts/AsesorLayout';
 
 export default function EditarCotizacion({ auth, cotizacion, clientes, departamentos }) {
+    // Formatear fecha al formato yyyy-MM-dd requerido por input type="date"
+    const formatearFechaParaInput = (fecha) => {
+        if (!fecha) return '';
+        const date = new Date(fecha);
+        return date.toISOString().split('T')[0];
+    };
+
     const { data, setData, patch, processing, errors } = useForm({
         cliente_id: cotizacion.cliente_id || '',
         departamento_id: cotizacion.departamento_id || '',
         monto: cotizacion.monto || '',
         descuento: cotizacion.descuento || 0,
-        fecha_validez: cotizacion.fecha_validez || '',
+        fecha_validez: formatearFechaParaInput(cotizacion.fecha_validez),
         notas: cotizacion.notas || '',
         condiciones: cotizacion.condiciones || '',
     });

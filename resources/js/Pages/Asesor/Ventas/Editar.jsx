@@ -1,10 +1,17 @@
 import React from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import AsesorLayout from '@/Layouts/AsesorLayout';
 
 export default function Editar({ auth, venta }) {
+    // Formatear fecha al formato yyyy-MM-dd requerido por input type="date"
+    const formatearFechaParaInput = (fecha) => {
+        if (!fecha) return '';
+        const date = new Date(fecha);
+        return date.toISOString().split('T')[0];
+    };
+
     const { data, setData, patch, processing, errors } = useForm({
-        fecha_venta: venta.fecha_venta,
+        fecha_venta: formatearFechaParaInput(venta.fecha_venta),
         monto_final: venta.monto_final,
         documentos_entregados: venta.documentos_entregados,
         observaciones: venta.observaciones || '',
@@ -13,7 +20,18 @@ export default function Editar({ auth, venta }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        patch(route('asesor.ventas.update', venta.id));
+        console.log('Enviando datos:', data);
+        patch(`/asesor/ventas/${venta.id}`, {
+            onSuccess: (response) => {
+                console.log('Éxito:', response);
+            },
+            onError: (errors) => {
+                console.error('Errores de validación:', errors);
+            },
+            onFinish: () => {
+                console.log('Petición finalizada');
+            }
+        });
     };
 
     const formatCurrency = (amount) => {
@@ -52,7 +70,7 @@ export default function Editar({ auth, venta }) {
                                         </p>
                                     </div>
                                     <div>
-                                        <span className="font-medium text-yellow-700">Días desde venta:</span>
+                                        <span className="font-medium text-yellow-700">Días desde registro:</span>
                                         <p className="text-yellow-900 font-semibold">
                                             {venta.dias_desde_venta || 0} días
                                         </p>
@@ -187,8 +205,8 @@ export default function Editar({ auth, venta }) {
                                                     <div className="text-sm text-red-700">
                                                         <p className="font-semibold">Advertencia:</p>
                                                         <p>
-                                                            Al desmarcar esta opción, el departamento volverá a estar disponible.
-                                                            Solo haga esto si es necesario revertir la venta.
+                                                            Al desmarcar esta opción, el estado del departamento cambiará de "vendido" a "reservado".
+                                                            Solo haga esto si hay un problema con la documentación pendiente de entrega.
                                                         </p>
                                                     </div>
                                                 </div>
@@ -249,13 +267,14 @@ export default function Editar({ auth, venta }) {
 
                                 {/* Botones */}
                                 <div className="flex justify-end space-x-3 pt-6">
-                                    <a
-                                        href={route('asesor.ventas.show', venta.id)}
+                                    <button
+                                        type="button"
+                                        onClick={() => router.get(`/asesor/ventas/${venta.id}`)}
                                         className="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                     >
                                         <i className="fas fa-times mr-2"></i>
                                         Cancelar
-                                    </a>
+                                    </button>
                                     <button
                                         type="submit"
                                         disabled={processing || venta.bloqueada_edicion || (venta.cantidad_ediciones >= venta.max_ediciones) || data.motivo_edicion.length < 10}

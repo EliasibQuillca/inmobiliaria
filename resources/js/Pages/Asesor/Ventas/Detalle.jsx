@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AsesorLayout from '@/Layouts/AsesorLayout';
 
 export default function Detalle({ auth, venta }) {
@@ -33,20 +33,20 @@ export default function Detalle({ auth, venta }) {
                                     Detalle de Venta #{venta.id}
                                 </h1>
                                 <div className="flex space-x-3">
-                                    <a
-                                        href={route('asesor.ventas.edit', venta.id)}
+                                    <button
+                                        onClick={() => router.get(`/asesor/ventas/${venta.id}/edit`)}
                                         className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                     >
                                         <i className="fas fa-edit mr-2"></i>
                                         Editar
-                                    </a>
-                                    <a
-                                        href={route('asesor.ventas')}
+                                    </button>
+                                    <button
+                                        onClick={() => router.get('/asesor/ventas')}
                                         className="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                     >
                                         <i className="fas fa-arrow-left mr-2"></i>
                                         Volver
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
 
