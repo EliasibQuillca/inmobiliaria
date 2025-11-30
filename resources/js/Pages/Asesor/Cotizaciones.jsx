@@ -231,6 +231,11 @@ export default function Cotizaciones({ auth, cotizaciones = [], mostrandoHistori
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEstadoColor(cotizacion.estado)}`}>
                                                         {getEstadoTexto(cotizacion.estado)}
                                                     </span>
+                                                    {cotizacion.estado === 'aprobada' && (!cotizacion.monto || cotizacion.monto === 0) && (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                                            ⚠️ Pendiente Completar
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">

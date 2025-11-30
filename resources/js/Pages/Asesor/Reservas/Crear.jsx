@@ -192,22 +192,20 @@ export default function CrearReserva({ auth, cotizaciones, cotizacionSeleccionad
                                             </label>
                                             <div className="mt-1 relative rounded-md shadow-sm">
                                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                    <span className="text-gray-500 sm:text-sm">$</span>
+                                                    <span className="text-gray-500 sm:text-sm">S/</span>
                                                 </div>
                                                 <input
                                                     type="number"
                                                     value={data.monto_reserva}
-                                                    onChange={(e) => setData('monto_reserva', e.target.value)}
-                                                    className="pl-7 mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                                    className="pl-10 mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-700 cursor-not-allowed"
                                                     placeholder="0.00"
-                                                    min="0"
-                                                    step="0.01"
+                                                    readOnly
                                                     required
                                                 />
                                             </div>
                                             {errors.monto_reserva && <p className="text-red-500 text-xs mt-1">{errors.monto_reserva}</p>}
                                             <p className="mt-1 text-xs text-gray-500">
-                                                Sugerido: 10% del valor del departamento
+                                                Calculado automáticamente: 10% del valor de la cotización
                                             </p>
                                         </div>
 

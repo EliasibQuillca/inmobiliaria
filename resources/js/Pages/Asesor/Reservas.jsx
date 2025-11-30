@@ -257,7 +257,7 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
                                                 Reserva #{reserva.id}
                                             </h3>
                                             <p className="text-sm text-gray-600">
-                                                {reserva.cliente?.nombre}
+                                                {reserva.cotizacion?.cliente?.usuario?.name || reserva.cotizacion?.cliente?.nombre}
                                             </p>
                                         </div>
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEstadoColor(reserva.estado)}`}>
@@ -267,28 +267,46 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
 
                                     <div className="space-y-2 mb-4">
                                         <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Departamento:</span> {reserva.departamento?.nombre}
+                                            <span className="font-medium">Departamento:</span> {reserva.cotizacion?.departamento?.titulo}
                                         </p>
-                                        <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Monto Reserva:</span> ${reserva.monto_reserva?.toLocaleString()}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Precio Total:</span> ${reserva.precio_total?.toLocaleString()}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Fecha Reserva:</span> {new Date(reserva.created_at).toLocaleDateString()}
-                                        </p>
-                                        {reserva.fecha_vencimiento && (
-                                            <div>
+                                        
+                                        {/* Si tiene venta, mostrar precio de venta */}
+                                        {reserva.venta ? (
+                                            <>
                                                 <p className="text-sm text-gray-600">
-                                                    <span className="font-medium">Vence:</span> {new Date(reserva.fecha_vencimiento).toLocaleDateString()}
+                                                    <span className="font-medium">Precio Venta:</span> <span className="text-purple-600 font-semibold">S/ {reserva.venta.monto_final?.toLocaleString()}</span>
                                                 </p>
-                                                {reserva.estado === 'pendiente' && (
-                                                    <p className={`text-sm ${diasRestantes(reserva.fecha_vencimiento) <= 7 ? 'text-red-600' : 'text-gray-600'}`}>
-                                                        <span className="font-medium">Días restantes:</span> {diasRestantes(reserva.fecha_vencimiento)}
-                                                    </p>
+                                                <p className="text-sm text-gray-600">
+                                                    <span className="font-medium">Fecha Venta:</span> {new Date(reserva.venta.fecha_venta).toLocaleDateString('es-PE')}
+                                                </p>
+                                                <p className="text-sm text-gray-600">
+                                                    <span className="font-medium">Estado:</span> <span className="text-purple-600 font-semibold">✓ Vendido</span>
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <p className="text-sm text-gray-600">
+                                                    <span className="font-medium">Monto Reserva:</span> S/ {reserva.monto_reserva?.toLocaleString()}
+                                                </p>
+                                                <p className="text-sm text-gray-600">
+                                                    <span className="font-medium">Precio Total:</span> S/ {reserva.precio_total?.toLocaleString()}
+                                                </p>
+                                                <p className="text-sm text-gray-600">
+                                                    <span className="font-medium">Fecha Reserva:</span> {new Date(reserva.created_at).toLocaleDateString('es-PE')}
+                                                </p>
+                                                {reserva.fecha_vencimiento && (
+                                                    <div>
+                                                        <p className="text-sm text-gray-600">
+                                                            <span className="font-medium">Vence:</span> {new Date(reserva.fecha_vencimiento).toLocaleDateString('es-PE')}
+                                                        </p>
+                                                        {reserva.estado === 'pendiente' && (
+                                                            <p className={`text-sm ${diasRestantes(reserva.fecha_vencimiento) <= 7 ? 'text-red-600' : 'text-gray-600'}`}>
+                                                                <span className="font-medium">Días restantes:</span> {diasRestantes(reserva.fecha_vencimiento)}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 )}
-                                            </div>
+                                            </>
                                         )}
                                     </div>
 
@@ -418,16 +436,16 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
                                     <h4 className="font-medium text-gray-900 mb-3">Información del Cliente</h4>
                                     <div className="space-y-2">
                                         <p className="text-sm">
-                                            <span className="font-medium">Nombre:</span> {reservaSeleccionada.cliente?.nombre}
+                                            <span className="font-medium">Nombre:</span> {reservaSeleccionada.cotizacion?.cliente?.usuario?.name || reservaSeleccionada.cotizacion?.cliente?.nombre}
                                         </p>
                                         <p className="text-sm">
-                                            <span className="font-medium">Email:</span> {reservaSeleccionada.cliente?.email}
+                                            <span className="font-medium">Email:</span> {reservaSeleccionada.cotizacion?.cliente?.usuario?.email || reservaSeleccionada.cotizacion?.cliente?.email}
                                         </p>
                                         <p className="text-sm">
-                                            <span className="font-medium">Teléfono:</span> {reservaSeleccionada.cliente?.telefono}
+                                            <span className="font-medium">Teléfono:</span> {reservaSeleccionada.cotizacion?.cliente?.telefono}
                                         </p>
                                         <p className="text-sm">
-                                            <span className="font-medium">CI:</span> {reservaSeleccionada.cliente?.ci}
+                                            <span className="font-medium">CI:</span> {reservaSeleccionada.cotizacion?.cliente?.ci}
                                         </p>
                                     </div>
                                 </div>
@@ -436,45 +454,74 @@ export default function Reservas({ auth, reservas = [], flash = {} }) {
                                     <h4 className="font-medium text-gray-900 mb-3">Información del Departamento</h4>
                                     <div className="space-y-2">
                                         <p className="text-sm">
-                                            <span className="font-medium">Nombre:</span> {reservaSeleccionada.departamento?.nombre}
+                                            <span className="font-medium">Nombre:</span> {reservaSeleccionada.cotizacion?.departamento?.titulo}
                                         </p>
                                         <p className="text-sm">
-                                            <span className="font-medium">Ubicación:</span> {reservaSeleccionada.departamento?.ubicacion}
+                                            <span className="font-medium">Ubicación:</span> {reservaSeleccionada.cotizacion?.departamento?.ubicacion}
                                         </p>
                                         <p className="text-sm">
-                                            <span className="font-medium">Habitaciones:</span> {reservaSeleccionada.departamento?.habitaciones}
+                                            <span className="font-medium">Habitaciones:</span> {reservaSeleccionada.cotizacion?.departamento?.habitaciones}
                                         </p>
                                         <p className="text-sm">
-                                            <span className="font-medium">Baños:</span> {reservaSeleccionada.departamento?.banos}
+                                            <span className="font-medium">Baños:</span> {reservaSeleccionada.cotizacion?.departamento?.banos}
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="mt-6">
-                                <h4 className="font-medium text-gray-900 mb-3">Detalles de la Reserva</h4>
+                                <h4 className="font-medium text-gray-900 mb-3">
+                                    {reservaSeleccionada.venta ? 'Detalles de la Venta' : 'Detalles de la Reserva'}
+                                </h4>
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <p className="text-sm text-gray-600">Monto de Reserva</p>
-                                            <p className="text-lg font-semibold">${reservaSeleccionada.monto_reserva?.toLocaleString()}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-600">Precio Total</p>
-                                            <p className="text-lg font-semibold">${reservaSeleccionada.precio_total?.toLocaleString()}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-600">Saldo Pendiente</p>
-                                            <p className="text-lg font-semibold text-red-600">
-                                                ${(reservaSeleccionada.precio_total - reservaSeleccionada.monto_reserva)?.toLocaleString()}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-600">Estado</p>
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEstadoColor(reservaSeleccionada.estado)}`}>
-                                                {reservaSeleccionada.estado}
-                                            </span>
-                                        </div>
+                                        {reservaSeleccionada.venta ? (
+                                            <>
+                                                <div>
+                                                    <p className="text-sm text-gray-600">Monto Final de Venta</p>
+                                                    <p className="text-lg font-semibold text-purple-600">S/ {reservaSeleccionada.venta.monto_final?.toLocaleString()}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-600">Documentos Entregados</p>
+                                                    <p className="text-sm text-gray-900">{reservaSeleccionada.venta.documentos_entregados ? '✓ Sí' : '✗ No'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-600">Fecha de Venta</p>
+                                                    <p className="text-sm text-gray-900">
+                                                        {new Date(reservaSeleccionada.venta.fecha_venta).toLocaleDateString('es-PE')}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-600">Estado</p>
+                                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                        Vendido
+                                                    </span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div>
+                                                    <p className="text-sm text-gray-600">Monto de Reserva</p>
+                                                    <p className="text-lg font-semibold text-green-600">S/ {reservaSeleccionada.monto_reserva?.toLocaleString()}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-600">Precio del Departamento</p>
+                                                    <p className="text-lg font-semibold text-blue-600">S/ {reservaSeleccionada.precio_total?.toLocaleString()}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-600">Fecha de Reserva</p>
+                                                    <p className="text-sm text-gray-900">
+                                                        {new Date(reservaSeleccionada.fecha_reserva).toLocaleDateString('es-PE')}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-600">Estado</p>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEstadoColor(reservaSeleccionada.estado)}`}>
+                                                        {reservaSeleccionada.estado}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>

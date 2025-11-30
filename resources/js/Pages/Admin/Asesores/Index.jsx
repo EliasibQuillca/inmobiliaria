@@ -397,12 +397,10 @@ export default function Asesores({ auth, asesores, filtros: filtrosIniciales = {
                             </div>
                         </div>
                     )}
-
                 </div>
-            </div>
 
-            {/* Modal de confirmación de eliminación */}
-            {showDeleteModal && asesorAEliminar && (
+                {/* Modal de confirmación de eliminación */}
+                {showDeleteModal && asesorAEliminar && (
                 <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                     <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
@@ -463,7 +461,7 @@ export default function Asesores({ auth, asesores, filtros: filtrosIniciales = {
                         </div>
                     </div>
                 </div>
-            )}
-        </AdminLayout>
+                )}
+            </AdminLayout>
     );
 }

@@ -209,7 +209,7 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
 
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Descuento (Opcional)
+                                                    Descuento (S/) - Opcional
                                                 </label>
                                                 <input
                                                     type="number"
@@ -218,9 +218,9 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     placeholder="0"
                                                     min="0"
-                                                    step="1000"
+                                                    step="0.01"
                                                 />
-                                                <p className="mt-1 text-xs text-gray-500">Deja en blanco si no aplica descuento</p>
+                                                <p className="mt-1 text-xs text-gray-500">Ingresa el monto de descuento en soles (ej: 5000)</p>
                                                 {errors.descuento && (
                                                     <p className="mt-1 text-sm text-red-600">{errors.descuento}</p>
                                                 )}

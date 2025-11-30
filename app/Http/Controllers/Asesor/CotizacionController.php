@@ -31,11 +31,23 @@ class CotizacionController extends Controller
                 ->orderBy('updated_at', 'desc')
                 ->get();
         } else {
-            // Mostrar solo cotizaciones formales activas (excluir solicitudes pendientes/aprobadas)
+            // Mostrar todas las cotizaciones activas que tienen monto asignado
+            // Esto incluye las cotizaciones formales Y las solicitudes que ya fueron aprobadas
             $cotizaciones = Cotizacion::with(['cliente.usuario', 'departamento'])
                 ->where('asesor_id', $asesor->id)
-                ->whereNotIn('estado', ['pendiente', 'aprobada', 'rechazada'])
-                ->activas()
+                ->where(function($query) {
+                    // Mostrar cotizaciones con monto asignado
+                    $query->where(function($q) {
+                        $q->whereNotNull('monto')
+                          ->where('monto', '>', 0);
+                    })
+                    // O solicitudes aprobadas pendientes de completar
+                    ->orWhere(function($q) {
+                        $q->where('estado', 'aprobada')
+                          ->whereNull('monto');
+                    });
+                })
+                ->whereIn('estado', ['en_proceso', 'aprobada', 'aceptada']) // Estados activos
                 ->orderBy('created_at', 'desc')
                 ->get();
         }

@@ -262,6 +262,27 @@ class SolicitudController extends Controller
             'cliente' => $solicitud->cliente->nombre ?? 'N/A'
         ]);
 
+        // Si se aprobó una solicitud PENDIENTE sin monto, redirigir a editar cotización
+        if ($validated['estado'] === 'aprobada' && !$esSolicitudTabla) {
+            // La solicitud está en cotizaciones y está siendo aprobada
+            // Verificar si ya tiene monto asignado
+            if (!$solicitud->monto || $solicitud->monto == 0) {
+                // Pre-llenar con el precio del departamento
+                $precioBase = $solicitud->departamento ? $solicitud->departamento->precio : 0;
+                
+                $solicitud->update([
+                    'monto' => $precioBase,
+                    'descuento' => 0,
+                    'fecha_validez' => now()->addDays(15),
+                    'condiciones' => 'Sujeto a disponibilidad y aprobación crediticia.',
+                ]);
+
+                // Redirigir a editar la cotización directamente
+                return redirect()->route('asesor.cotizaciones.edit', ['id' => $solicitud->id])
+                    ->with('success', '✅ Solicitud aceptada. Ahora ajusta el precio, descuento y condiciones de la cotización.');
+            }
+        }
+
         // Retornar con Inertia
         return back()->with('success', "Solicitud actualizada a: " . ucfirst($validated['estado']));
     }
