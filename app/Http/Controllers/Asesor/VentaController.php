@@ -9,6 +9,7 @@ use App\Models\Departamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class VentaController extends Controller
 {
@@ -24,7 +25,14 @@ class VentaController extends Controller
                 $query->where('asesor_id', $asesor->id);
             })
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function($venta) {
+                // Verificar si ya fue gestionado con "Gestionar Documentos"
+                $venta->documentos_ya_gestionados = \App\Models\VentaHistorial::where('venta_id', $venta->id)
+                    ->where('accion', 'entrega_documentos')
+                    ->exists();
+                return $venta;
+            });
 
         return Inertia::render('Asesor/Ventas', [
             'ventas' => $ventas
@@ -97,7 +105,7 @@ class VentaController extends Controller
             $cotizacion->marcarFinalizada();
         }
 
-        return redirect()->route('asesor.ventas')
+        return redirect()->route('asesor.ventas.index')
             ->with('success', 'Venta registrada exitosamente');
     }
 
@@ -327,11 +335,16 @@ class VentaController extends Controller
     }
 
     /**
-     * Marcar documentos como entregados
+     * Marcar documentos como entregados (SOLO SE PUEDE USAR UNA VEZ)
      */
-    public function marcarDocumentosEntregados($id)
+    public function marcarDocumentosEntregados(Request $request, $id)
     {
         $asesor = Auth::user()->asesor;
+
+        $validated = $request->validate([
+            'documentos_entregados' => 'required|boolean',
+            'observaciones' => 'nullable|string|max:1000'
+        ]);
 
         $venta = Venta::with(['reserva.cotizacion.departamento'])
             ->whereHas('reserva', function($query) use ($asesor) {
@@ -339,33 +352,134 @@ class VentaController extends Controller
             })
             ->findOrFail($id);
 
-        // Verificar que no estén ya entregados
-        if ($venta->documentos_entregados) {
+        // VERIFICAR SI YA SE GESTIONARON LOS DOCUMENTOS UNA VEZ
+        // Si ya hay un registro de "entrega_documentos" en el historial, está bloqueado
+        $yaGestionado = \App\Models\VentaHistorial::where('venta_id', $venta->id)
+            ->where('accion', 'entrega_documentos')
+            ->exists();
+
+        if ($yaGestionado) {
             return redirect()->back()
-                ->with('warning', 'Los documentos ya fueron marcados como entregados anteriormente.');
+                ->withErrors(['error' => 'Los documentos ya fueron gestionados. Para modificar, usa el botón "Editar" (sujeto a límites de edición).']);
         }
 
-        // Marcar como entregados usando el método del modelo
-        $venta->marcarDocumentosEntregados(Auth::id());
+        // Guardar datos anteriores
+        $datosAnteriores = [
+            'documentos_entregados' => $venta->documentos_entregados,
+            'fecha_entrega_documentos' => $venta->fecha_entrega_documentos,
+            'observaciones' => $venta->observaciones
+        ];
+
+        // Actualizar venta
+        $venta->update([
+            'documentos_entregados' => $validated['documentos_entregados'],
+            'fecha_entrega_documentos' => $validated['documentos_entregados'] ? now() : null,
+            'observaciones' => $validated['observaciones'] ?? $venta->observaciones
+        ]);
+
+        // Actualizar estado del departamento
+        $departamento = Departamento::find($venta->reserva->departamento_id);
+        if ($departamento) {
+            if ($validated['documentos_entregados']) {
+                $departamento->update(['estado' => 'vendido']);
+            } else {
+                $departamento->update(['estado' => 'reservado']);
+            }
+        }
 
         // Crear registro en historial
         \App\Models\VentaHistorial::create([
             'venta_id' => $venta->id,
             'usuario_id' => Auth::id(),
             'accion' => 'entrega_documentos',
-            'datos_anteriores' => [
-                'documentos_entregados' => false,
-                'fecha_entrega_documentos' => null
-            ],
+            'datos_anteriores' => $datosAnteriores,
             'datos_nuevos' => [
-                'documentos_entregados' => true,
-                'fecha_entrega_documentos' => $venta->fresh()->fecha_entrega_documentos
+                'documentos_entregados' => $venta->documentos_entregados,
+                'fecha_entrega_documentos' => $venta->fecha_entrega_documentos,
+                'observaciones' => $venta->observaciones
             ],
-            'motivo' => 'Entrega de documentos al cliente',
-            'observaciones' => 'Documentos entregados y departamento marcado como vendido'
+            'motivo' => 'Gestión inicial de documentos',
+            'observaciones' => $validated['observaciones'] ?? 'Sin observaciones adicionales'
         ]);
 
+        $mensaje = $validated['documentos_entregados'] 
+            ? '✓ Documentos marcados como entregados. Departamento actualizado a "vendido".'
+            : '✓ Documentos gestionados. Para modificar nuevamente, usa "Editar".';
+
         return redirect()->back()
-            ->with('success', '✓ Documentos marcados como entregados exitosamente.');
+            ->with('success', $mensaje);
+    }
+
+    /**
+     * REPORTE PDF: Mis Ventas
+     */
+    public function reporteMisVentasPDF(Request $request)
+    {
+        $asesor = Auth::user()->asesor;
+
+        // Obtener ventas con filtros opcionales
+        $query = Venta::with(['reserva.cotizacion.cliente.usuario', 'reserva.cotizacion.departamento'])
+            ->whereHas('reserva', function($q) use ($asesor) {
+                $q->where('asesor_id', $asesor->id);
+            });
+
+        // Filtros opcionales
+        if ($request->mes) {
+            $query->whereMonth('fecha_venta', $request->mes);
+        }
+        if ($request->anio) {
+            $query->whereYear('fecha_venta', $request->anio);
+        }
+
+        $ventas = $query->orderBy('fecha_venta', 'desc')->get();
+
+        // Calcular totales
+        $totalVentas = $ventas->count();
+        $totalMonto = $ventas->sum('monto_final');
+        $totalComisiones = $ventas->sum('comision');
+
+        $pdf = PDF::loadView('pdf.asesor.mis-ventas', [
+            'asesor' => $asesor,
+            'ventas' => $ventas,
+            'totalVentas' => $totalVentas,
+            'totalMonto' => $totalMonto,
+            'totalComisiones' => $totalComisiones,
+            'fechaGeneracion' => now(),
+            'periodo' => $request->mes && $request->anio 
+                ? \Carbon\Carbon::create($request->anio, $request->mes)->format('F Y')
+                : 'Todas'
+        ]);
+
+        return $pdf->stream('reporte-mis-ventas-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * REPORTE PDF: Historial Detallado de una Venta
+     */
+    public function historialVentaPDF($id)
+    {
+        $asesor = Auth::user()->asesor;
+
+        $venta = Venta::with([
+            'reserva.cotizacion.cliente.usuario',
+            'reserva.cotizacion.departamento',
+            'historial.usuario'
+        ])
+        ->whereHas('reserva', function($q) use ($asesor) {
+            $q->where('asesor_id', $asesor->id);
+        })
+        ->findOrFail($id);
+
+        // Ordenar historial cronológicamente
+        $historial = $venta->historial()->with('usuario')->orderBy('created_at', 'asc')->get();
+
+        $pdf = PDF::loadView('pdf.asesor.historial-venta', [
+            'venta' => $venta,
+            'historial' => $historial,
+            'asesor' => $asesor,
+            'fechaGeneracion' => now()
+        ]);
+
+        return $pdf->stream('historial-venta-' . $venta->id . '-' . now()->format('Y-m-d') . '.pdf');
     }
 }

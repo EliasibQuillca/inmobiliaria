@@ -112,7 +112,7 @@ try {
         ]);
     }
     echo "✅ Departamento disponible: {$departamento->titulo} (ID: {$departamento->id})\n";
-    echo "   Precio: S/ " . number_format($departamento->precio, 2) . "\n";
+    echo "   Precio: S/ " . number_format((float)$departamento->precio, 2) . "\n";
 
     DB::commit();
 
@@ -204,7 +204,7 @@ try {
     echo "   ├─ Precio final: S/ " . number_format($precioFinal, 2) . "\n";
     echo "   ├─ Condiciones: {$solicitud->condiciones}\n";
     echo "   ├─ Notas: {$solicitud->notas}\n";
-    echo "   └─ Válido hasta: {$fechaValidez->format('d/m/Y')}\n";
+    echo "   └─ Válido hasta: " . \Carbon\Carbon::parse($fechaValidez)->format('d/m/Y') . "\n";
     echo "   Estado: {$solicitud->estado} 🔄\n";
 
     DB::commit();
@@ -237,13 +237,13 @@ echo "   ╔══════════════════════�
 echo "   ║              💰 COTIZACIÓN DEL ASESOR                            ║\n";
 echo "   ╠══════════════════════════════════════════════════════════════════╣\n";
 echo "   ║  Departamento: {$departamento->titulo}\n";
-echo "   ║  Monto Base:   S/ " . number_format($solicitud->monto, 2) . "\n";
+echo "   ║  Monto Base:   S/ " . number_format((float)$solicitud->monto, 2) . "\n";
 echo "   ║  Descuento:    {$solicitud->descuento}%\n";
-echo "   ║  Precio Final: S/ " . number_format($solicitud->monto * (1 - $solicitud->descuento / 100), 2) . "\n";
+echo "   ║  Precio Final: S/ " . number_format((float)$solicitud->monto * (1 - $solicitud->descuento / 100), 2) . "\n";
 echo "   ║  \n";
 echo "   ║  📋 Condiciones: {$solicitud->condiciones}\n";
 echo "   ║  📝 Notas: {$solicitud->notas}\n";
-echo "   ║  ⏰ Válido hasta: {$solicitud->fecha_validez->format('d/m/Y')}\n";
+echo "   ║  ⏰ Válido hasta: " . \Carbon\Carbon::parse($solicitud->fecha_validez)->format('d/m/Y') . "\n";
 echo "   ╚══════════════════════════════════════════════════════════════════╝\n\n";
 
 echo "   Opciones disponibles:\n";
@@ -318,9 +318,9 @@ try {
     echo "   ║  ID Reserva:    {$reserva->id}\n";
     echo "   ║  Cliente:       {$cliente->nombre} {$cliente->apellidos}\n";
     echo "   ║  Departamento:  {$departamento->titulo}\n";
-    echo "   ║  Monto Reserva: S/ " . number_format($reserva->monto_reserva, 2) . "\n";
-    echo "   ║  Fecha Reserva: {$reserva->fecha_reserva->format('d/m/Y')}\n";
-    echo "   ║  Vence:         {$reserva->fecha_vencimiento->format('d/m/Y')}\n";
+    echo "   ║  Monto Reserva: S/ " . number_format((float)$reserva->monto_reserva, 2) . "\n";
+    echo "   ║  Fecha Reserva: " . \Carbon\Carbon::parse($reserva->fecha_reserva)->format('d/m/Y') . "\n";
+    echo "   ║  Vence:         " . \Carbon\Carbon::parse($reserva->fecha_vencimiento)->format('d/m/Y') . "\n";
     echo "   ║  Estado:        {$reserva->estado} ✅\n";
     echo "   ╚══════════════════════════════════════════════════════════════════╝\n";
 
@@ -400,10 +400,10 @@ try {
     echo "   ║  Cliente:         {$cliente->nombre} {$cliente->apellidos}\n";
     echo "   ║  Asesor:          {$asesor->nombre} {$asesor->apellidos}\n";
     echo "   ║  Departamento:    {$departamento->titulo}\n";
-    echo "   ║  Precio Venta:    S/ " . number_format($venta->precio_venta, 2) . "\n";
-    echo "   ║  Comisión Asesor: S/ " . number_format($venta->comision, 2) . "\n";
+    echo "   ║  Precio Venta:    S/ " . number_format((float)$venta->precio_venta, 2) . "\n";
+    echo "   ║  Comisión Asesor: S/ " . number_format((float)$venta->comision, 2) . "\n";
     echo "   ║  Método Pago:     {$venta->metodo_pago}\n";
-    echo "   ║  Fecha Venta:     {$venta->fecha_venta->format('d/m/Y')}\n";
+    echo "   ║  Fecha Venta:     " . \Carbon\Carbon::parse($venta->fecha_venta)->format('d/m/Y') . "\n";
     echo "   ║  Estado:          {$venta->estado} ✅\n";
     echo "   ╚══════════════════════════════════════════════════════════════════╝\n";
 
@@ -441,18 +441,18 @@ echo "6️⃣  Asesor registró venta → Venta ID: {$venta->id} ✅\n";
 echo "7️⃣  Departamento actualizado → Estado: VENDIDO 🏠\n\n";
 
 echo "💰 DATOS FINANCIEROS:\n";
-echo "   Precio Original:  S/ " . number_format($departamento->precio, 2) . "\n";
+echo "   Precio Original:  S/ " . number_format((float)$departamento->precio, 2) . "\n";
 echo "   Descuento:        {$solicitud->descuento}%\n";
-echo "   Precio Final:     S/ " . number_format($precioFinal, 2) . "\n";
-echo "   Monto Reserva:    S/ " . number_format($reserva->monto_reserva, 2) . "\n";
-echo "   Comisión Asesor:  S/ " . number_format($venta->comision, 2) . "\n\n";
+echo "   Precio Final:     S/ " . number_format((float)$precioFinal, 2) . "\n";
+echo "   Monto Reserva:    S/ " . number_format((float)$reserva->monto_reserva, 2) . "\n";
+echo "   Comisión Asesor:  S/ " . number_format((float)$venta->comision, 2) . "\n\n";
 
 echo "⏱️  TIMELINE:\n";
 echo "   Solicitud creada:  {$solicitud->created_at->format('d/m/Y H:i:s')}\n";
 echo "   Cotización enviada: {$solicitud->updated_at->format('d/m/Y H:i:s')}\n";
-echo "   Cliente aceptó:    {$solicitud->fecha_respuesta_cliente->format('d/m/Y H:i:s')}\n";
-echo "   Reserva creada:    {$reserva->fecha_reserva->format('d/m/Y H:i:s')}\n";
-echo "   Venta registrada:  {$venta->fecha_venta->format('d/m/Y H:i:s')}\n\n";
+echo "   Cliente aceptó:    " . \Carbon\Carbon::parse($solicitud->fecha_respuesta_cliente)->format('d/m/Y H:i:s') . "\n";
+echo "   Reserva creada:    " . \Carbon\Carbon::parse($reserva->fecha_reserva)->format('d/m/Y H:i:s') . "\n";
+echo "   Venta registrada:  " . \Carbon\Carbon::parse($venta->fecha_venta)->format('d/m/Y H:i:s') . "\n\n";
 
 echo "🔍 IDs PARA VERIFICACIÓN EN EL SISTEMA:\n";
 echo "   Usuario Cliente: {$usuarioCliente->id} ({$usuarioCliente->email})\n";

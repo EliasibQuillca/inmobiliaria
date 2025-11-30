@@ -289,6 +289,197 @@ Admin → Revisa venta completa
 
 ---
 
+---
+
+## 🛠️ MEJORAS Y CORRECCIONES IMPLEMENTADAS (30 Nov 2025)
+
+### ✅ MÓDULO DE VENTAS - COMPLETAMENTE FUNCIONAL
+
+#### 1. **Formato de Fechas Corregido**
+**Problema:** Inputs `type="date"` recibían timestamps completos (`2025-11-19T00:00:00.000000Z`)
+**Solución:** 
+- Agregada función `formatearFechaParaInput()` en todos los formularios
+- Archivos: `Ventas/Editar.jsx`, `Ventas/Crear.jsx`, `Cotizaciones/Editar.jsx`, `Cotizaciones/Crear.jsx`
+- Formato correcto: `yyyy-MM-dd`
+
+#### 2. **Rutas de Redirección Corregidas**
+**Problema:** Error 500 - `Route [asesor.ventas] not defined`
+**Solución:**
+- Cambiado `route('asesor.ventas')` → `route('asesor.ventas.index')`
+- Afectados: `VentaController@store()` y `VentaController@update()`
+- Redirecciones ahora funcionan correctamente
+
+#### 3. **Control de Ediciones de Ventas**
+**Implementado:**
+- ✅ Máximo 3 ediciones por venta
+- ✅ Ventana de 7 días desde el **registro** (no desde fecha_venta)
+- ✅ Motivo obligatorio (mínimo 10 caracteres)
+- ✅ Contador visible: "Ediciones realizadas: X de 3"
+- ✅ Bloqueo automático al alcanzar límite
+- ✅ Método `diasDesdeVenta()` usa `created_at` correctamente
+
+**Tabla:** `ventas`
+```sql
+- cantidad_ediciones (contador)
+- max_ediciones (límite, default: 3)
+- bloqueada_edicion (boolean)
+- fecha_primera_edicion
+- fecha_ultima_edicion
+```
+
+#### 4. **Gestión de Documentos Optimizada**
+**Cambio Importante:** 
+- ❌ Eliminado botón "Marcar Entregado" (redundante)
+- ✅ Solo botón "Gestionar Documentos"
+- ✅ **Uso único:** Solo se puede usar 1 vez
+- ✅ Después de usarlo → Botón bloqueado: "Ya Gestionado"
+- ✅ Para modificar después → Usar botón "Editar" (sujeto a límites)
+
+**Validación Backend:**
+```php
+// Verifica si ya existe registro de 'entrega_documentos' en historial
+if (VentaHistorial::where('venta_id', $id)->where('accion', 'entrega_documentos')->exists()) {
+    return error('Ya gestionado. Usa Editar para modificar');
+}
+```
+
+#### 5. **Estado de Departamentos - Lógica Corregida**
+**Flujo correcto:**
+```
+disponible → reservado (al crear reserva)
+         ↓
+reservado → vendido (al marcar documentos_entregados = true)
+         ↓
+vendido → reservado (al desmarcar documentos_entregados = false)
+```
+
+**IMPORTANTE:** 
+- ❌ Nunca vuelve a `disponible` si existe una venta registrada
+- ✅ Solo puede ser `reservado` o `vendido` mientras la venta exista
+- ✅ Departamento en estado `reservado` = venta con documentos pendientes
+
+#### 6. **Historial de Ventas (Auditoría Completa)**
+**Tabla:** `venta_historiales`
+**Acciones registradas:**
+- `creacion` → Primera vez que se registra la venta
+- `edicion` → Cada modificación (fecha, monto, observaciones)
+- `entrega_documentos` → Gestión inicial de documentos (solo 1 vez)
+
+**Campos JSON:**
+```json
+{
+    "datos_anteriores": {
+        "fecha_venta": "2025-11-19",
+        "monto_final": "280000.00",
+        "documentos_entregados": false
+    },
+    "datos_nuevos": {
+        "fecha_venta": "2025-11-30",
+        "monto_final": "320000.00",
+        "documentos_entregados": true
+    },
+    "motivo": "Ajuste por descuento adicional",
+    "observaciones": "Edición #2 de 3 permitidas"
+}
+```
+
+#### 7. **Validaciones de Descuento en Cotizaciones**
+**Límites:**
+- ✅ Máximo 50% del precio base
+- ✅ Validación en frontend y backend
+- ✅ Cálculo automático de monto final
+- ✅ Paso correcto: `step="100"` (no `step="1000"`)
+
+#### 8. **Display de Datos en Listados**
+**Corregido acceso a relaciones:**
+```javascript
+// Antes (fallaba):
+cliente.nombre
+departamento.titulo
+
+// Ahora (correcto):
+cliente.usuario.name
+departamento.codigo
+```
+
+#### 9. **Caché y Optimización**
+**Comando usado regularmente:**
+```bash
+php artisan optimize:clear
+```
+Limpia: config, cache, compiled, events, routes, views
+
+---
+
+## 🔧 SOLUCIÓN DE ERRORES COMUNES
+
+### Error: "Route not defined"
+**Causa:** Uso incorrecto de nombres de rutas
+**Solución:** Verificar nombre completo con `php artisan route:list | grep ventas`
+
+### Error: "does not conform to required format"
+**Causa:** Timestamp completo en input type="date"
+**Solución:** Usar `date.toISOString().split('T')[0]`
+
+### Error: "No puedes editar después de 7 días"
+**Causa:** `diasDesdeVenta()` usaba `fecha_venta` en lugar de `created_at`
+**Solución:** Método corregido para usar fecha de registro
+
+### Error: Redirección después de actualizar no funciona
+**Causa:** `patch()` sin opciones de callback
+**Solución:** 
+```javascript
+patch(url, {
+    onSuccess: () => { /* redirección automática */ }
+})
+```
+
+---
+
+## 📊 ESTADO ACTUAL DEL SISTEMA
+
+### MÓDULOS COMPLETADOS ✅
+- ✅ Solicitudes (Cliente y Asesor)
+- ✅ Cotizaciones (Crear, Editar, Aceptar/Rechazar)
+- ✅ Reservas (Crear, Confirmar, Historial)
+- ✅ Ventas (Crear, Editar con límites, Gestionar documentos)
+- ✅ Control de ediciones (3 max, 7 días)
+- ✅ Historial completo (Auditoría)
+- ✅ Estados de departamentos (disponible/reservado/vendido)
+
+### PENDIENTES (MÓDULO CLIENTE) 🔄
+- 🔄 Verificar flujo de cliente desde catálogo
+- 🔄 Revisión de preferencias de búsqueda
+- 🔄 Validación de cotizaciones desde vista cliente
+- 🔄 Notificaciones y alertas
+
+---
+
+## 🎯 PUNTOS CLAVE PARA RECORDAR
+
+1. **Gestionar Documentos = Solo 1 vez**
+   - Después usar "Editar" (sujeto a límites)
+
+2. **Ediciones limitadas:**
+   - 3 ediciones máximo
+   - 7 días desde registro
+   - Motivo obligatorio (min 10 caracteres)
+
+3. **Estado de departamento:**
+   - Con venta activa: solo `reservado` o `vendido`
+   - Nunca vuelve a `disponible` si hay venta
+
+4. **Formato de fechas:**
+   - Siempre usar `formatearFechaParaInput()` en formularios
+   - Backend recibe `yyyy-MM-dd`
+
+5. **Rutas de redirección:**
+   - Usar nombres completos: `asesor.ventas.index`
+   - No omitir `.index` en rutas de listado
+
+---
+
 **Elaborado por:** Sistema Inmobiliaria Imperial Cusco
-**Versión:** 2.0
-**Última actualización:** 25 de noviembre de 2025
+**Versión:** 3.0
+**Última actualización:** 30 de noviembre de 2025
+**Estado:** Módulo Asesor 100% funcional | Cliente pendiente de revisión

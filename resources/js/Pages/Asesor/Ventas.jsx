@@ -31,14 +31,6 @@ export default function Ventas({ auth, ventas = [] }) {
         });
     };
 
-    const marcarDocumentosEntregados = (ventaId) => {
-        if (confirm('¿Estás seguro de marcar los documentos como entregados? Esta acción marcará el departamento como vendido.')) {
-            patch(`/asesor/ventas/${ventaId}/entregar-documentos`, {
-                preserveScroll: true
-            });
-        }
-    };
-
     const getEstadoColor = (documentos_entregados) => {
         return documentos_entregados
             ? 'bg-green-100 text-green-800'
@@ -83,10 +75,20 @@ export default function Ventas({ auth, ventas = [] }) {
                                     Registro de ventas formalizadas y documentos entregados
                                 </p>
                             </div>
-                            <div className="flex">
+                            <div className="flex gap-2">
+                                <a
+                                    href="/asesor/reportes/mis-ventas-pdf"
+                                    target="_blank"
+                                    className="inline-flex items-center px-4 py-2 border border-red-600 rounded-md shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                >
+                                    <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Reporte PDF
+                                </a>
                                 <button
                                     onClick={() => router.get('/asesor/ventas/create')}
-                                    className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                 >
                                     <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -260,25 +262,25 @@ export default function Ventas({ auth, ventas = [] }) {
                                             </div>
 
                                             <div className="flex space-x-2">
-                                                {!venta.documentos_entregados && (
+                                                {!venta.documentos_ya_gestionados ? (
                                                     <button
-                                                        onClick={() => marcarDocumentosEntregados(venta.id)}
-                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                                        title="Marcar documentos como entregados"
+                                                        onClick={() => handleUpdateDocuments(venta)}
+                                                        className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                        title="Gestionar documentos (solo una vez)"
                                                     >
+                                                        <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                        Gestionar Documentos
+                                                    </button>
+                                                ) : (
+                                                    <div className="inline-flex items-center px-3 py-2 border border-gray-200 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-400 bg-gray-50 cursor-not-allowed" title="Ya gestionado. Usa 'Editar' para modificar">
                                                         <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        Marcar Entregado
-                                                    </button>
+                                                        Ya Gestionado
+                                                    </div>
                                                 )}
-
-                                                <button
-                                                    onClick={() => handleUpdateDocuments(venta)}
-                                                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                >
-                                                    Gestionar Documentos
-                                                </button>
 
                                                 <button
                                                     onClick={() => router.get(`/asesor/ventas/${venta.id}`)}
@@ -293,6 +295,18 @@ export default function Ventas({ auth, ventas = [] }) {
                                                 >
                                                     Editar
                                                 </button>
+
+                                                <a
+                                                    href={`/asesor/reportes/historial-venta-pdf/${venta.id}`}
+                                                    target="_blank"
+                                                    className="inline-flex items-center px-3 py-2 border border-red-600 text-sm leading-4 font-medium rounded-md text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                                    title="Ver historial completo en PDF"
+                                                >
+                                                    <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    Historial PDF
+                                                </a>
                                             </div>
                                         </div>
                                     </li>

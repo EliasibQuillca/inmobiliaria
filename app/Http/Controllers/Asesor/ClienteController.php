@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ClienteController extends Controller
 {
@@ -161,5 +162,42 @@ class ClienteController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Cliente actualizado exitosamente');
+    }
+
+    /**
+     * REPORTE PDF: Mis Clientes
+     */
+    public function reporteMisClientesPDF()
+    {
+        $asesor = Auth::user()->asesor;
+
+        $clientes = Cliente::with(['usuario', 'ventas', 'cotizaciones'])
+            ->where('asesor_id', $asesor->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($cliente) {
+                // Calcular estadísticas por cliente
+                $cliente->total_cotizaciones = $cliente->cotizaciones->count();
+                $cliente->cotizaciones_aceptadas = $cliente->cotizaciones->where('estado', 'aceptada')->count();
+                $cliente->total_compras = $cliente->ventas->count();
+                $cliente->monto_total_comprado = $cliente->ventas->sum('monto_final');
+                $cliente->ultima_actividad = $cliente->cotizaciones->max('updated_at') ?? $cliente->created_at;
+                return $cliente;
+            });
+
+        $totalClientes = $clientes->count();
+        $clientesConCompra = $clientes->where('total_compras', '>', 0)->count();
+        $clientesActivos = $clientes->where('total_cotizaciones', '>', 0)->count();
+
+        $pdf = PDF::loadView('pdf.asesor.mis-clientes', [
+            'asesor' => $asesor,
+            'clientes' => $clientes,
+            'totalClientes' => $totalClientes,
+            'clientesConCompra' => $clientesConCompra,
+            'clientesActivos' => $clientesActivos,
+            'fechaGeneracion' => now()
+        ]);
+
+        return $pdf->stream('reporte-mis-clientes-' . now()->format('Y-m-d') . '.pdf');
     }
 }

@@ -243,4 +243,9 @@ Route::middleware(['auth', 'active', 'role:asesor'])->prefix('asesor')->name('as
     Route::patch('/ventas/{venta}', [AsesorVentaController::class, 'update'])->name('ventas.update');
     Route::patch('/ventas/{venta}/entregar-documentos', [AsesorVentaController::class, 'marcarDocumentosEntregados'])->name('ventas.entregar-documentos');
     Route::get('/ventas/{venta}/pdf', [AsesorVentaController::class, 'generarPDF'])->name('ventas.pdf');
+    
+    // Reportes PDF
+    Route::get('/reportes/mis-ventas-pdf', [AsesorVentaController::class, 'reporteMisVentasPDF'])->name('reportes.mis-ventas-pdf');
+    Route::get('/reportes/historial-venta-pdf/{venta}', [AsesorVentaController::class, 'historialVentaPDF'])->name('reportes.historial-venta-pdf');
+    Route::get('/reportes/mis-clientes-pdf', [AsesorClienteController::class, 'reporteMisClientesPDF'])->name('reportes.mis-clientes-pdf');
 });
