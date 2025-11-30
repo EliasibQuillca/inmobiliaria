@@ -160,7 +160,7 @@ class ClienteDepartamentoController extends Controller
             });
         }
 
-        return inertia('Cliente/DetalleDepartamento', [
+        return inertia('Public/DetalleDepartamento', [
             'departamento' => $departamento,
             'relacionados' => $relacionados,
         ]);
