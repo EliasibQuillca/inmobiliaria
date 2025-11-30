@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Public;
 
 use App\Models\Departamento;
 use App\Models\Imagen;
