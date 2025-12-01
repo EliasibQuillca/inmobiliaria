@@ -8,9 +8,17 @@ export default function Asesores({ auth, asesores }) {
 
     const handleAsignarAsesor = (asesor) => {
         if (confirm(`¿Deseas que ${asesor.nombre} sea tu asesor asignado?`)) {
-            router.post(`/cliente/asesores/${asesor.id}/asignar`, {}, {
+            router.post(`/cliente/asesores/${asesor.id}/asignar`, {
+                _token: document.querySelector('meta[name="csrf-token"]')?.content
+            }, {
+                preserveState: true,
+                preserveScroll: true,
                 onSuccess: () => {
                     setMostrarModal(false);
+                },
+                onError: (errors) => {
+                    console.error('Error al asignar asesor:', errors);
+                    alert('Hubo un error al asignar el asesor. Por favor, intenta nuevamente.');
                 }
             });
         }
@@ -60,14 +68,25 @@ export default function Asesores({ auth, asesores }) {
                             {/* Header con estado */}
                             <div className="relative">
                                 <div className="h-32 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
-                                {asesor.disponible && (
-                                    <div className="absolute top-4 right-4">
+                                <div className="absolute top-4 right-4">
+                                    {asesor.es_mi_asesor ? (
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white shadow-lg ring-2 ring-white">
+                                            <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                            ✓ Asignado
+                                        </span>
+                                    ) : asesor.disponible ? (
                                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500 text-white animate-pulse">
                                             <span className="w-2 h-2 bg-white rounded-full mr-2"></span>
                                             Disponible
                                         </span>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-400 text-white">
+                                            No disponible
+                                        </span>
+                                    )}
+                                </div>
                                 {/* Avatar */}
                                 <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
                                     <div className="w-24 h-24 rounded-full border-4 border-white bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-lg">
@@ -163,15 +182,24 @@ export default function Asesores({ auth, asesores }) {
                                         </svg>
                                         Solicitar Asesoría
                                     </button>
-                                    <button
-                                        onClick={() => handleAsignarAsesor(asesor)}
-                                        className="w-full border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                        Asignar como mi asesor
-                                    </button>
+                                    {asesor.es_mi_asesor ? (
+                                        <div className="w-full border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2">
+                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                            Tu Asesor Asignado
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleAsignarAsesor(asesor)}
+                                            className="w-full border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                            Asignar como mi asesor
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -9,10 +9,10 @@ export default function SobreNosotros({ auth }) {
 
             <div className="min-h-screen bg-gray-50">
                 {/* Hero Section */}
-                <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 text-white py-12 sm:py-16 lg:py-20">
+                <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white py-12 sm:py-16 lg:py-20">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Inmobiliaria Imperial Cusco</h1>
-                        <p className="text-xl text-amber-50 max-w-3xl mx-auto">
+                        <p className="text-xl text-blue-50 max-w-3xl mx-auto">
                             Los mejores departamentos en la ciudad imperial del Perú
                         </p>
                     </div>
@@ -25,7 +25,7 @@ export default function SobreNosotros({ auth }) {
                             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">Nuestra Historia</h2>
                             <div className="space-y-4 text-gray-600">
                                 <p>
-                                    <strong className="text-amber-700">Inmobiliaria Imperial Cusco</strong> es tu mejor aliado en la búsqueda 
+                                    <strong className="text-blue-700">Inmobiliaria Imperial Cusco</strong> es tu mejor aliado en la búsqueda 
                                     del departamento ideal. Especializados en la comercialización de propiedades en Cusco, ofrecemos 
                                     departamentos de primera calidad en las mejores ubicaciones de la ciudad imperial.
                                 </p>
@@ -39,11 +39,11 @@ export default function SobreNosotros({ auth }) {
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-amber-50 rounded-lg p-6 sm:p-8 border-2 border-amber-200">
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 sm:p-8 border-2 border-blue-200">
                             <div className="grid grid-cols-2 gap-4 sm:gap-6">
                                 <div className="text-center">
-                                    <div className="text-4xl font-bold text-amber-700 mb-2">10+</div>
-                                    <div className="text-sm text-gray-600">Años de Experiencia</div>
+                                    <div className="text-4xl font-bold text-blue-700 mb-2">10+</div>
+                                    <div className="text-sm text-gray-600">Áños de Experiencia</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="text-4xl font-bold text-blue-600 mb-2">1000+</div>
@@ -85,9 +85,9 @@ export default function SobreNosotros({ auth }) {
                             </div>
 
                             {/* Visión */}
-                            <div className="bg-gradient-to-br from-amber-50 to-white p-6 sm:p-8 rounded-xl shadow-sm border border-amber-200">
+                            <div className="bg-gradient-to-br from-indigo-50 to-white p-6 sm:p-8 rounded-xl shadow-sm border border-indigo-200">
                                 <div className="flex items-center mb-4">
-                                    <div className="w-12 h-12 bg-amber-600 rounded-lg flex items-center justify-center">
+                                    <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center">
                                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -117,8 +117,8 @@ export default function SobreNosotros({ auth }) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                         {/* Valor 1 */}
                         <div className="text-center">
-                            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                 </svg>
                             </div>
@@ -130,8 +130,8 @@ export default function SobreNosotros({ auth }) {
 
                         {/* Valor 2 */}
                         <div className="text-center">
-                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
@@ -143,8 +143,8 @@ export default function SobreNosotros({ auth }) {
 
                         {/* Valor 3 */}
                         <div className="text-center">
-                            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                                 </svg>
                             </div>
@@ -156,8 +156,8 @@ export default function SobreNosotros({ auth }) {
 
                         {/* Valor 4 */}
                         <div className="text-center">
-                            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                 </svg>
                             </div>
@@ -169,8 +169,8 @@ export default function SobreNosotros({ auth }) {
 
                         {/* Valor 5 */}
                         <div className="text-center">
-                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
                             </div>

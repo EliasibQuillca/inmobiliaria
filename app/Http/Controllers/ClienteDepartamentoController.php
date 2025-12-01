@@ -41,14 +41,6 @@ class ClienteDepartamentoController extends Controller
             $query->where('habitaciones', '>=', $request->habitaciones);
         }
 
-        if ($request->filled('precio_min')) {
-            $query->where('precio', '>=', $request->precio_min);
-        }
-
-        if ($request->filled('precio_max')) {
-            $query->where('precio', '<=', $request->precio_max);
-        }
-
         if ($request->filled('busqueda')) {
             $busqueda = $request->busqueda;
             $query->where(function($q) use ($busqueda) {
@@ -90,7 +82,7 @@ class ClienteDepartamentoController extends Controller
 
         // Estadísticas
         $estadisticas = [
-            'total' => Departamento::where('estado', 'disponible')->count(),
+            'total_disponibles' => Departamento::where('estado', 'disponible')->count(),
             'precio_min' => Departamento::where('estado', 'disponible')->min('precio'),
             'precio_max' => Departamento::where('estado', 'disponible')->max('precio'),
             'favoritos_count' => count($favoritosIds),
@@ -99,7 +91,7 @@ class ClienteDepartamentoController extends Controller
         return inertia('Cliente/CatalogoCliente', [
             'departamentos' => $departamentos,
             'estadisticas' => $estadisticas,
-            'filtros' => $request->only(['tipo_propiedad', 'habitaciones', 'precio_min', 'precio_max', 'busqueda', 'orden']),
+            'filtros' => $request->only(['tipo_propiedad', 'habitaciones', 'busqueda', 'orden']),
             'tiposPropiedad' => [
                 'departamento' => 'Departamento',
                 'casa' => 'Casa',

@@ -37,14 +37,6 @@ class CatalogoController extends Controller
         ];
 
         // Filtros básicos - ahora usando todas las columnas disponibles
-        if ($request->filled('precio_min')) {
-            $query->where('precio', '>=', $request->precio_min);
-        }
-
-        if ($request->filled('precio_max')) {
-            $query->where('precio', '<=', $request->precio_max);
-        }
-
         if ($request->filled('ubicacion')) {
             $query->where('ubicacion', $request->ubicacion);
         }
@@ -110,8 +102,6 @@ class CatalogoController extends Controller
             'filtros' => array_merge([
                 'tipo_propiedad' => '',
                 'habitaciones' => '',
-                'precio_min' => '',
-                'precio_max' => '',
                 'busqueda' => '',
                 'orden' => 'recientes'
             ], $request->all()),

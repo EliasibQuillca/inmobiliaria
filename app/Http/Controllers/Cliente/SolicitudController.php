@@ -240,7 +240,7 @@ class SolicitudController extends Controller
      * Mostrar el detalle de una solicitud específica.
      *
      * @param  int  $id
-     * @return \Inertia\Response
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
     public function show($id)
     {

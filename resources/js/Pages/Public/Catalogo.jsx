@@ -12,8 +12,6 @@ export default function Catalogo({
     const [filtrosLocales, setFiltrosLocales] = useState({
         tipo_propiedad: (filtros && filtros.tipo_propiedad) || '',
         habitaciones: (filtros && filtros.habitaciones) || '',
-        precio_min: (filtros && filtros.precio_min) || '',
-        precio_max: (filtros && filtros.precio_max) || '',
         busqueda: (filtros && filtros.busqueda) || '',
         orden: (filtros && filtros.orden) || 'recientes',
     });
@@ -41,8 +39,6 @@ export default function Catalogo({
         const filtrosVacios = {
             tipo_propiedad: '',
             habitaciones: '',
-            precio_min: '',
-            precio_max: '',
             busqueda: '',
             orden: 'recientes',
         };
@@ -142,7 +138,7 @@ export default function Catalogo({
                     {/* Filtros */}
                     <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4 sm:hidden">Filtrar Propiedades</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                             {/* Tipo de Propiedad */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
@@ -172,30 +168,6 @@ export default function Catalogo({
                                     <option value="3">3 habitaciones</option>
                                     <option value="4">4+ habitaciones</option>
                                 </select>
-                            </div>
-
-                            {/* Precio Mínimo */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Precio Mín.</label>
-                                <input
-                                    type="number"
-                                    value={filtrosLocales.precio_min}
-                                    onChange={(e) => setFiltrosLocales(prev => ({ ...prev, precio_min: e.target.value }))}
-                                    placeholder="Desde..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            {/* Precio Máximo */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Precio Máx.</label>
-                                <input
-                                    type="number"
-                                    value={filtrosLocales.precio_max}
-                                    onChange={(e) => setFiltrosLocales(prev => ({ ...prev, precio_max: e.target.value }))}
-                                    placeholder="Hasta..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
                             </div>
 
                             {/* Ordenamiento */}

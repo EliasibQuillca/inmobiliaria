@@ -15,12 +15,16 @@ class AsesorController extends Controller
      */
     public function index()
     {
+        // Obtener el cliente actual
+        $cliente = Cliente::where('usuario_id', Auth::id())->first();
+        $asesorAsignadoId = $cliente ? $cliente->asesor_id : null;
+
         $asesores = Asesor::with(['usuario'])
             ->whereHas('usuario', function($query) {
                 $query->where('estado', true);
             })
             ->get()
-            ->map(function ($asesor) {
+            ->map(function ($asesor) use ($asesorAsignadoId) {
                 return [
                     'id' => $asesor->id,
                     'nombre' => $asesor->usuario->name,
@@ -38,6 +42,7 @@ class AsesorController extends Controller
                         ->count(),
                     'disponible' => $asesor->disponible ?? true,
                     'calificacion' => $asesor->calificacion ?? 5.0,
+                    'es_mi_asesor' => $asesor->id === $asesorAsignadoId,
                 ];
             });
 
