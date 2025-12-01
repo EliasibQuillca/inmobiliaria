@@ -1,8 +1,8 @@
 <?php
 
 $files = [
-    __DIR__ . '/tests/Feature/CatalogoTest.php',
-    __DIR__ . '/tests/Unit/DepartamentoTest.php'
+    __DIR__ . '/../tests/Feature/CatalogoTest.php',
+    __DIR__ . '/../tests/Unit/DepartamentoTest.php'
 ];
 
 foreach ($files as $file) {

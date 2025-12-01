@@ -1,8 +1,8 @@
 <?php
 
-require __DIR__.'/vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
-$app = require_once __DIR__.'/bootstrap/app.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 use Illuminate\Support\Facades\Route;
@@ -86,13 +86,26 @@ echo "Total: " . $cotizacionesEnProceso->count() . "\n\n";
 
 foreach ($cotizacionesEnProceso as $cot) {
     echo "ID: {$cot->id}\n";
-    echo "  Cliente: {$cot->cliente->nombre} {$cot->cliente->apellidos}\n";
-    echo "  Asesor: {$cot->asesor->nombre} {$cot->asesor->apellidos}\n";
-    echo "  Departamento: {$cot->departamento->titulo}\n";
-    echo "  Monto: S/ " . number_format($cot->monto, 2) . "\n";
-    echo "  Descuento: {$cot->descuento}%\n";
-    echo "  Precio Final: S/ " . number_format($cot->monto * (1 - $cot->descuento/100), 2) . "\n";
-    echo "  Fecha Validez: " . ($cot->fecha_validez ? $cot->fecha_validez->format('d/m/Y') : 'N/A') . "\n";
+    echo "  Cliente: " . ($cot->cliente ? "{$cot->cliente->nombre} {$cot->cliente->apellidos}" : 'N/A') . "\n";
+    echo "  Asesor: " . ($cot->asesor ? "{$cot->asesor->nombre} {$cot->asesor->apellidos}" : 'N/A') . "\n";
+    echo "  Departamento: " . ($cot->departamento ? $cot->departamento->titulo : 'N/A') . "\n";
+    echo "  Monto: S/ " . number_format((float)$cot->monto ?? 0, 2) . "\n";
+    echo "  Descuento: " . ($cot->descuento ?? 0) . "%\n";
+    
+    $precioFinal = ($cot->monto && $cot->descuento !== null) 
+        ? $cot->monto * (1 - $cot->descuento/100) 
+        : ($cot->monto ?? 0);
+    echo "  Precio Final: S/ " . number_format($precioFinal, 2) . "\n";
+    
+    if ($cot->fecha_validez) {
+        try {
+            echo "  Fecha Validez: " . \Carbon\Carbon::parse($cot->fecha_validez)->format('d/m/Y') . "\n";
+        } catch (\Exception $e) {
+            echo "  Fecha Validez: N/A (error al formatear)\n";
+        }
+    } else {
+        echo "  Fecha Validez: N/A\n";
+    }
     echo "\n";
 }
 
@@ -100,18 +113,30 @@ foreach ($cotizacionesEnProceso as $cot) {
 echo "📌 MÉTODOS DE LOS CONTROLADORES:\n";
 echo str_repeat("-", 70) . "\n";
 
-// Verificar AsesorSolicitudController
-$asesorController = new \ReflectionClass(\App\Http\Controllers\Asesor\SolicitudController::class);
-$metodoAsesor = $asesorController->hasMethod('responderSolicitud');
-echo ($metodoAsesor ? "✅" : "❌") . " AsesorSolicitudController::responderSolicitud\n";
+try {
+    // Verificar AsesorSolicitudController
+    if (class_exists('\\App\\Http\\Controllers\\Asesor\\SolicitudController')) {
+        $asesorController = new \ReflectionClass(\App\Http\Controllers\Asesor\SolicitudController::class);
+        $metodoAsesor = $asesorController->hasMethod('responderSolicitud');
+        echo ($metodoAsesor ? "✅" : "❌") . " AsesorSolicitudController::responderSolicitud\n";
+    } else {
+        echo "❌ AsesorSolicitudController no existe\n";
+    }
 
-// Verificar ClienteSolicitudController
-$clienteController = new \ReflectionClass(\App\Http\Controllers\Cliente\SolicitudController::class);
-$metodosCliente = ['aceptarCotizacion', 'rechazarCotizacion', 'solicitarModificacion'];
+    // Verificar ClienteSolicitudController
+    if (class_exists('\\App\\Http\\Controllers\\Cliente\\SolicitudController')) {
+        $clienteController = new \ReflectionClass(\App\Http\Controllers\Cliente\SolicitudController::class);
+        $metodosCliente = ['aceptarCotizacion', 'rechazarCotizacion', 'solicitarModificacion'];
 
-foreach ($metodosCliente as $metodo) {
-    $existe = $clienteController->hasMethod($metodo);
-    echo ($existe ? "✅" : "❌") . " ClienteSolicitudController::$metodo\n";
+        foreach ($metodosCliente as $metodo) {
+            $existe = $clienteController->hasMethod($metodo);
+            echo ($existe ? "✅" : "❌") . " ClienteSolicitudController::$metodo\n";
+        }
+    } else {
+        echo "❌ ClienteSolicitudController no existe\n";
+    }
+} catch (\Exception $e) {
+    echo "❌ Error al verificar controladores: " . $e->getMessage() . "\n";
 }
 
 // 7. Verificar archivos frontend
@@ -119,8 +144,8 @@ echo "\n📌 ARCHIVOS FRONTEND:\n";
 echo str_repeat("-", 70) . "\n";
 
 $archivos = [
-    'Cliente/Solicitudes.jsx' => __DIR__ . '/resources/js/Pages/Cliente/Solicitudes.jsx',
-    'Asesor/Solicitudes.jsx' => __DIR__ . '/resources/js/Pages/Asesor/Solicitudes.jsx',
+    'Cliente/Solicitudes.jsx' => __DIR__ . '/../resources/js/Pages/Cliente/Solicitudes.jsx',
+    'Asesor/Solicitudes.jsx' => __DIR__ . '/../resources/js/Pages/Asesor/Solicitudes.jsx',
 ];
 
 foreach ($archivos as $nombre => $ruta) {
