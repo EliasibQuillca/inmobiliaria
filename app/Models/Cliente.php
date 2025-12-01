@@ -85,6 +85,7 @@ class Cliente extends Model
         'nombre_completo',
         'email_completo',
         'telefono_completo',
+        'edad',
     ];
 
     // Relaciones
@@ -161,6 +162,21 @@ class Cliente extends Model
     {
         return Attribute::make(
             get: fn () => $this->usuario?->telefono ?? $this->attributes['telefono'] ?? null
+        );
+    }
+
+    /**
+     * Calcula la edad del cliente basándose en su fecha de nacimiento.
+     */
+    protected function edad(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (!$this->fecha_nacimiento) {
+                    return null;
+                }
+                return \Carbon\Carbon::parse($this->fecha_nacimiento)->age;
+            }
         );
     }
 

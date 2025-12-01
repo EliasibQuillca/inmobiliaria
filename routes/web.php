@@ -83,8 +83,8 @@ Route::middleware(['auth', 'active', 'role:cliente'])->prefix('cliente')->name('
 
     // Perfil
     Route::get('/perfil', [ClienteController::class, 'perfil'])->name('perfil.index');
-    Route::patch('/perfil', [ClienteController::class, 'updatePerfil'])->name('perfil.update');
-    Route::patch('/perfil/password', [ClienteController::class, 'updatePassword'])->name('perfil.password');
+    Route::match(['put', 'patch'], '/perfil', [ClienteController::class, 'updatePerfil'])->name('perfil.update');
+    Route::match(['put', 'patch'], '/perfil/password', [ClienteController::class, 'updatePassword'])->name('perfil.password');
 
     // Favoritos
     Route::get('/favoritos', [ClienteDepartamentoController::class, 'favoritos'])->name('favoritos.index');

@@ -292,7 +292,7 @@ class ClienteController extends Controller
                 'tipo' => 'reserva',
                 'descripcion' => "Realizaste una reserva para " . ($reserva->departamento ? $reserva->departamento->codigo : 'Departamento'),
                 'fecha' => $reserva->created_at->format('d/m/Y H:i'),
-                'enlace' => route('cliente.reservas.show', $reserva->id)
+                'enlace' => route('solicitudes') // Ruta cliente.reservas.show no existe
             ];
         }
 
@@ -317,77 +317,108 @@ class ClienteController extends Controller
     public function updatePerfil(Request $request)
     {
         $validated = $request->validate([
+            // Información personal (requerida)
             'nombre' => 'required|string|max:255',
-            'email' => 'required|email',
-            'telefono' => 'required|string|max:20',
-            'cedula' => [
+            'dni' => [
                 'required',
                 'string',
                 'regex:/^[0-9]{8}$/'
             ],
-            'direccion' => 'required|string|max:255',
+            'email' => 'nullable|email',
+            'telefono' => 'nullable|string|max:20',
             'fecha_nacimiento' => [
                 'required',
                 'date',
                 'before:-18 years'
             ],
+            
+            // Preferencias de búsqueda (opcional)  
+            'tipo_propiedad' => 'nullable|in:departamento,apartamento,casa,oficina,local_comercial,terreno',
+            'habitaciones_deseadas' => 'nullable|string',
+            'presupuesto_min' => 'nullable|numeric|min:0',
+            'presupuesto_max' => 'nullable|numeric|min:0|gte:presupuesto_min',
+            'zona_preferida' => 'nullable|string|max:255',
+            
+            // Información adicional (opcional)
+            'direccion' => 'nullable|string|max:255',
             'ciudad' => 'nullable|string|max:100',
             'ocupacion' => 'nullable|string|max:100',
-            'estado_civil' => 'nullable|in:soltero,casado,divorciado,viudo',
+            'estado_civil' => 'nullable|in:soltero,casado,divorciado,viudo,conviviente',
             'ingresos_mensuales' => 'nullable|numeric|min:0',
-            'preferencias' => 'nullable|array',
-            'current_password' => 'required_with:email',
+            
+            // Contraseña actual para confirmar cambios
+            'current_password' => 'required|string',
         ], [
-            'cedula.required' => 'El DNI es obligatorio',
-            'cedula.regex' => 'El DNI debe contener exactamente 8 dígitos numéricos',
+            'dni.required' => 'El DNI es obligatorio',
+            'dni.regex' => 'El DNI debe contener exactamente 8 dígitos numéricos',
             'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatoria',
             'fecha_nacimiento.before' => 'Debes ser mayor de 18 años',
-            'current_password.required_with' => 'Debes ingresar tu contraseña para cambiar el correo electrónico',
+            'presupuesto_max.gte' => 'El presupuesto máximo debe ser mayor o igual al mínimo',
+            'current_password.required' => 'La contraseña actual es requerida para confirmar los cambios',
         ]);
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Si está cambiando el email, verificar la contraseña
-        if ($validated['email'] !== $user->email) {
-            if (!$validated['current_password']) {
-                return back()->withErrors([
-                    'current_password' => 'Debes ingresar tu contraseña para cambiar el correo electrónico'
-                ]);
-            }
-
-            if (!Hash::check($validated['current_password'], $user->password)) {
-                return back()->withErrors([
-                    'current_password' => 'La contraseña es incorrecta'
-                ]);
-            }
-        }
-
-        // Actualizar usuario
-        $user->update([
-            'name' => $validated['nombre'],
-            'email' => $validated['email'],
-            'telefono' => $validated['telefono'],
+        // Debug: Log de información
+        \Log::info('Usuario autenticado:', [
+            'id' => $user->id,
+            'email' => $user->email,
+            'contraseña_recibida' => $validated['current_password'],
         ]);
 
+        // Validar contraseña actual del usuario autenticado
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            \Log::error('Contraseña incorrecta para usuario: ' . $user->email);
+            return back()->withErrors([
+                'current_password' => 'La contraseña actual es incorrecta'
+            ])->withInput();
+        }
+
+        // Actualizar usuario (solo actualizar email si se proporciona)
+        $userUpdate = ['name' => $validated['nombre']];
+        if (!empty($validated['email'])) {
+            $userUpdate['email'] = $validated['email'];
+        }
+        $user->update($userUpdate);
+
         // Buscar o crear cliente
+        $clienteData = [
+            // Información personal
+            'nombre' => $validated['nombre'],
+            'dni' => $validated['dni'],
+            'telefono' => $validated['telefono'] ?? null,
+            'fecha_nacimiento' => $validated['fecha_nacimiento'],
+            
+            // Preferencias de búsqueda
+            'tipo_propiedad' => $validated['tipo_propiedad'] ?? null,
+            'habitaciones_deseadas' => $validated['habitaciones_deseadas'] ?? null,
+            'presupuesto_min' => $validated['presupuesto_min'] ?? null,
+            'presupuesto_max' => $validated['presupuesto_max'] ?? null,
+            'zona_preferida' => $validated['zona_preferida'] ?? null,
+            
+            // Información adicional
+            'direccion' => $validated['direccion'] ?? null,
+            'ciudad' => $validated['ciudad'] ?? null,
+            'ocupacion' => $validated['ocupacion'] ?? null,
+            'estado_civil' => $validated['estado_civil'] ?? null,
+            'ingresos_mensuales' => $validated['ingresos_mensuales'] ?? null,
+        ];
+        
+        // Solo actualizar email si se proporciona
+        if (!empty($validated['email'])) {
+            $clienteData['email'] = $validated['email'];
+        }
+        
         $cliente = Cliente::updateOrCreate(
             ['usuario_id' => $user->id],
-            [
-                'dni' => $validated['cedula'], // Mapear cedula a dni
-                'nombre' => $validated['nombre'],
-                'telefono' => $validated['telefono'],
-                'direccion' => $validated['direccion'],
-                'fecha_nacimiento' => $validated['fecha_nacimiento'],
-                'ciudad' => $validated['ciudad'] ?? null,
-                'ocupacion' => $validated['ocupacion'] ?? null,
-                'estado_civil' => $validated['estado_civil'] ?? null,
-                'ingresos_mensuales' => $validated['ingresos_mensuales'] ?? null,
-                'preferencias' => $validated['preferencias'] ?? null,
-            ]
+            $clienteData
         );
 
-        return back()->with('message', 'Perfil actualizado exitosamente.');
+        // Recargar el cliente con todas las relaciones y atributos calculados
+        $cliente->load('usuario', 'asesor');
+        
+        return redirect('/cliente/perfil')->with('success', 'Perfil actualizado exitosamente');
     }
 
     public function updatePassword(Request $request)
@@ -473,23 +504,8 @@ class ClienteController extends Controller
 
     public function reservas()
     {
-        $user = Auth::user();
-        $cliente = Cliente::where('usuario_id', $user->id)->first();
-
-        if (!$cliente) {
-            return redirect()->route('cliente.perfil.index')
-                           ->with('message', 'Por favor completa tu perfil primero.');
-        }
-
-        $reservas = $cliente->reservas()
-            ->with(['departamento', 'asesor.usuario'])
-            ->latest()
-            ->get();
-
-        return inertia('Cliente/Reservas', [
-            'reservas' => $reservas,
-            'cliente' => $cliente
-        ]);
+        // Redirigir a solicitudes (vista Cliente/Reservas no implementada)
+        return redirect()->route('solicitudes');
     }
 
     // ========================================================

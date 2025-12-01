@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { Head, useForm, usePage, Link } from '@inertiajs/react';
+import { Head, useForm, usePage, Link, router } from '@inertiajs/react';
 import PublicLayout from '@/Layouts/PublicLayout';
 
 export default function Perfil({ auth, cliente }) {
     const [activeTab, setActiveTab] = useState('datos-personales');
+    const [showPreferences, setShowPreferences] = useState(false);
+    const [showAdditional, setShowAdditional] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
     const { flash } = usePage().props;
 
     // Formulario de datos personales
@@ -13,10 +17,10 @@ export default function Perfil({ auth, cliente }) {
         dni: cliente.dni || '',
         telefono: cliente.telefono || '',
         email: cliente.email || '',
-        fecha_nacimiento: cliente.fecha_nacimiento || '',
+        fecha_nacimiento: cliente.fecha_nacimiento ? cliente.fecha_nacimiento.split('T')[0] : '',
 
-        // Preferencias de búsqueda
-        tipo_propiedad: cliente.tipo_propiedad || 'departamento',
+        // Preferencias de búsqueda (dejar vacío si no hay valor)
+        tipo_propiedad: cliente.tipo_propiedad || '',
         habitaciones_deseadas: cliente.habitaciones_deseadas || '',
         presupuesto_min: cliente.presupuesto_min || '',
         presupuesto_max: cliente.presupuesto_max || '',
@@ -28,6 +32,9 @@ export default function Perfil({ auth, cliente }) {
         ocupacion: cliente.ocupacion || '',
         estado_civil: cliente.estado_civil || '',
         ingresos_mensuales: cliente.ingresos_mensuales || '',
+        
+        // Contraseña para confirmar cambios
+        current_password: '',
     });
 
     // Formulario de cambio de contraseña
@@ -37,13 +44,60 @@ export default function Perfil({ auth, cliente }) {
         password_confirmation: '',
     });
 
+    const handleEditClick = () => {
+        setIsEditing(true);
+    };
+
+    const handleCancelEdit = () => {
+        reset();
+        setIsEditing(false);
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        put('/cliente/perfil', {
-            preserveScroll: true,
+        setShowPasswordModal(true);
+    };
+
+    const confirmUpdate = (e) => {
+        e.preventDefault();
+        
+        // Verificar que la contraseña no esté vacía
+        const password = passwordForm.data.current_password;
+        if (!password || password.trim() === '') {
+            console.error('La contraseña está vacía');
+            return;
+        }
+        
+        // Preparar datos manualmente
+        const submitData = {};
+        Object.keys(data).forEach(key => {
+            // Convertir strings vacíos a null
+            submitData[key] = data[key] === '' ? null : data[key];
+        });
+        
+        // Agregar la contraseña
+        submitData.current_password = password;
+        
+        console.log('📤 Datos a enviar:', submitData);
+        console.log('🔑 Contraseña incluida:', submitData.current_password ? 'SÍ' : 'NO');
+        console.log('🏠 tipo_propiedad valor:', submitData.tipo_propiedad, 'tipo:', typeof submitData.tipo_propiedad);
+        
+        // Usar router.put directamente con datos preparados
+        router.put('/cliente/perfil', submitData, {
+            preserveScroll: false,
             onSuccess: () => {
-                // Mensaje de éxito ya viene en flash
+                console.log('✅ Actualización exitosa');
+                setShowPasswordModal(false);
+                setIsEditing(false);
+                passwordForm.reset();
+                // No hacer redirect manual, dejar que Inertia maneje la respuesta
             },
+            onError: (errors) => {
+                console.error('❌ Errores de validación:', errors);
+            },
+            onFinish: () => {
+                console.log('✔️ Petición finalizada');
+            }
         });
     };
 
@@ -64,17 +118,17 @@ export default function Perfil({ auth, cliente }) {
             <div className="min-h-screen bg-gray-50 py-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between">
+                    <div className="mb-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-900">Mi Perfil</h1>
-                                <p className="mt-2 text-sm text-gray-600">
-                                    Gestiona tu información personal y configuración de cuenta
+                                <h1 className="text-2xl font-bold text-gray-900">Mi Perfil</h1>
+                                <p className="mt-1 text-sm text-gray-600">
+                                    Gestiona tu información personal
                                 </p>
                             </div>
                             <Link
                                 href={route('cliente.dashboard')}
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                                className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                             >
                                 <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -131,19 +185,19 @@ export default function Perfil({ auth, cliente }) {
 
                         {/* Contenido de Datos Personales */}
                         {activeTab === 'datos-personales' && (
-                            <form onSubmit={handleSubmit} className="p-6">
+                            <form onSubmit={handleSubmit} className="p-6 space-y-6">
                                 {/* Sección: Información Personal */}
-                                <div className="mb-8">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <div>
+                                    <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
                                         <svg className="mr-2 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
                                         Información Personal
                                     </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* Nombre Completo */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                 Nombre Completo *
                                             </label>
                                             <input
@@ -151,19 +205,22 @@ export default function Perfil({ auth, cliente }) {
                                                 value={data.nombre}
                                                 onChange={(e) => setData('nombre', e.target.value)}
                                                 placeholder="Ej: Juan Pérez García"
-                                                className={`w-full px-4 py-2 border ${
+                                                disabled={!isEditing}
+                                                className={`w-full px-3 py-2 border ${
                                                     errors.nombre ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                }`}
                                                 required
                                             />
                                             {errors.nombre && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.nombre}</p>
+                                                <p className="mt-1 text-xs text-red-600">{errors.nombre}</p>
                                             )}
                                         </div>
 
                                         {/* DNI */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                 DNI *
                                             </label>
                                             <input
@@ -171,42 +228,24 @@ export default function Perfil({ auth, cliente }) {
                                                 value={data.dni}
                                                 onChange={(e) => setData('dni', e.target.value)}
                                                 maxLength="8"
-                                                pattern="[0-9]{8}"
-                                                placeholder="12345678"
-                                                className={`w-full px-4 py-2 border ${
+                                                placeholder="11111111"
+                                                disabled={!isEditing}
+                                                className={`w-full px-3 py-2 border ${
                                                     errors.dni ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                }`}
                                                 required
                                             />
                                             {errors.dni && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.dni}</p>
+                                                <p className="mt-1 text-xs text-red-600">{errors.dni}</p>
                                             )}
-                                            <p className="mt-1 text-xs text-gray-500">8 dígitos</p>
-                                        </div>
-
-                                        {/* Email */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Email *
-                                            </label>
-                                            <input
-                                                type="email"
-                                                value={data.email}
-                                                onChange={(e) => setData('email', e.target.value)}
-                                                placeholder="correo@ejemplo.com"
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.email ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                                required
-                                            />
-                                            {errors.email && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                                            )}
+                                            <p className="mt-0.5 text-xs text-gray-500">8 dígitos</p>
                                         </div>
 
                                         {/* Teléfono */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                 Teléfono <span className="text-gray-400 text-xs">(Opcional)</span>
                                             </label>
                                             <input
@@ -214,18 +253,21 @@ export default function Perfil({ auth, cliente }) {
                                                 value={data.telefono}
                                                 onChange={(e) => setData('telefono', e.target.value)}
                                                 placeholder="987654321"
-                                                className={`w-full px-4 py-2 border ${
+                                                disabled={!isEditing}
+                                                className={`w-full px-3 py-2 border ${
                                                     errors.telefono ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                }`}
                                             />
                                             {errors.telefono && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.telefono}</p>
+                                                <p className="mt-1 text-xs text-red-600">{errors.telefono}</p>
                                             )}
                                         </div>
 
                                         {/* Fecha de Nacimiento */}
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                 Fecha de Nacimiento *
                                             </label>
                                             <input
@@ -233,295 +275,451 @@ export default function Perfil({ auth, cliente }) {
                                                 value={data.fecha_nacimiento}
                                                 onChange={(e) => setData('fecha_nacimiento', e.target.value)}
                                                 max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                                                className={`w-full px-4 py-2 border ${
+                                                disabled={!isEditing}
+                                                className={`w-full px-3 py-2 border ${
                                                     errors.fecha_nacimiento ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                }`}
                                                 required
                                             />
                                             {errors.fecha_nacimiento && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.fecha_nacimiento}</p>
+                                                <p className="mt-1 text-xs text-red-600">{errors.fecha_nacimiento}</p>
                                             )}
-                                            <p className="mt-1 text-xs text-gray-500">Debes ser mayor de 18 años</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <hr className="my-8 border-gray-200" />
-
-                                {/* Sección: Preferencias de Búsqueda */}
-                                <div className="mb-8">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                                        <svg className="mr-2 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                        </svg>
-                                        ¿Qué tipo de propiedad buscas?
-                                        <span className="ml-2 text-sm text-gray-500 font-normal">(Opcional)</span>
-                                    </h3>
-                                    <p className="text-sm text-gray-600 mb-4">
-                                        Completa tus preferencias para recibir mejores recomendaciones personalizadas
-                                    </p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* Tipo de Propiedad */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Tipo de Propiedad <span className="text-gray-400 text-xs">(Opcional)</span>
-                                            </label>
-                                            <select
-                                                value={data.tipo_propiedad}
-                                                onChange={(e) => setData('tipo_propiedad', e.target.value)}
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.tipo_propiedad ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                            >
-                                                <option value="">Seleccionar...</option>
-                                                <option value="departamento">Departamento</option>
-                                                <option value="casa">Casa</option>
-                                                <option value="oficina">Oficina</option>
-                                                <option value="local_comercial">Local Comercial</option>
-                                                <option value="terreno">Terreno</option>
-                                            </select>
-                                            {errors.tipo_propiedad && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.tipo_propiedad}</p>
-                                            )}
+                                            <p className="mt-0.5 text-xs text-gray-500">Debes ser mayor de 18 años</p>
                                         </div>
 
-                                        {/* Habitaciones Deseadas */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Número de Habitaciones <span className="text-gray-400 text-xs">(Opcional)</span>
-                                            </label>
-                                            <select
-                                                value={data.habitaciones_deseadas}
-                                                onChange={(e) => setData('habitaciones_deseadas', e.target.value)}
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.habitaciones_deseadas ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                            >
-                                                <option value="">Seleccionar...</option>
-                                                <option value="1">1 dormitorio</option>
-                                                <option value="2">2 dormitorios</option>
-                                                <option value="3">3 dormitorios</option>
-                                                <option value="4">4 dormitorios</option>
-                                                <option value="5+">5+ dormitorios</option>
-                                            </select>
-                                            {errors.habitaciones_deseadas && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.habitaciones_deseadas}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Presupuesto Mínimo */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Presupuesto Mínimo (S/) <span className="text-gray-400 text-xs">(Opcional)</span>
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={data.presupuesto_min}
-                                                onChange={(e) => setData('presupuesto_min', e.target.value)}
-                                                placeholder="Ej: 150000"
-                                                step="1000"
-                                                min="0"
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.presupuesto_min ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                            />
-                                            {errors.presupuesto_min && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.presupuesto_min}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Presupuesto Máximo */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Presupuesto Máximo (S/) <span className="text-gray-400 text-xs">(Opcional)</span>
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={data.presupuesto_max}
-                                                onChange={(e) => setData('presupuesto_max', e.target.value)}
-                                                placeholder="Ej: 300000"
-                                                step="1000"
-                                                min="0"
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.presupuesto_max ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                            />
-                                            {errors.presupuesto_max && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.presupuesto_max}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Zona Preferida */}
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Zona Preferida <span className="text-gray-400 text-xs">(Opcional)</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={data.zona_preferida}
-                                                onChange={(e) => setData('zona_preferida', e.target.value)}
-                                                placeholder="Ej: Miraflores, San Isidro, Surco..."
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.zona_preferida ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                            />
-                                            {errors.zona_preferida && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.zona_preferida}</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <hr className="my-8 border-gray-200" />
-
-                                {/* Sección: Información Adicional */}
-                                <div className="mb-8">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                                        <svg className="mr-2 h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Información Adicional
-                                    </h3>
-                                    <p className="text-sm text-gray-600 mb-4">Opcional - Ayuda a evaluar tu capacidad crediticia</p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* Dirección */}
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Dirección Actual
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={data.direccion}
-                                                onChange={(e) => setData('direccion', e.target.value)}
-                                                placeholder="Av. Principal 123, Dpto 101"
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.direccion ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                            />
-                                            {errors.direccion && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.direccion}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Ciudad */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Ciudad
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={data.ciudad}
-                                                onChange={(e) => setData('ciudad', e.target.value)}
-                                                placeholder="Lima"
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.ciudad ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                            />
-                                            {errors.ciudad && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.ciudad}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Ocupación */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Ocupación
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={data.ocupacion}
-                                                onChange={(e) => setData('ocupacion', e.target.value)}
-                                                placeholder="Ej: Ingeniero, Médico, Empresario..."
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.ocupacion ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                            />
-                                            {errors.ocupacion && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.ocupacion}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Estado Civil */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Estado Civil
-                                            </label>
-                                            <select
-                                                value={data.estado_civil}
-                                                onChange={(e) => setData('estado_civil', e.target.value)}
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.estado_civil ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                            >
-                                                <option value="">Seleccionar...</option>
-                                                <option value="soltero">Soltero/a</option>
-                                                <option value="casado">Casado/a</option>
-                                                <option value="divorciado">Divorciado/a</option>
-                                                <option value="viudo">Viudo/a</option>
-                                                <option value="conviviente">Conviviente</option>
-                                            </select>
-                                            {errors.estado_civil && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.estado_civil}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Ingresos Mensuales */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Ingresos Mensuales (S/)
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={data.ingresos_mensuales}
-                                                onChange={(e) => setData('ingresos_mensuales', e.target.value)}
-                                                placeholder="Ej: 5000"
-                                                step="100"
-                                                min="0"
-                                                className={`w-full px-4 py-2 border ${
-                                                    errors.ingresos_mensuales ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                                            />
-                                            {errors.ingresos_mensuales && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.ingresos_mensuales}</p>
-                                            )}
-                                            <p className="mt-1 text-xs text-gray-500">Esta información es confidencial</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Botón Guardar */}
-                                <div className="flex justify-end pt-6 border-t">
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {processing ? (
-                                            <>
-                                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Guardando...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                </svg>
-                                                Guardar Cambios
-                                            </>
+                                        {/* Edad (calculada automáticamente) */}
+                                        {cliente.edad && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                    Edad
+                                                </label>
+                                                <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-600">
+                                                    {cliente.edad} años
+                                                </div>
+                                                <p className="mt-0.5 text-xs text-gray-500">Calculada automáticamente</p>
+                                            </div>
                                         )}
+                                    </div>
+                                </div>
+
+                                {/* Sección: Preferencias de Búsqueda - Colapsable */}
+                                <div className="border border-gray-200 rounded-lg">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPreferences(!showPreferences)}
+                                        className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors rounded-lg"
+                                    >
+                                        <div className="flex items-center">
+                                            <svg className="mr-2 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                            </svg>
+                                            <div>
+                                                <h3 className="text-base font-semibold text-gray-900">
+                                                    Preferencias de Búsqueda
+                                                    <span className="ml-2 text-sm text-gray-500 font-normal">(Opcional)</span>
+                                                </h3>
+                                                <p className="text-xs text-gray-600 mt-0.5">
+                                                    Recibe mejores recomendaciones personalizadas
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <svg 
+                                            className={`h-5 w-5 text-gray-400 transition-transform ${showPreferences ? 'rotate-180' : ''}`} 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
                                     </button>
+                                    
+                                    {showPreferences && (
+                                        <div className="px-4 pb-4 pt-2 border-t border-gray-200">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {/* Tipo de Propiedad */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                        Tipo de Propiedad
+                                                    </label>
+                                                    <select
+                                                        value={data.tipo_propiedad}
+                                                        onChange={(e) => setData('tipo_propiedad', e.target.value)}
+                                                        disabled={!isEditing}
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                        }`}
+                                                    >
+                                                        <option value="">Seleccionar...</option>
+                                                        <option value="departamento">Departamento</option>
+                                                        <option value="casa">Casa</option>
+                                                        <option value="oficina">Oficina</option>
+                                                        <option value="local_comercial">Local Comercial</option>
+                                                        <option value="terreno">Terreno</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Habitaciones Deseadas */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                        N° Habitaciones
+                                                    </label>
+                                                    <select
+                                                        value={data.habitaciones_deseadas}
+                                                        onChange={(e) => setData('habitaciones_deseadas', e.target.value)}
+                                                        disabled={!isEditing}
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                        }`}
+                                                    >
+                                                        <option value="">Seleccionar...</option>
+                                                        <option value="1">1</option>
+                                                        <option value="2">2</option>
+                                                        <option value="3">3</option>
+                                                        <option value="4">4</option>
+                                                        <option value="5+">5+</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Presupuesto Mínimo */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                        Presupuesto Mín. (S/)
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={data.presupuesto_min}
+                                                        onChange={(e) => setData('presupuesto_min', e.target.value)}
+                                                        placeholder="150000"
+                                                        step="1000"
+                                                        disabled={!isEditing}
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                        }`}
+                                                    />
+                                                </div>
+
+                                                {/* Presupuesto Máximo */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                        Presupuesto Máx. (S/)
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={data.presupuesto_max}
+                                                        onChange={(e) => setData('presupuesto_max', e.target.value)}
+                                                        placeholder="300000"
+                                                        step="1000"
+                                                        disabled={!isEditing}
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                        }`}
+                                                    />
+                                                </div>
+
+                                                {/* Zona Preferida */}
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                        Zona Preferida
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={data.zona_preferida}
+                                                        onChange={(e) => setData('zona_preferida', e.target.value)}
+                                                        placeholder="Ej: Miraflores, San Isidro, Surco..."
+                                                        disabled={!isEditing}
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                        }`}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Sección: Información Adicional - Colapsable */}
+                                <div className="border border-gray-200 rounded-lg">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAdditional(!showAdditional)}
+                                        className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors rounded-lg"
+                                    >
+                                        <div className="flex items-center">
+                                            <svg className="mr-2 h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <div>
+                                                <h3 className="text-base font-semibold text-gray-900">
+                                                    Información Adicional
+                                                    <span className="ml-2 text-sm text-gray-500 font-normal">(Opcional)</span>
+                                                </h3>
+                                                <p className="text-xs text-gray-600 mt-0.5">
+                                                    Ayuda a evaluar capacidad crediticia
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <svg 
+                                            className={`h-5 w-5 text-gray-400 transition-transform ${showAdditional ? 'rotate-180' : ''}`} 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    
+                                    {showAdditional && (
+                                        <div className="px-4 pb-4 pt-2 border-t border-gray-200">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {/* Dirección */}
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                        Dirección Actual
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={data.direccion}
+                                                        onChange={(e) => setData('direccion', e.target.value)}
+                                                        placeholder="Av. Principal 123, Dpto 101"
+                                                        disabled={!isEditing}
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                        }`}
+                                                    />
+                                                </div>
+
+                                                {/* Ciudad */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                        Ciudad
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={data.ciudad}
+                                                        onChange={(e) => setData('ciudad', e.target.value)}
+                                                        placeholder="Lima"
+                                                        disabled={!isEditing}
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                        }`}
+                                                    />
+                                                </div>
+
+                                                {/* Ocupación */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                        Ocupación
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={data.ocupacion}
+                                                        onChange={(e) => setData('ocupacion', e.target.value)}
+                                                        placeholder="Ej: Ingeniero"
+                                                        disabled={!isEditing}
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                        }`}
+                                                    />
+                                                </div>
+
+                                                {/* Estado Civil */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                        Estado Civil
+                                                    </label>
+                                                    <select
+                                                        value={data.estado_civil}
+                                                        onChange={(e) => setData('estado_civil', e.target.value)}
+                                                        disabled={!isEditing}
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                        }`}
+                                                    >
+                                                        <option value="">Seleccionar...</option>
+                                                        <option value="soltero">Soltero/a</option>
+                                                        <option value="casado">Casado/a</option>
+                                                        <option value="divorciado">Divorciado/a</option>
+                                                        <option value="viudo">Viudo/a</option>
+                                                        <option value="conviviente">Conviviente</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Ingresos Mensuales */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                        Ingresos Mensuales (S/)
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={data.ingresos_mensuales}
+                                                        onChange={(e) => setData('ingresos_mensuales', e.target.value)}
+                                                        placeholder="5000"
+                                                        step="100"
+                                                        disabled={!isEditing}
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
+                                                        }`}
+                                                    />
+                                                    <p className="mt-0.5 text-xs text-gray-500">Información confidencial</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Botones de acción */}
+                                <div className="flex justify-end gap-3 pt-4">
+                                    {!isEditing ? (
+                                        <button
+                                            type="button"
+                                            onClick={handleEditClick}
+                                            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center text-sm shadow-sm"
+                                        >
+                                            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Editar Perfil
+                                        </button>
+                                    ) : (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={handleCancelEdit}
+                                                className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium flex items-center text-sm"
+                                            >
+                                                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={processing}
+                                                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                            >
+                                                {processing ? (
+                                                    <>
+                                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        Guardando...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        Guardar Cambios
+                                                    </>
+                                                )}
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </form>
                         )}
 
                         {/* Contenido de Seguridad */}
                         {activeTab === 'seguridad' && (
-                            <form onSubmit={handlePasswordSubmit} className="p-6">
+                            <div className="p-6 space-y-8">
+                                {/* Sección: Datos de Cuenta */}
                                 <div className="max-w-xl">
-                                    <h3 className="text-lg font-medium text-gray-900 mb-6">
+                                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                                        <svg className="mr-2 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        Datos de Cuenta
+                                    </h3>
+                                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                        <div className="space-y-4">
+                                            {/* Email */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    Email de Acceso *
+                                                </label>
+                                                <input
+                                                    type="email"
+                                                    value={data.email}
+                                                    onChange={(e) => setData('email', e.target.value)}
+                                                    placeholder="correo@ejemplo.com"
+                                                    disabled={!isEditing}
+                                                    className={`w-full px-4 py-2 border ${
+                                                        errors.email ? 'border-red-500' : 'border-gray-300'
+                                                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                                        !isEditing ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+                                                    }`}
+                                                    required
+                                                />
+                                                {errors.email && (
+                                                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                                                )}
+                                                <p className="mt-1 text-xs text-gray-500">Este correo se usa para iniciar sesión</p>
+                                            </div>
+                                            
+                                            {/* Botones de acción para datos de cuenta */}
+                                            <div className="flex justify-end gap-3 pt-2">
+                                                {!isEditing ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleEditClick}
+                                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center text-sm shadow-sm"
+                                                    >
+                                                        <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                        Editar Email
+                                                    </button>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleCancelEdit}
+                                                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium flex items-center text-sm"
+                                                        >
+                                                            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                            Cancelar
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleSubmit}
+                                                            disabled={processing}
+                                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                                        >
+                                                            {processing ? (
+                                                                <>
+                                                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                    </svg>
+                                                                    Guardando...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                    Guardar Cambios
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Sección: Cambiar Contraseña */}
+                                <form onSubmit={handlePasswordSubmit} className="max-w-xl">
+                                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                                        <svg className="mr-2 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
                                         Cambiar Contraseña
                                     </h3>
 
@@ -588,23 +786,98 @@ export default function Perfil({ auth, cliente }) {
                                     </div>
 
                                     {/* Botón de Cambiar Contraseña */}
-                                    <div className="mt-8">
+                                    <div className="mt-6">
                                         <button
                                             type="submit"
                                             disabled={passwordForm.processing}
-                                            className={`px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors ${
+                                            className={`px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm ${
                                                 passwordForm.processing ? 'opacity-50 cursor-not-allowed' : ''
                                             }`}
                                         >
                                             {passwordForm.processing ? 'Cambiando...' : 'Cambiar Contraseña'}
                                         </button>
                                     </div>
-                                </div>
-                            </form>
+                                </form>
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Confirmación de Contraseña */}
+            {showPasswordModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                        <div className="flex items-center mb-4">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+                            <h3 className="ml-3 text-lg font-medium text-gray-900">
+                                Confirmar Cambios
+                            </h3>
+                        </div>
+                        
+                        <p className="text-sm text-gray-600 mb-4">
+                            Por seguridad, ingresa tu contraseña actual para confirmar los cambios en tu perfil.
+                        </p>
+
+                        <form onSubmit={confirmUpdate}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Contraseña Actual *
+                                </label>
+                                <input
+                                    type="password"
+                                    value={passwordForm.data.current_password}
+                                    onChange={(e) => passwordForm.setData('current_password', e.target.value)}
+                                    className={`w-full px-4 py-2 border ${
+                                        errors.current_password ? 'border-red-500' : 'border-gray-300'
+                                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                    placeholder="••••••••"
+                                    required
+                                    autoFocus
+                                />
+                                {errors.current_password && (
+                                    <p className="mt-1 text-sm text-red-600 font-medium">{errors.current_password}</p>
+                                )}
+                            </div>
+
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowPasswordModal(false);
+                                        passwordForm.reset('current_password');
+                                    }}
+                                    disabled={processing}
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium text-sm"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                                >
+                                    {processing ? (
+                                        <>
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Confirmando...
+                                        </>
+                                    ) : (
+                                        'Confirmar'
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </PublicLayout>
     );
 }
