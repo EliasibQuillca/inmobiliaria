@@ -1189,7 +1189,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="text-sm text-gray-900">
-                                                            {departamento.area_total} m²
+                                                            {departamento.area} m²
                                                         </div>
                                                         <div className="text-sm text-gray-500">
                                                             {departamento.habitaciones} hab, {departamento.banos} baños
@@ -1466,7 +1466,7 @@ export default function Departamentos({ auth, departamentos, pagination, filters
                                                 </div>
                                                 <div className="grid grid-cols-3 border-b border-gray-100 py-2">
                                                     <label className="text-sm font-medium text-gray-500">Área Total</label>
-                                                    <p className="text-sm font-semibold text-gray-800 col-span-2">{departamentoSeleccionado.area_total} m²</p>
+                                                    <p className="text-sm font-semibold text-gray-800 col-span-2">{departamentoSeleccionado.area} m²</p>
                                                 </div>
                                             </div>
                                         </div>

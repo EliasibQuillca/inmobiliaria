@@ -267,9 +267,9 @@ export default function Catalogo({
                                                 <span className="font-medium">Baños:</span> {departamento.banos}
                                             </p>
                                         )}
-                                        {departamento.area_total && (
+                                        {departamento.area && (
                                             <p className="text-sm text-gray-600">
-                                                <span className="font-medium">Área:</span> {departamento.area_total} m²
+                                                <span className="font-medium">Área:</span> {departamento.area} m²
                                             </p>
                                         )}
                                         <p className="text-lg font-bold text-blue-600">

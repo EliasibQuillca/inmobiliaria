@@ -64,7 +64,7 @@ const DepartamentoCard = ({ departamento }) => {
                 <div className="flex justify-between items-center text-sm text-gray-600 mb-4">
                     <span>{departamento.habitaciones} Hab.</span>
                     <span>{departamento.banos} Baños</span>
-                    <span>{departamento.area_total}m²</span>
+                    <span>{departamento.area}m²</span>
                 </div>
 
                 <div className="flex justify-between items-center">

@@ -380,7 +380,7 @@ export default function CatalogoCliente({
                                                 <p className="text-base font-bold text-slate-900">{departamento.banos}</p>
                                             </div>
                                         )}
-                                        {departamento.area_total && (
+                                        {departamento.area && (
                                             <div className="text-center">
                                                 <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl mb-2 shadow-sm">
                                                     <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -388,7 +388,7 @@ export default function CatalogoCliente({
                                                     </svg>
                                                 </div>
                                                 <p className="text-xs text-slate-500 font-medium mb-0.5">Área</p>
-                                                <p className="text-base font-bold text-slate-900">{departamento.area_total}m²</p>
+                                                <p className="text-base font-bold text-slate-900">{departamento.area}m²</p>
                                             </div>
                                         )}
                                     </div>

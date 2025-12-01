@@ -210,15 +210,9 @@ export default function DetalleDepartamento({
                                     </div>
                                     <div className="space-y-3">
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Área Construida:</span>
-                                            <span className="font-medium">{departamento.area_construida} m²</span>
+                                            <span className="text-gray-600">Área Total:</span>
+                                            <span className="font-medium">{departamento.area} m²</span>
                                         </div>
-                                        {departamento.area_privada && (
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Área Privada:</span>
-                                                <span className="font-medium">{departamento.area_privada} m²</span>
-                                            </div>
-                                        )}
                                         {departamento.estrato && (
                                             <div className="flex justify-between">
                                                 <span className="text-gray-600">Estrato:</span>
@@ -346,7 +340,7 @@ export default function DetalleDepartamento({
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">📐 Área:</span>
-                                            <span>{departamento.area_construida} m²</span>
+                                            <span>{departamento.area} m²</span>
                                         </div>
                                         {departamento.estrato && (
                                             <div className="flex justify-between">
@@ -398,7 +392,7 @@ export default function DetalleDepartamento({
                                                     <span className="font-medium">Habitaciones:</span> {relacionado.habitaciones}
                                                 </p>
                                                 <p className="text-sm text-gray-600">
-                                                    <span className="font-medium">Área:</span> {relacionado.area_construida} m²
+                                                    <span className="font-medium">Área:</span> {relacionado.area} m²
                                                 </p>
                                                 <p className="text-lg font-bold text-blue-600">
                                                     {formatCurrency(relacionado.precio)}

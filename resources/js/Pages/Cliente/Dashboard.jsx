@@ -359,7 +359,7 @@ export default function Dashboard({ auth, cliente, solicitudes = [], favoritos =
                                                             <span>•</span>
                                                             <span>🚿 {favorito.banos}</span>
                                                             <span>•</span>
-                                                            <span>📐 {favorito.area_total}m²</span>
+                                                            <span>📐 {favorito.area}m²</span>
                                                         </div>
                                                     </div>
                                                 </div>

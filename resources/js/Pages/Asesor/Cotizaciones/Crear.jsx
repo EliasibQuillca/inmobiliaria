@@ -338,7 +338,7 @@ export default function CrearCotizacion({ auth, clientes, departamentos, departa
                                                 <p><strong>Tipo:</strong> {departamentoSeleccionadoState.tipo_propiedad}</p>
                                                 <p><strong>Habitaciones:</strong> {departamentoSeleccionadoState.habitaciones}</p>
                                                 <p><strong>Baños:</strong> {departamentoSeleccionadoState.banos}</p>
-                                                <p><strong>Área:</strong> {departamentoSeleccionadoState.area_construida} m²</p>
+                                                <p><strong>Área:</strong> {departamentoSeleccionadoState.area} m²</p>
                                                 <p><strong>Precio:</strong> {formatCurrency(departamentoSeleccionadoState.precio)}</p>
                                             </div>
                                         </div>

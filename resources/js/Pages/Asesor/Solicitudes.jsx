@@ -438,13 +438,26 @@ export default function Solicitudes({
                                                                     {solicitud.estado}
                                                                 </span>
                                                             </div>
-                                                            {(solicitud.mensaje_solicitud || solicitud.mensaje) && (
-                                                                <div className="mt-2 ml-14 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
-                                                                    <p className="text-sm text-gray-700 whitespace-pre-line">
-                                                                        {solicitud.mensaje_solicitud || solicitud.mensaje}
+                                                            
+                                                            {/* Información de la solicitud */}
+                                                            <div className="mt-2 ml-14 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                                                    <p className="text-gray-700">
+                                                                        <span className="font-medium">Tipo de consulta:</span> {solicitud.tipo_consulta || 'Información General'}
                                                                     </p>
+                                                                    {solicitud.telefono && (
+                                                                        <p className="text-gray-700">
+                                                                            <span className="font-medium">Teléfono:</span> {solicitud.telefono}
+                                                                        </p>
+                                                                    )}
                                                                 </div>
-                                                            )}
+                                                                {(solicitud.mensaje_solicitud && solicitud.mensaje_solicitud.trim() !== '' && solicitud.mensaje_solicitud !== 'dada') && (
+                                                                    <p className="text-sm text-gray-700 mt-2 pt-2 border-t border-blue-200">
+                                                                        <span className="font-medium">Mensaje adicional del cliente:</span><br/>
+                                                                        <span className="whitespace-pre-line">{solicitud.mensaje_solicitud}</span>
+                                                                    </p>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <div className="ml-4 flex flex-wrap gap-2">
                                                             {solicitud.estado === 'pendiente' && (
@@ -1039,9 +1052,7 @@ export default function Solicitudes({
                                                                 <div>
                                                                     <span className="text-sm text-gray-500">Características:</span>
                                                                     <p className="font-medium">
-                                                                        {selectedSolicitud.departamento.numero_dormitorios} dorm. •
-                                                                        {selectedSolicitud.departamento.numero_banos} baños •
-                                                                        {selectedSolicitud.departamento.area_m2} m²
+                                                                        {selectedSolicitud.departamento.habitaciones} dorm. • {selectedSolicitud.departamento.banos} baños • {selectedSolicitud.departamento.area} m²
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -1088,7 +1099,7 @@ export default function Solicitudes({
                                                 <button
                                                     onClick={() => {
                                                         setShowDetalleModal(false);
-                                                        handleUpdateEstado(selectedSolicitud.id, 'respondida');
+                                                        handleUpdateEstado(selectedSolicitud.id, 'aprobada');
                                                     }}
                                                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
                                                 >

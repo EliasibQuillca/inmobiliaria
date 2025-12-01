@@ -179,7 +179,7 @@ export default function EditarCotizacion({ auth, cotizacion, clientes, departame
                                                 <span className="font-medium text-gray-700">Baños:</span> {cotizacion.departamento?.banos}
                                             </div>
                                             <div>
-                                                <span className="font-medium text-gray-700">Área:</span> {cotizacion.departamento?.area_total} m²
+                                                <span className="font-medium text-gray-700">Área:</span> {cotizacion.departamento?.area} m²
                                             </div>
                                             <div>
                                                 <span className="font-medium text-gray-700">Precio:</span> {formatCurrency(cotizacion.departamento?.precio)}
@@ -341,7 +341,7 @@ export default function EditarCotizacion({ auth, cotizacion, clientes, departame
                                             <p><strong>Ubicación:</strong> {cotizacion.departamento?.ubicacion}</p>
                                             <p><strong>Habitaciones:</strong> {cotizacion.departamento?.habitaciones}</p>
                                             <p><strong>Baños:</strong> {cotizacion.departamento?.banos}</p>
-                                            <p><strong>Área:</strong> {cotizacion.departamento?.area_total} m²</p>
+                                            <p><strong>Área:</strong> {cotizacion.departamento?.area} m²</p>
                                             <p><strong>Estado:</strong> {cotizacion.departamento?.estado}</p>
                                         </div>
                                     </div>
