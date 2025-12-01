@@ -28,8 +28,16 @@ class SolicitudController extends Controller
         $solicitudes = collect();
 
         if ($cliente) {
-            // Obtener todas las cotizaciones (solicitudes) del cliente
+            // Obtener solo las solicitudes que EL CLIENTE creó
+            // Excluir cotizaciones creadas directamente por asesores/admin
+            // Un cliente solo ve: solicitudes tipo 'cotizacion' con mensaje_solicitud no nulo
             $solicitudes = Cotizacion::where('cliente_id', $cliente->id)
+                                   ->whereNotNull('mensaje_solicitud') // Solo solicitudes con mensaje inicial del cliente
+                                   ->where(function($query) {
+                                       // Incluir solicitudes creadas por el cliente
+                                       $query->where('tipo_solicitud', '!=', 'directa')
+                                             ->orWhereNull('tipo_solicitud'); // Compatibilidad con registros antiguos
+                                   })
                                    ->orderBy('created_at', 'desc')
                                    ->with([
                                        'departamento',

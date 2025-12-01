@@ -31,6 +31,7 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         $userData = null;
+        $aprobacionesPendientes = 0;
 
         if ($user) {
             $userData = [
@@ -53,6 +54,12 @@ class HandleInertiaRequests extends Middleware
                     'ingresos_mensuales' => $user->cliente->ingresos_mensuales,
                     'preferencias' => $user->cliente->preferencias,
                 ]);
+
+                // Contar aprobaciones pendientes para el badge
+                $aprobacionesPendientes = \App\Models\AuditoriaUsuario::where('cliente_afectado_id', $user->cliente->id)
+                    ->where('requiere_aprobacion', 'si')
+                    ->where('estado_aprobacion', 'pendiente')
+                    ->count();
             }
         }
 
@@ -61,6 +68,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $userData,
             ],
+            'aprobacionesPendientes' => $aprobacionesPendientes,
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('error'),

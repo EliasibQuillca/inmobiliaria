@@ -8,6 +8,7 @@ use App\Models\Cotizacion;
 use App\Models\Departamento;
 use App\Models\User;
 use App\Models\Asesor;
+use App\Models\AuditoriaUsuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -41,8 +42,9 @@ class DashboardController extends Controller
         ];
         
         if ($cliente) {
-            // Obtener las últimas solicitudes (cotizaciones)
+            // Obtener las últimas solicitudes (cotizaciones) creadas por el cliente
             $solicitudes = Cotizacion::where('cliente_id', $cliente->id)
+                                   ->whereNotNull('mensaje_solicitud') // Solo solicitudes del cliente
                                    ->orderBy('created_at', 'desc')
                                    ->with(['departamento', 'asesor.usuario'])
                                    ->take(5)
@@ -61,12 +63,16 @@ class DashboardController extends Controller
                               ->take(3)
                               ->get();
             
-            // Calcular estadísticas completas
-            $totalSolicitudes = Cotizacion::where('cliente_id', $cliente->id)->count();
+            // Calcular estadísticas completas (solo solicitudes creadas por el cliente)
+            $totalSolicitudes = Cotizacion::where('cliente_id', $cliente->id)
+                                         ->whereNotNull('mensaje_solicitud')
+                                         ->count();
             $solicitudesPendientes = Cotizacion::where('cliente_id', $cliente->id)
+                                              ->whereNotNull('mensaje_solicitud')
                                               ->where('estado', 'pendiente')
                                               ->count();
             $cotizacionesRecibidas = Cotizacion::where('cliente_id', $cliente->id)
+                                              ->whereNotNull('mensaje_solicitud')
                                               ->where('estado', '!=', 'pendiente')
                                               ->count();
             $favoritosCount = $cliente->favoritos()->count();
@@ -129,6 +135,21 @@ class DashboardController extends Controller
                 'actividades_recientes' => $actividadesRecientes,
                 'asesores_contacto' => $asesoresContacto
             ];
+
+            // 🔥 AGREGAR NOTIFICACIONES PENDIENTES DE APROBACIÓN
+            $data['aprobaciones_pendientes'] = AuditoriaUsuario::where('cliente_afectado_id', $cliente->id)
+                ->where('requiere_aprobacion', 'si')
+                ->where('estado_aprobacion', 'pendiente')
+                ->with(['usuario'])
+                ->orderBy('prioridad', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+
+            $data['estadisticas']['aprobaciones_pendientes'] = AuditoriaUsuario::where('cliente_afectado_id', $cliente->id)
+                ->where('requiere_aprobacion', 'si')
+                ->where('estado_aprobacion', 'pendiente')
+                ->count();
         }
 
         return Inertia::render('Cliente/Dashboard', $data);

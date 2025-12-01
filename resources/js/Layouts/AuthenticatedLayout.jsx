@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+    const { aprobacionesPendientes } = usePage().props;
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
 
@@ -114,6 +115,17 @@ export default function AuthenticatedLayout({ header, children }) {
                                             className="text-gray-700 hover:text-teal-600"
                                         >
                                             Solicitudes
+                                        </NavLink>
+                                        <NavLink
+                                            href="/cliente/aprobaciones"
+                                            className="text-gray-700 hover:text-teal-600 relative"
+                                        >
+                                            Aprobaciones
+                                            {aprobacionesPendientes > 0 && (
+                                                <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                                    {aprobacionesPendientes}
+                                                </span>
+                                            )}
                                         </NavLink>
                                         <NavLink
                                             href="/cliente/asesores"

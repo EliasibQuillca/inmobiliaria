@@ -134,8 +134,8 @@ class Venta extends Model
      */
     public function calcularComision()
     {
-        $porcentaje = $this->porcentaje_comision ?? 5.00;
-        $this->comision = ($this->monto_final * $porcentaje) / 100;
+        $porcentaje = (float)($this->porcentaje_comision ?? 5.00);
+        $this->comision = ((float)$this->monto_final * (float)$porcentaje) / 100;
         return $this->comision;
     }
 

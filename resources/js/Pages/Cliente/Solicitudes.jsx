@@ -3,7 +3,7 @@ import { useState } from 'react';
 import PublicLayout from '@/Layouts/PublicLayout';
 
 export default function Solicitudes({ auth, solicitudes }) {
-    const { flash } = usePage().props;
+    const { flash, aprobacionesPendientes } = usePage().props;
     const [filtroEstado, setFiltroEstado] = useState('activas'); // 'activas', 'todas', 'canceladas'
 
     // Estados para los modales
@@ -135,15 +135,31 @@ export default function Solicitudes({ auth, solicitudes }) {
                                 Gestiona tus consultas y solicitudes de información
                             </p>
                         </div>
-                        <Link
-                            href="/cliente/solicitudes/crear"
-                            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg"
-                        >
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Nueva Solicitud
-                        </Link>
+                        <div className="flex gap-3">
+                            <Link
+                                href="/cliente/aprobaciones"
+                                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:from-orange-600 hover:to-red-700 transition-all duration-200 font-medium shadow-lg relative"
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Aprobaciones
+                                {aprobacionesPendientes > 0 && (
+                                    <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full animate-pulse">
+                                        {aprobacionesPendientes}
+                                    </span>
+                                )}
+                            </Link>
+                            <Link
+                                href="/cliente/solicitudes/crear"
+                                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg"
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                Nueva Solicitud
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Mensaje Flash de Éxito */}

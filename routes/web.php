@@ -106,6 +106,17 @@ Route::middleware(['auth', 'active', 'role:cliente'])->prefix('cliente')->name('
 
     // Comentarios en solicitudes
     Route::post('/solicitudes/{id}/comentarios', [ClienteComentarioController::class, 'store'])->name('solicitudes.comentarios.store');
+
+    // Asesores - Ver y elegir asesores
+    Route::get('/asesores', [\App\Http\Controllers\Cliente\AsesorController::class, 'index'])->name('asesores.index');
+    Route::post('/asesores/{id}/asignar', [\App\Http\Controllers\Cliente\AsesorController::class, 'asignar'])->name('asesores.asignar');
+
+    // Aprobaciones - Sistema de evidencias de acciones del asesor
+    Route::get('/aprobaciones', [\App\Http\Controllers\Cliente\AprobacionController::class, 'index'])->name('aprobaciones.index');
+    Route::get('/aprobaciones/{id}', [\App\Http\Controllers\Cliente\AprobacionController::class, 'show'])->name('aprobaciones.show');
+    Route::post('/aprobaciones/{id}/aprobar', [\App\Http\Controllers\Cliente\AprobacionController::class, 'aprobar'])->name('aprobaciones.aprobar');
+    Route::post('/aprobaciones/{id}/rechazar', [\App\Http\Controllers\Cliente\AprobacionController::class, 'rechazar'])->name('aprobaciones.rechazar');
+    Route::post('/aprobaciones/marcar-leidas', [\App\Http\Controllers\Cliente\AprobacionController::class, 'marcarLeidas'])->name('aprobaciones.marcar-leidas');
 });
 
 // Rutas protegidas de administrador

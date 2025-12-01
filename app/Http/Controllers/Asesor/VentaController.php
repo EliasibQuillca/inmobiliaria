@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Venta;
 use App\Models\Reserva;
 use App\Models\Departamento;
+use App\Models\AuditoriaUsuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -105,8 +106,32 @@ class VentaController extends Controller
             $cotizacion->marcarFinalizada();
         }
 
+        // 🔥 REGISTRAR ACCIÓN QUE REQUIERE APROBACIÓN DEL CLIENTE
+        $departamento = Departamento::find($reserva->departamento_id);
+        $comision = $validated['monto_final'] * 0.03; // 3% de comisión
+        
+        AuditoriaUsuario::registrarAccionConAprobacion([
+            'usuario_id' => Auth::id(),
+            'cliente_id' => $reserva->cliente_id,
+            'accion' => 'venta_registrada_por_asesor',
+            'modelo_tipo' => Venta::class,
+            'modelo_id' => $venta->id,
+            'titulo' => '🎉 ¡Venta registrada! Confirmación final',
+            'descripcion' => "El asesor {$asesor->nombre} {$asesor->apellidos} ha registrado la venta del departamento \"{$departamento->titulo}\".\n\n💰 Monto final: S/ " . number_format($validated['monto_final'], 2) . "\n💼 Comisión: S/ " . number_format($comision, 2) . "\n📄 Documentos entregados: " . ($validated['documentos_entregados'] ? 'SÍ' : 'NO') . "\n📅 Fecha de venta: " . date('d/m/Y', strtotime($validated['fecha_venta'])) . "\n\n⚠️ Por favor confirma que todos los datos son correctos antes de finalizar.",
+            'detalles' => [
+                'venta_id' => $venta->id,
+                'reserva_id' => $reserva->id,
+                'departamento' => $departamento->titulo,
+                'monto_final' => $validated['monto_final'],
+                'comision' => $comision,
+                'documentos_entregados' => $validated['documentos_entregados'],
+                'fecha_venta' => $validated['fecha_venta'],
+            ],
+            'prioridad' => 'urgente',
+        ]);
+
         return redirect()->route('asesor.ventas.index')
-            ->with('success', 'Venta registrada exitosamente');
+            ->with('success', 'Venta registrada exitosamente. El cliente recibirá una notificación para confirmar los datos.');
     }
 
     /**

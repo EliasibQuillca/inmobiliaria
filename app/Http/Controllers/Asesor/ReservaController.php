@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Reserva;
 use App\Models\Cotizacion;
 use App\Models\Departamento;
+use App\Models\Cliente;
+use App\Models\AuditoriaUsuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -115,8 +117,29 @@ class ReservaController extends Controller
         // Cambiar estado del departamento a reservado
         $departamento->update(['estado' => 'reservado']);
 
+        // 🔥 REGISTRAR ACCIÓN QUE REQUIERE APROBACIÓN DEL CLIENTE
+        AuditoriaUsuario::registrarAccionConAprobacion([
+            'usuario_id' => Auth::id(),
+            'cliente_id' => $cotizacion->cliente_id,
+            'accion' => 'reserva_creada_por_asesor',
+            'modelo_tipo' => Reserva::class,
+            'modelo_id' => $reserva->id,
+            'titulo' => '🏠 Se creó una reserva formal para ti',
+            'descripcion' => "El asesor {$asesor->nombre} {$asesor->apellidos} ha formalizado la reserva del departamento \"{$departamento->titulo}\".\n\n💰 Monto de reserva: S/ " . number_format($validated['monto_reserva'], 2) . "\n💵 Monto total: S/ " . number_format($reserva->monto_total, 2) . "\n📅 Período: " . date('d/m/Y', strtotime($validated['fecha_inicio'])) . " - " . date('d/m/Y', strtotime($validated['fecha_fin'])) . "\n\n⚠️ Por favor confirma esta reserva para proceder con la venta.",
+            'detalles' => [
+                'reserva_id' => $reserva->id,
+                'cotizacion_id' => $cotizacion->id,
+                'departamento' => $departamento->titulo,
+                'monto_reserva' => $validated['monto_reserva'],
+                'monto_total' => $reserva->monto_total,
+                'fecha_inicio' => $validated['fecha_inicio'],
+                'fecha_fin' => $validated['fecha_fin'],
+            ],
+            'prioridad' => 'urgente',
+        ]);
+
         return redirect()->route('asesor.reservas')
-            ->with('success', 'Reserva creada exitosamente');
+            ->with('success', 'Reserva creada exitosamente. El cliente recibirá una notificación para confirmarla.');
     }
 
     /**

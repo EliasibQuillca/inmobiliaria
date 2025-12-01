@@ -7,6 +7,7 @@ use App\Models\Cotizacion;
 use App\Models\Solicitud;
 use App\Models\Cliente;
 use App\Models\Departamento;
+use App\Models\AuditoriaUsuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -222,8 +223,33 @@ class CotizacionController extends Controller
                 ]);
             }
         }
+
+        // 🔥 REGISTRAR ACCIÓN QUE REQUIERE APROBACIÓN DEL CLIENTE
+        $cliente = Cliente::find($validated['cliente_id']);
+        $departamento = Departamento::find($validated['departamento_id']);
+        $precioFinal = $validated['monto'] - ($validated['descuento'] ?? 0);
+        
+        AuditoriaUsuario::registrarAccionConAprobacion([
+            'usuario_id' => Auth::id(),
+            'cliente_id' => $cliente->id,
+            'accion' => 'cotizacion_creada_por_asesor',
+            'modelo_tipo' => Cotizacion::class,
+            'modelo_id' => $cotizacion->id,
+            'titulo' => '📋 Tu asesor creó una cotización para ti',
+            'descripcion' => "El asesor {$asesor->nombre} {$asesor->apellidos} ha creado una cotización para el departamento \"{$departamento->titulo}\".\n\n💰 Precio base: S/ " . number_format($validated['monto'], 2) . "\n🏷️ Descuento: S/ " . number_format($validated['descuento'] ?? 0, 2) . "\n✅ Precio final: S/ " . number_format($precioFinal, 2) . "\n📅 Válido hasta: " . date('d/m/Y', strtotime($validated['fecha_validez'])) . "\n\n⚠️ Por favor revisa y aprueba esta cotización para continuar con el proceso.",
+            'detalles' => [
+                'cotizacion_id' => $cotizacion->id,
+                'departamento' => $departamento->titulo,
+                'monto_base' => $validated['monto'],
+                'descuento' => $validated['descuento'] ?? 0,
+                'precio_final' => $precioFinal,
+                'fecha_validez' => $validated['fecha_validez'],
+            ],
+            'prioridad' => 'alta',
+        ]);
+
         return redirect()->route('asesor.cotizaciones')
-            ->with('success', 'Cotización creada exitosamente');
+            ->with('success', 'Cotización creada exitosamente. El cliente recibirá una notificación para aprobarla.');
     }
 
     /**

@@ -54,12 +54,21 @@ export default function PublicLayout({ auth, user, children }) {
                                     Sobre Nosotros
                                 </Link>
                             )}
-                            <Link
-                                href="/contacto"
-                                className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
-                            >
-                                Contáctanos
-                            </Link>
+                            {currentUser && currentUser.role === 'cliente' ? (
+                                <Link
+                                    href="/cliente/asesores"
+                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                                >
+                                    Asesores
+                                </Link>
+                            ) : (
+                                <Link
+                                    href="/contacto"
+                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                                >
+                                    Contáctanos
+                                </Link>
+                            )}
                         </nav>
 
                         {/* Auth Section */}
@@ -211,13 +220,23 @@ export default function PublicLayout({ auth, user, children }) {
                                         Sobre Nosotros
                                     </Link>
                                 )}
-                                <Link
-                                    href="/contacto"
-                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Contáctanos
-                                </Link>
+                                {currentUser && currentUser.role === 'cliente' ? (
+                                    <Link
+                                        href="/cliente/asesores"
+                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        Asesores
+                                    </Link>
+                                ) : (
+                                    <Link
+                                        href="/contacto"
+                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        Contáctanos
+                                    </Link>
+                                )}
 
                                 {currentUser ? (
                                     <div className="pt-2 border-t border-gray-200 mt-2">
