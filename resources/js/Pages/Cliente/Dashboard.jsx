@@ -33,7 +33,7 @@ export default function Dashboard({ auth, cliente, solicitudes = [], favoritos =
                         <div className="relative z-10 flex items-center justify-between">
                             <div>
                                 <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
-                                    ¡Bienvenido, {cliente.nombre || auth.user.name}!
+                                    ¡Bienvenido, {cliente?.nombre || auth.user.name}!
                                 </h1>
                                 <p className="mt-3 text-lg text-slate-600 flex items-center">
                                     <CheckCircleIcon className="h-5 w-5 text-blue-600 mr-2" />

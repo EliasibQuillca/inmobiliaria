@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Cliente;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,6 +41,18 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+        ]);
+
+        // Crear automáticamente el registro de cliente
+        Cliente::create([
+            'usuario_id' => $user->id,
+            'nombre' => $request->name,
+            'email' => $request->email,
+            'telefono' => '',
+            'dni' => 'TEMP-' . time(),
+            'direccion' => '',
+            'estado' => 'contactado',
+            'fecha_registro' => now(),
         ]);
 
         event(new Registered($user));
