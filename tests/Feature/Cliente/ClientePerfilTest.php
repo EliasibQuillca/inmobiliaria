@@ -66,9 +66,10 @@ class ClientePerfilTest extends TestCase
             'email' => 'clientenuevo@test.com',
             'current_password' => 'password',
             'telefono' => '999888777',
-            'cedula' => '87654321',
+            'dni' => '87654321',
             'direccion' => 'Calle Nueva 456', 
             'fecha_nacimiento' => '1995-03-20',
+            'tipo_propiedad' => 'apartamento',
             'ciudad' => 'Lima',
             'ocupacion' => 'Arquitecto',
             'estado_civil' => 'casado',
@@ -79,7 +80,7 @@ class ClientePerfilTest extends TestCase
             ->patch(route('cliente.perfil.update'), $datosActualizados);
 
         $response->assertRedirect();
-        $response->assertSessionHas('message', 'Perfil actualizado exitosamente.');
+        $response->assertSessionHas('success', 'Perfil actualizado exitosamente');
 
         // Verificar que el usuario se actualizó
         $this->user->refresh();
@@ -105,15 +106,17 @@ class ClientePerfilTest extends TestCase
             'nombre' => 'Cliente Test',
             'email' => 'cliente@test.com',
             'telefono' => '987654321',
-            'cedula' => '123456', // Solo 6 dígitos
+            'current_password' => 'password',
+            'dni' => '123456', // Solo 6 dígitos
             'direccion' => 'Av. Test 123',
+            'tipo_propiedad' => 'apartamento',
             'fecha_nacimiento' => '1990-05-15',
         ];
 
         $response = $this->actingAs($this->user)
             ->patch(route('cliente.perfil.update'), $datosInvalidos);
 
-        $response->assertSessionHasErrors(['cedula']);
+        $response->assertSessionHasErrors(['dni']);
     }
 
     /** @test */
@@ -123,7 +126,8 @@ class ClientePerfilTest extends TestCase
             'nombre' => 'Cliente Test',
             'email' => 'cliente@test.com',
             'telefono' => '987654321',
-            'cedula' => 'ABC12345', // Contiene letras
+            'current_password' => 'password',
+            'dni' => 'ABC12345', // Contiene letras
             'direccion' => 'Av. Test 123',
             'fecha_nacimiento' => '1990-05-15',
         ];
@@ -131,7 +135,7 @@ class ClientePerfilTest extends TestCase
         $response = $this->actingAs($this->user)
             ->patch(route('cliente.perfil.update'), $datosInvalidos);
 
-        $response->assertSessionHasErrors(['cedula']);
+        $response->assertSessionHasErrors(['dni']);
     }
 
     /** @test */
@@ -144,7 +148,8 @@ class ClientePerfilTest extends TestCase
             'nombre' => 'Cliente Test',
             'email' => 'cliente@test.com',
             'telefono' => '987654321',
-            'cedula' => '12345678',
+            'current_password' => 'password',
+            'dni' => '12345678',
             'direccion' => 'Av. Test 123',
             'fecha_nacimiento' => $fechaMenor,
         ];
@@ -166,9 +171,10 @@ class ClientePerfilTest extends TestCase
             'email' => 'cliente@test.com',
             'current_password' => 'password',
             'telefono' => '987654321',
-            'cedula' => '12345678',
+            'dni' => '12345678',
             'direccion' => 'Av. Test 123',
             'fecha_nacimiento' => $fechaValida,
+            'tipo_propiedad' => 'apartamento',
         ];
 
         $response = $this->actingAs($this->user)
@@ -186,9 +192,10 @@ class ClientePerfilTest extends TestCase
             'email' => 'cliente@test.com',
             'current_password' => 'password',
             'telefono' => '987654321',
-            'cedula' => '12345678',
+            'dni' => '12345678',
             'direccion' => 'Av. Test 123',
             'fecha_nacimiento' => '1990-05-15',
+            'tipo_propiedad' => 'apartamento',
             'ciudad' => null,
             'ocupacion' => null,
             'estado_civil' => null,
@@ -213,9 +220,10 @@ class ClientePerfilTest extends TestCase
                 'email' => 'cliente@test.com',
                 'current_password' => 'password',
                 'telefono' => '987654321',
-                'cedula' => '12345678',
+                'dni' => '12345678',
                 'direccion' => 'Av. Test 123',
                 'fecha_nacimiento' => '1990-05-15',
+                'tipo_propiedad' => 'apartamento',
                 'estado_civil' => $estadoCivil,
             ];
 
@@ -234,7 +242,7 @@ class ClientePerfilTest extends TestCase
             'nombre' => 'Cliente Test',
             'email' => 'cliente@test.com',
             'telefono' => '987654321',
-            'cedula' => '12345678',
+            'dni' => '12345678',
             'direccion' => 'Av. Test 123',
             'fecha_nacimiento' => '1990-05-15',
             'estado_civil' => 'comprometido', // No está en los valores permitidos
@@ -253,7 +261,7 @@ class ClientePerfilTest extends TestCase
             'nombre' => 'Cliente Test',
             'email' => 'cliente@test.com',
             'telefono' => '987654321',
-            'cedula' => '12345678',
+            'dni' => '12345678',
             'direccion' => 'Av. Test 123',
             'fecha_nacimiento' => '1990-05-15',
             'ingresos_mensuales' => -1000, // Negativo

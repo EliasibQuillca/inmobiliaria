@@ -260,7 +260,7 @@ class ClienteController extends Controller
                 'tipo' => 'solicitud',
                 'descripcion' => "Enviaste una solicitud para " . ($solicitud->departamento ? $solicitud->departamento->codigo : 'Departamento'),
                 'fecha' => $solicitud->created_at->format('d/m/Y H:i'),
-                'enlace' => route('cliente.solicitudes.show', $solicitud->id)
+                'enlace' => route('cliente.solicitudes', $solicitud->id)
             ];
         }
 
@@ -292,7 +292,7 @@ class ClienteController extends Controller
                 'tipo' => 'reserva',
                 'descripcion' => "Realizaste una reserva para " . ($reserva->departamento ? $reserva->departamento->codigo : 'Departamento'),
                 'fecha' => $reserva->created_at->format('d/m/Y H:i'),
-                'enlace' => route('solicitudes') // Ruta cliente.reservas.show no existe
+                'enlace' => route('cliente.solicitudes') // Ruta cliente.reservas.show no existe
             ];
         }
 
@@ -482,30 +482,14 @@ class ClienteController extends Controller
 
     public function cotizaciones()
     {
-        $user = Auth::user();
-        $cliente = Cliente::where('usuario_id', $user->id)->first();
-
-        if (!$cliente) {
-            return redirect()->route('cliente.perfil.index')
-                           ->with('message', 'Por favor completa tu perfil primero.');
-        }
-
-        $cotizaciones = $cliente->cotizaciones()
-            ->with(['departamento', 'asesor.usuario'])
-            ->where('estado', '!=', 'cancelada')
-            ->latest()
-            ->get();
-
-        return inertia('Cliente/Cotizaciones', [
-            'cotizaciones' => $cotizaciones,
-            'cliente' => $cliente
-        ]);
+        // Redirigir a solicitudes (las cotizaciones se manejan como solicitudes desde la vista del cliente)
+        return redirect()->route('cliente.solicitudes');
     }
 
     public function reservas()
     {
         // Redirigir a solicitudes (vista Cliente/Reservas no implementada)
-        return redirect()->route('solicitudes');
+        return redirect()->route('cliente.solicitudes');
     }
 
     // ========================================================
