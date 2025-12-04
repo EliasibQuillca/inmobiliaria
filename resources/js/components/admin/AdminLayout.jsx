@@ -67,11 +67,7 @@ export default function AdminLayout({ children, auth, title = 'Panel de Administ
 
                 {/* Footer */}
                 <footer className="bg-white shadow-inner">
-                    <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-                        <p className="text-center text-sm text-gray-500">
-                            &copy; {new Date().getFullYear()} CUSCO PREMIUM. Todos los derechos reservados.
-                        </p>
-                    </div>
+                
                 </footer>
             </div>
         </div>

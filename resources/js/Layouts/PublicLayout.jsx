@@ -34,14 +34,14 @@ export default function PublicLayout({ auth, user, children }) {
                             {currentUser?.role === 'cliente' && (
                                 <Link
                                     href="/cliente/dashboard"
-                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                                    className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium"
                                 >
                                     Mi Panel
                                 </Link>
                             )}
                             <Link
                                 href="/catalogo"
-                                className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                                className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium"
                             >
                                 Catálogo
                             </Link>
@@ -49,7 +49,7 @@ export default function PublicLayout({ auth, user, children }) {
                             {!currentUser && (
                                 <Link
                                     href="/sobre-nosotros"
-                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                                    className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium"
                                 >
                                     Sobre Nosotros
                                 </Link>
@@ -57,14 +57,14 @@ export default function PublicLayout({ auth, user, children }) {
                             {currentUser && currentUser.role === 'cliente' ? (
                                 <Link
                                     href="/cliente/asesores"
-                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                                    className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium"
                                 >
                                     Asesores
                                 </Link>
                             ) : (
                                 <Link
                                     href="/contacto"
-                                    className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                                    className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium"
                                 >
                                     Contáctanos
                                 </Link>
@@ -81,7 +81,7 @@ export default function PublicLayout({ auth, user, children }) {
                                     <div className="relative">
                                         <button
                                             onClick={() => setDropdownOpen(!dropdownOpen)}
-                                            className="flex items-center space-x-1 text-sm text-gray-700 hover:text-blue-600 focus:outline-none"
+                                            className="flex items-center space-x-1 text-sm text-gray-700 hover:text-primary-600 focus:outline-none"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -157,13 +157,13 @@ export default function PublicLayout({ auth, user, children }) {
                                 <div className="flex items-center space-x-3">
                                     <Link
                                         href="/login"
-                                        className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                                        className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium"
                                     >
                                         Iniciar Sesión
                                     </Link>
                                     <Link
                                         href="/register"
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                                        className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium"
                                     >
                                         Registrarse
                                     </Link>
@@ -175,7 +175,7 @@ export default function PublicLayout({ auth, user, children }) {
                         <div className="md:hidden">
                             <button
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                                className="text-gray-700 hover:text-blue-600"
+                                className="text-gray-700 hover:text-primary-600"
                             >
                                 {mobileMenuOpen ? (
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,7 +286,7 @@ export default function PublicLayout({ auth, user, children }) {
                                         <Link
                                             href="/logout"
                                             method="post"
-                                            className="block px-4 py-2 text-red-600 hover:bg-gray-100 rounded-md font-medium"
+                                            className="block px-4 py-2 text-danger-600 hover:bg-gray-100 rounded-md font-medium"
                                             onClick={() => setMobileMenuOpen(false)}
                                         >
                                             Cerrar Sesión
@@ -303,7 +303,7 @@ export default function PublicLayout({ auth, user, children }) {
                                         </Link>
                                         <Link
                                             href="/register"
-                                            className="block px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md text-center font-medium"
+                                            className="block px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-md text-center font-medium"
                                             onClick={() => setMobileMenuOpen(false)}
                                         >
                                             Registrarse
@@ -328,7 +328,7 @@ export default function PublicLayout({ auth, user, children }) {
                         {/* Company Info */}
                         <div className="col-span-1 md:col-span-2">
                             <div className="flex items-center mb-4">
-                                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                                <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
                                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
                                     </svg>

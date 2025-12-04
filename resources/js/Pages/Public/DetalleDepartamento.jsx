@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
+import Button from '@/Components/DS/Button';
+import Input from '@/Components/DS/Input';
+import Badge from '@/Components/DS/Badge';
 
 export default function DetalleDepartamento({
     departamento,
@@ -203,9 +206,13 @@ export default function DetalleDepartamento({
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Estado:</span>
-                                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                            <Badge variant={
+                                                departamento.estado === 'disponible' ? 'success' :
+                                                departamento.estado === 'reservado' ? 'warning' :
+                                                departamento.estado === 'vendido' ? 'danger' : 'secondary'
+                                            }>
                                                 {departamento.estado === 'disponible' ? 'Disponible' : departamento.estado}
-                                            </span>
+                                            </Badge>
                                         </div>
                                     </div>
                                     <div className="space-y-3">
@@ -227,7 +234,7 @@ export default function DetalleDepartamento({
                                         )}
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Precio:</span>
-                                            <span className="text-xl font-bold text-blue-600">{formatCurrency(departamento.precio)}</span>
+                                            <span className="text-xl font-bold text-primary-600">{formatCurrency(departamento.precio)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -248,7 +255,7 @@ export default function DetalleDepartamento({
                         <div className="lg:col-span-1">
                             <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 sticky top-4 lg:top-8">
                                 <div className="text-center mb-6">
-                                    <div className="text-3xl font-bold text-blue-600 mb-2">
+                                    <div className="text-3xl font-bold text-primary-600 mb-2">
                                         {formatCurrency(departamento.precio)}
                                     </div>
                                     <div className="text-sm text-gray-500">
@@ -261,8 +268,8 @@ export default function DetalleDepartamento({
                                     <div className="border-t border-b py-6 mb-6">
                                         <h3 className="text-lg font-medium text-gray-900 mb-4">Tu Asesor</h3>
                                         <div className="flex items-center space-x-4">
-                                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                                <span className="text-blue-600 font-medium">
+                                            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                                                <span className="text-primary-600 font-medium">
                                                     {departamento.asesor.nombre.charAt(0).toUpperCase()}
                                                 </span>
                                             </div>
@@ -289,20 +296,22 @@ export default function DetalleDepartamento({
                                 <div className="space-y-3">
                                     {auth.user ? (
                                         // Usuario autenticado - redirige a crear solicitud
-                                        <Link
+                                        <Button
                                             href={`/cliente/solicitudes/crear?departamento_id=${departamento.id}`}
-                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg text-center block transition-colors duration-200"
+                                            variant="primary"
+                                            className="w-full justify-center py-3"
                                         >
                                             Me Interesa Esta Propiedad
-                                        </Link>
+                                        </Button>
                                     ) : (
                                         // Usuario no autenticado - muestra modal de contacto
-                                        <button
+                                        <Button
                                             onClick={() => setMostrarModalContacto(true)}
-                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+                                            variant="primary"
+                                            className="w-full justify-center py-3"
                                         >
                                             Me Interesa Esta Propiedad
-                                        </button>
+                                        </Button>
                                     )}
 
                                     {departamento.asesor && departamento.asesor.usuario && departamento.asesor.usuario.telefono && (
@@ -394,17 +403,18 @@ export default function DetalleDepartamento({
                                                 <p className="text-sm text-gray-600">
                                                     <span className="font-medium">Área:</span> {relacionado.area} m²
                                                 </p>
-                                                <p className="text-lg font-bold text-blue-600">
+                                                <p className="text-lg font-bold text-primary-600">
                                                     {formatCurrency(relacionado.precio)}
                                                 </p>
                                             </div>
 
-                                            <Link
+                                            <Button
                                                 href={`/catalogo/${relacionado.id}`}
-                                                className="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium text-center"
+                                                variant="secondary"
+                                                className="w-full justify-center"
                                             >
                                                 Ver Detalles
-                                            </Link>
+                                            </Button>
                                         </div>
                                     </div>
                                 ))}
@@ -438,11 +448,11 @@ export default function DetalleDepartamento({
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Nombre Completo *
                                             </label>
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={data.nombre}
                                                 onChange={(e) => setData('nombre', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full"
                                                 required
                                                 disabled={auth.user}
                                             />
@@ -453,11 +463,11 @@ export default function DetalleDepartamento({
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Teléfono *
                                             </label>
-                                            <input
+                                            <Input
                                                 type="tel"
                                                 value={data.telefono}
                                                 onChange={(e) => setData('telefono', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full"
                                                 required
                                             />
                                             {errors.telefono && <p className="text-red-600 text-sm mt-1">{errors.telefono}</p>}
@@ -468,11 +478,11 @@ export default function DetalleDepartamento({
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Email (Opcional)
                                         </label>
-                                        <input
+                                        <Input
                                             type="email"
                                             value={data.email}
                                             onChange={(e) => setData('email', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full"
                                             disabled={auth.user}
                                         />
                                         {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
@@ -486,7 +496,7 @@ export default function DetalleDepartamento({
                                             value={data.mensaje}
                                             onChange={(e) => setData('mensaje', e.target.value)}
                                             rows={3}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                             placeholder="Cuéntanos sobre tus necesidades o preguntas..."
                                         />
                                         {errors.mensaje && <p className="text-red-600 text-sm mt-1">{errors.mensaje}</p>}
@@ -499,7 +509,7 @@ export default function DetalleDepartamento({
                                                 id="crear_cuenta"
                                                 checked={data.crear_cuenta}
                                                 onChange={(e) => setData('crear_cuenta', e.target.checked)}
-                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                                             />
                                             <label htmlFor="crear_cuenta" className="ml-2 block text-sm text-gray-700">
                                                 Crear cuenta para futuras consultas (Password: 123456)
@@ -508,20 +518,19 @@ export default function DetalleDepartamento({
                                     )}
 
                                     <div className="flex justify-end space-x-3 mt-6">
-                                        <button
-                                            type="button"
+                                        <Button
+                                            variant="secondary"
                                             onClick={() => setMostrarModalContacto(false)}
-                                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
                                         >
                                             Cancelar
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
                                             type="submit"
+                                            variant="primary"
                                             disabled={processing}
-                                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                                         >
                                             {processing ? 'Enviando...' : 'Enviar Solicitud'}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </form>
                             </div>

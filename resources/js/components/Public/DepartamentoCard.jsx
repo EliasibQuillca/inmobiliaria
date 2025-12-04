@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from '@inertiajs/react';
+import Card from '@/Components/DS/Card';
+import Badge from '@/Components/DS/Badge';
+import Button from '@/Components/DS/Button';
 
 const DepartamentoCard = ({ departamento }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -9,7 +11,7 @@ const DepartamentoCard = ({ departamento }) => {
     const imagenPrincipal = imagenes.find(img => img.tipo === 'principal') || imagenes[0];
 
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <Card className="overflow-hidden" noPadding>
             {/* Carrusel de imágenes */}
             <div className="relative h-48 w-full">
                 {imagenes.length > 0 ? (
@@ -54,9 +56,9 @@ const DepartamentoCard = ({ departamento }) => {
                     <h3 className="text-lg font-semibold text-gray-800 truncate">
                         {departamento.titulo}
                     </h3>
-                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                    <Badge variant="success">
                         {departamento.estado}
-                    </span>
+                    </Badge>
                 </div>
 
                 <p className="text-gray-600 text-sm mb-2">{departamento.ubicacion}</p>
@@ -68,18 +70,18 @@ const DepartamentoCard = ({ departamento }) => {
                 </div>
 
                 <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold text-primary">
+                    <span className="text-xl font-bold text-primary-600">
                         S/ {departamento.precio.toLocaleString()}
                     </span>
-                    <Link
+                    <Button
                         href={route('catalogo.show', departamento.id)}
-                        className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition"
+                        variant="primary"
                     >
                         Ver Detalles
-                    </Link>
+                    </Button>
                 </div>
             </div>
-        </div>
+        </Card>
     );
 };
 

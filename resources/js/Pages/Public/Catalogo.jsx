@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import PublicLayout from '../../Layouts/PublicLayout';
+import Button from '@/Components/DS/Button';
+import Input from '@/Components/DS/Input';
+import Card from '@/Components/DS/Card';
+import Badge from '@/Components/DS/Badge';
 
 export default function Catalogo({
     departamentos = { data: [], links: [] },
@@ -107,27 +111,27 @@ export default function Catalogo({
 
             <div className="min-h-screen bg-gray-50">
                 {/* Hero Section */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+                <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
                         <div className="text-center">
                             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
                                 Encuentra tu Hogar Ideal
                             </h1>
-                            <p className="text-lg sm:text-xl text-blue-100 mb-6 sm:mb-8">
+                            <p className="text-lg sm:text-xl text-primary-100 mb-6 sm:mb-8">
                                 Explora nuestra selección de propiedades disponibles
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
-                                <div className="bg-blue-700 bg-opacity-50 rounded-lg p-4">
+                                <div className="bg-primary-700 bg-opacity-50 rounded-lg p-4">
                                     <div className="text-3xl font-bold">{estadisticas.total_disponibles || 0}</div>
-                                    <div className="text-blue-100">Propiedades Disponibles</div>
+                                    <div className="text-primary-100">Propiedades Disponibles</div>
                                 </div>
-                                <div className="bg-blue-700 bg-opacity-50 rounded-lg p-4">
+                                <div className="bg-primary-700 bg-opacity-50 rounded-lg p-4">
                                     <div className="text-3xl font-bold">{estadisticas.precio_min ? formatCurrency(estadisticas.precio_min) : 'N/A'}</div>
-                                    <div className="text-blue-100">Desde</div>
+                                    <div className="text-primary-100">Desde</div>
                                 </div>
-                                <div className="bg-blue-700 bg-opacity-50 rounded-lg p-4">
+                                <div className="bg-primary-700 bg-opacity-50 rounded-lg p-4">
                                     <div className="text-3xl font-bold">{estadisticas.precio_max ? formatCurrency(estadisticas.precio_max) : 'N/A'}</div>
-                                    <div className="text-blue-100">Hasta</div>
+                                    <div className="text-primary-100">Hasta</div>
                                 </div>
                             </div>
                         </div>
@@ -145,7 +149,7 @@ export default function Catalogo({
                                 <select
                                     value={filtrosLocales.tipo_propiedad}
                                     onChange={(e) => setFiltrosLocales(prev => ({ ...prev, tipo_propiedad: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 >
                                     <option value="">Todos los tipos</option>
                                     {Object.entries(tiposPropiedad || {}).map(([key, label]) => (
@@ -160,7 +164,7 @@ export default function Catalogo({
                                 <select
                                     value={filtrosLocales.habitaciones}
                                     onChange={(e) => setFiltrosLocales(prev => ({ ...prev, habitaciones: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 >
                                     <option value="">Cualquier cantidad</option>
                                     <option value="1">1 habitación</option>
@@ -176,7 +180,7 @@ export default function Catalogo({
                                 <select
                                     value={filtrosLocales.orden}
                                     onChange={(e) => setFiltrosLocales(prev => ({ ...prev, orden: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 >
                                     <option value="recientes">Más recientes</option>
                                     <option value="precio_asc">Precio: menor a mayor</option>
@@ -188,36 +192,36 @@ export default function Catalogo({
                             {/* Búsqueda */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-                                <input
+                                <Input
                                     type="text"
                                     value={filtrosLocales.busqueda}
                                     onChange={(e) => setFiltrosLocales(prev => ({ ...prev, busqueda: e.target.value }))}
                                     placeholder="Código, ubicación..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full"
                                 />
                             </div>
                         </div>
 
                         <div className="flex justify-end space-x-3 mt-6">
-                            <button
+                            <Button
+                                variant="secondary"
                                 onClick={limpiarFiltros}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                             >
                                 Limpiar Filtros
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="primary"
                                 onClick={aplicarFiltros}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
                             >
                                 Aplicar Filtros
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
                     {/* Grid de Departamentos */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                         {departamentos.data.map((departamento) => (
-                            <div key={departamento.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                            <Card key={departamento.id} noPadding className="hover:shadow-md transition-shadow">
                                 {/* Imagen */}
                                 <div className="aspect-w-16 aspect-h-9 bg-gray-200">
                                     {departamento.imagenes && departamento.imagenes.length > 0 ? (
@@ -246,11 +250,15 @@ export default function Catalogo({
                                                 <p className="text-sm text-gray-600">{departamento.ubicacion}</p>
                                             )}
                                         </div>
-                                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                        <Badge variant={
+                                            departamento.estado === 'disponible' ? 'success' :
+                                            departamento.estado === 'reservado' ? 'warning' :
+                                            departamento.estado === 'vendido' ? 'danger' : 'secondary'
+                                        }>
                                             {departamento.estado === 'disponible' ? 'Disponible' :
                                              departamento.estado === 'reservado' ? 'Reservado' :
                                              departamento.estado === 'vendido' ? 'Vendido' : 'No disponible'}
-                                        </span>
+                                        </Badge>
                                     </div>
 
                                     <div className="space-y-2 mb-4">
@@ -272,7 +280,7 @@ export default function Catalogo({
                                                 <span className="font-medium">Área:</span> {departamento.area} m²
                                             </p>
                                         )}
-                                        <p className="text-lg font-bold text-blue-600">
+                                        <p className="text-lg font-bold text-primary-600">
                                             {formatCurrency(departamento.precio)}
                                         </p>
                                     </div>
@@ -294,12 +302,13 @@ export default function Catalogo({
                                     {/* Acciones */}
                                     <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
                                         <div className="flex gap-2">
-                                            <Link
+                                            <Button
                                                 href={`/catalogo/${departamento.id}`}
-                                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium text-center transition-colors"
+                                                variant="secondary"
+                                                className="flex-1 justify-center"
                                             >
                                                 Ver Detalles
-                                            </Link>
+                                            </Button>
 
                                         {/* Botón de favoritos */}
                                         {auth.user && auth.user.role === 'cliente' ? (
@@ -340,30 +349,32 @@ export default function Catalogo({
                                         {/* Botón "Solicitar Información" */}
                                         {auth.user && auth.user.role === 'cliente' ? (
                                             // Cliente autenticado: redirige al formulario completo
-                                            <Link
+                                            <Button
                                                 href={`/cliente/solicitudes/crear?departamento_id=${departamento.id}`}
-                                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-1"
+                                                variant="primary"
+                                                className="flex-1 justify-center space-x-1"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
                                                 <span>Solicitar Info</span>
-                                            </Link>
+                                            </Button>
                                         ) : (
                                             // Visitante no autenticado: debe registrarse
-                                            <Link
+                                            <Button
                                                 href="/register"
-                                                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center space-x-1"
+                                                variant="primary"
+                                                className="flex-1 justify-center space-x-1"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                                 </svg>
                                                 <span>Regístrate para contactar</span>
-                                            </Link>
+                                            </Button>
                                         )}
                                     </div>
                                 </div>
-                            </div>
+                            </Card>
                         ))}
                     </div>
 
@@ -377,7 +388,7 @@ export default function Catalogo({
                                         href={link.url || '#'}
                                         className={`px-3 py-2 text-sm rounded-md ${
                                             link.active
-                                                ? 'bg-blue-600 text-white'
+                                                ? 'bg-primary-600 text-white'
                                                 : link.url
                                                     ? 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -402,34 +413,36 @@ export default function Catalogo({
                                 Intenta ajustar los filtros para ver más resultados.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                                <button
+                                <Button
                                     onClick={limpiarFiltros}
-                                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+                                    variant="primary"
                                 >
                                     Limpiar Filtros
-                                </button>
+                                </Button>
 
                                 {/* Opciones adicionales para clientes autenticados */}
                                 {auth.user && auth.user.role === 'cliente' && (
                                     <>
-                                        <Link
+                                        <Button
                                             href="/cliente/solicitudes"
-                                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100"
+                                            variant="secondary"
+                                            className="text-primary-600 bg-primary-50 border-primary-200 hover:bg-primary-100"
                                         >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                             </svg>
                                             Crear Solicitud
-                                        </Link>
-                                        <Link
+                                        </Button>
+                                        <Button
                                             href="/cliente/asesores"
-                                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-green-600 bg-green-50 border border-green-200 rounded-md hover:bg-green-100"
+                                            variant="secondary"
+                                            className="text-green-600 bg-green-50 border-green-200 hover:bg-green-100"
                                         >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                             </svg>
                                             Ver Asesores
-                                        </Link>
+                                        </Button>
                                     </>
                                 )}
                             </div>
@@ -462,11 +475,11 @@ export default function Catalogo({
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Nombre Completo *
                                             </label>
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={data.nombre}
                                                 onChange={(e) => setData('nombre', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full"
                                                 required
                                                 disabled={auth.user}
                                             />
@@ -477,11 +490,11 @@ export default function Catalogo({
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Teléfono *
                                             </label>
-                                            <input
+                                            <Input
                                                 type="tel"
                                                 value={data.telefono}
                                                 onChange={(e) => setData('telefono', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full"
                                                 required
                                             />
                                             {errors.telefono && <p className="text-red-600 text-sm mt-1">{errors.telefono}</p>}
@@ -492,11 +505,11 @@ export default function Catalogo({
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Email (Opcional)
                                         </label>
-                                        <input
+                                        <Input
                                             type="email"
                                             value={data.email}
                                             onChange={(e) => setData('email', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full"
                                             disabled={auth.user}
                                         />
                                         {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
@@ -510,7 +523,7 @@ export default function Catalogo({
                                             value={data.mensaje}
                                             onChange={(e) => setData('mensaje', e.target.value)}
                                             rows={3}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                             placeholder="Cuéntanos sobre tus necesidades o preguntas..."
                                         />
                                         {errors.mensaje && <p className="text-red-600 text-sm mt-1">{errors.mensaje}</p>}
@@ -523,7 +536,7 @@ export default function Catalogo({
                                                 id="crear_cuenta"
                                                 checked={data.crear_cuenta}
                                                 onChange={(e) => setData('crear_cuenta', e.target.checked)}
-                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                                             />
                                             <label htmlFor="crear_cuenta" className="ml-2 block text-sm text-gray-700">
                                                 Crear cuenta para futuras consultas (Password: 123456)
@@ -532,20 +545,19 @@ export default function Catalogo({
                                     )}
 
                                     <div className="flex justify-end space-x-3 mt-6">
-                                        <button
-                                            type="button"
+                                        <Button
+                                            variant="secondary"
                                             onClick={() => setMostrarModalContacto(false)}
-                                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
                                         >
                                             Cancelar
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
                                             type="submit"
+                                            variant="primary"
                                             disabled={processing}
-                                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                                         >
                                             {processing ? 'Enviando...' : 'Enviar Solicitud'}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </form>
                             </div>

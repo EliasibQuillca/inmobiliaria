@@ -1,8 +1,8 @@
 import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
+import Button from '@/Components/DS/Button';
+import Input from '@/Components/DS/Input';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
@@ -77,21 +77,21 @@ export default function Login({ status, canResetPassword }) {
             )}
 
             {errors.email && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="mb-4 p-4 bg-danger-50 border border-danger-200 rounded-lg">
                     <div className="flex">
                         <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <svg className="h-5 w-5 text-danger-400" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                             </svg>
                         </div>
                         <div className="ml-3">
-                            <p className="text-sm font-medium text-red-800">
+                            <p className="text-sm font-medium text-danger-800">
                                 {errors.email}
                             </p>
                             {errors.email.includes('no coinciden') && (
-                                <p className="mt-2 text-sm text-red-700">
+                                <p className="mt-2 text-sm text-danger-700">
                                     ¿No tienes cuenta?{' '}
-                                    <Link href="/register" className="font-semibold underline hover:text-red-900">
+                                    <Link href="/register" className="font-semibold underline hover:text-danger-900">
                                         Regístrate aquí
                                     </Link>
                                 </p>
@@ -105,7 +105,7 @@ export default function Login({ status, canResetPassword }) {
                 <div>
                     <InputLabel htmlFor="email" value="Correo Electrónico" />
 
-                    <TextInput
+                    <Input
                         id="email"
                         type="email"
                         name="email"
@@ -114,6 +114,7 @@ export default function Login({ status, canResetPassword }) {
                         autoComplete="username"
                         isFocused={true}
                         onChange={(e) => setData('email', e.target.value)}
+                        error={!!errors.email}
                     />
 
                     <InputError message={errors.email} className="mt-2" />
@@ -122,7 +123,7 @@ export default function Login({ status, canResetPassword }) {
                 <div className="mt-4">
                     <InputLabel htmlFor="password" value="Contraseña" />
 
-                    <TextInput
+                    <Input
                         id="password"
                         type="password"
                         name="password"
@@ -130,6 +131,7 @@ export default function Login({ status, canResetPassword }) {
                         className="mt-1 block w-full"
                         autoComplete="current-password"
                         onChange={(e) => setData('password', e.target.value)}
+                        error={!!errors.password}
                     />
 
                     <InputError message={errors.password} className="mt-2" />
@@ -150,15 +152,15 @@ export default function Login({ status, canResetPassword }) {
                     {canResetPassword && (
                         <Link
                             href={route('password.request')}
-                            className="text-sm text-gray-600 hover:text-indigo-700 transition-colors"
+                            className="text-sm text-gray-600 hover:text-primary-700 transition-colors"
                         >
                             ¿Olvidaste tu contraseña?
                         </Link>
                     )}
 
-                    <PrimaryButton className="ml-4 bg-indigo-600 hover:bg-indigo-700" disabled={processing}>
+                    <Button className="ml-4" disabled={processing}>
                         Iniciar Sesión
-                    </PrimaryButton>
+                    </Button>
                 </div>
             </form>
 
@@ -167,7 +169,7 @@ export default function Login({ status, canResetPassword }) {
                     ¿No tienes una cuenta?{' '}
                     <Link
                         href={"/register"}
-                        className="font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                        className="font-medium text-primary-600 hover:text-primary-700 transition-colors"
                     >
                         Regístrate Ahora
                     </Link>

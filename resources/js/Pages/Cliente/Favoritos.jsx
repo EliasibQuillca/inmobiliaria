@@ -1,6 +1,9 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import PublicLayout from '@/Layouts/PublicLayout';
+import ClienteLayout from '@/Layouts/ClienteLayout';
+import Card from '@/Components/DS/Card';
+import Button from '@/Components/DS/Button';
+import Badge from '@/Components/DS/Badge';
 
 export default function ClienteFavoritos({ auth, favoritos }) {
     const [favoritosLocales, setFavoritosLocales] = useState(favoritos);
@@ -46,7 +49,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
     };
 
     return (
-        <PublicLayout user={auth.user}>
+        <ClienteLayout>
             <Head title="Mis Favoritos - Inmobiliaria Imperial Cusco" />
 
             <div className="py-12 bg-gray-50 min-h-screen">
@@ -63,31 +66,31 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                 </p>
                             </div>
                             <div className="flex space-x-3">
-                                <Link
+                                <Button
                                     href="/cliente/dashboard"
-                                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm"
+                                    variant="secondary"
                                 >
                                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                     </svg>
                                     Mi Panel
-                                </Link>
-                                <Link
+                                </Button>
+                                <Button
                                     href="/cliente/catalogo"
-                                    className="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm"
+                                    variant="primary"
                                 >
                                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                     </svg>
                                     Catálogo
-                                </Link>
+                                </Button>
                             </div>
                         </div>
                     </div>
 
                     {/* Stats Section */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div className="bg-white overflow-hidden shadow-sm rounded-lg border-l-4 border-red-500">
+                        <Card className="overflow-hidden border-l-4 border-red-500">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
@@ -105,9 +108,9 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
 
-                        <div className="bg-white overflow-hidden shadow-sm rounded-lg border-l-4 border-green-500">
+                        <Card className="overflow-hidden border-l-4 border-green-500">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
@@ -125,9 +128,9 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
 
-                        <div className="bg-white overflow-hidden shadow-sm rounded-lg border-l-4 border-blue-500">
+                        <Card className="overflow-hidden border-l-4 border-blue-500">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
@@ -145,14 +148,14 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     </div>
 
                     {/* Favoritos Grid */}
                     {favoritosLocales.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                             {favoritosLocales.map((favorito) => (
-                                <div key={favorito.id} className="group bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
+                                <Card key={favorito.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300">
                                     {/* Imagen */}
                                     <div className="relative aspect-w-16 aspect-h-9 bg-gray-200">
                                         {favorito.imagenes && favorito.imagenes.length > 0 ? (
@@ -170,9 +173,9 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                                         )}
                                         {/* Badge de estado */}
                                         <div className="absolute top-4 left-4">
-                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <Badge variant="success">
                                                 {favorito.estado}
-                                            </span>
+                                            </Badge>
                                         </div>
                                         {/* Botón de eliminar favorito */}
                                         <div className="absolute top-4 right-4">
@@ -190,7 +193,7 @@ export default function ClienteFavoritos({ auth, favoritos }) {
 
                                     {/* Contenido */}
                                     <div className="p-6">
-                                        <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 mb-2">
+                                        <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors duration-200 mb-2">
                                             {favorito.titulo}
                                         </h3>
 
@@ -238,21 +241,23 @@ export default function ClienteFavoritos({ auth, favoritos }) {
 
                                         {/* Botones de acción */}
                                         <div className="flex space-x-3">
-                                            <Link
+                                            <Button
                                                 href={`/catalogo/${favorito.id}`}
-                                                className="flex-1 bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+                                                variant="secondary"
+                                                className="flex-1"
                                             >
                                                 Ver Detalles
-                                            </Link>
-                                            <Link
+                                            </Button>
+                                            <Button
                                                 href={`/cliente/solicitudes/crear?departamento_id=${favorito.id}`}
-                                                className="flex-1 bg-green-600 text-white text-center py-3 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium"
+                                                variant="primary"
+                                                className="flex-1"
                                             >
                                                 📩 Solicitar Info
-                                            </Link>
+                                            </Button>
                                         </div>
                                     </div>
-                                </div>
+                                </Card>
                             ))}
                         </div>
                     ) : (
@@ -270,19 +275,20 @@ export default function ClienteFavoritos({ auth, favoritos }) {
                             <p className="text-gray-500 mb-8 max-w-md mx-auto">
                                 Explora nuestro catálogo de departamentos y guarda tus favoritos para encontrarlos fácilmente después.
                             </p>
-                            <Link
-                                href={"/catalogo"}
-                                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+                            <Button
+                                href="/catalogo"
+                                variant="primary"
+                                size="lg"
                             >
                                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                                 Explorar Departamentos
-                            </Link>
+                            </Button>
                         </div>
                     )}
                 </div>
             </div>
-        </PublicLayout>
+        </ClienteLayout>
     );
 }

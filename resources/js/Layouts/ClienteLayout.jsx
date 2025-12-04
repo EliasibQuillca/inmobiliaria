@@ -3,6 +3,7 @@ import { Link, usePage, router } from '@inertiajs/react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import Button from '@/Components/DS/Button';
 
 export default function ClienteLayout({ children, header }) {
     const { auth, flash, url } = usePage().props;
@@ -101,7 +102,7 @@ export default function ClienteLayout({ children, header }) {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="min-h-screen bg-gray-50">
             {/* Notificaciones Toast */}
             <div className="fixed top-4 right-4 z-50 space-y-2">
                 {notifications.map(notification => (
@@ -109,10 +110,10 @@ export default function ClienteLayout({ children, header }) {
                         key={notification.id}
                         className={`p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
                             notification.type === 'success' 
-                                ? 'bg-green-500 text-white' 
+                                ? 'bg-success-500 text-white' 
                                 : notification.type === 'error'
-                                ? 'bg-red-500 text-white'
-                                : 'bg-blue-500 text-white'
+                                ? 'bg-danger-500 text-white'
+                                : 'bg-info-500 text-white'
                         }`}
                     >
                         <div className="flex items-center">
@@ -129,8 +130,8 @@ export default function ClienteLayout({ children, header }) {
             {showTimeoutWarning && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white rounded-xl shadow-2xl p-8 text-center max-w-md mx-4">
-                        <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
-                            <svg className="w-8 h-8 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-warning-100 rounded-full flex items-center justify-center">
+                            <svg className="w-8 h-8 text-warning-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
                         </div>
@@ -139,18 +140,20 @@ export default function ClienteLayout({ children, header }) {
                             Por seguridad, tu sesión se cerrará en 30 segundos por inactividad.
                         </p>
                         <div className="flex space-x-4">
-                            <button 
+                            <Button 
+                                variant="primary"
                                 onClick={() => { setShowTimeoutWarning(false); window.location.reload(); }}
-                                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                className="flex-1 justify-center"
                             >
                                 Seguir conectado
-                            </button>
-                            <button 
+                            </Button>
+                            <Button 
+                                variant="secondary"
                                 onClick={logout}
-                                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                                className="flex-1 justify-center"
                             >
                                 Cerrar sesión
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -164,7 +167,7 @@ export default function ClienteLayout({ children, header }) {
                         <div className="flex">
                             <div className="flex-shrink-0 flex items-center">
                                 <Link href="/cliente/dashboard">
-                                    <ApplicationLogo className="h-12 w-auto text-blue-600" />
+                                    <ApplicationLogo className="h-12 w-auto text-primary-600" />
                                 </Link>
                                 <div className="ml-4">
                                     <h1 className="text-xl font-bold text-gray-900">Portal Cliente</h1>
@@ -180,8 +183,8 @@ export default function ClienteLayout({ children, header }) {
                                         href={item.href}
                                         className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                                             item.active
-                                                ? 'bg-blue-100 text-blue-700 shadow-sm'
-                                                : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                                                ? 'bg-primary-100 text-primary-700 shadow-sm'
+                                                : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
                                         }`}
                                     >
                                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,7 +199,7 @@ export default function ClienteLayout({ children, header }) {
                         {/* Perfil y configuraciones */}
                         <div className="hidden sm:flex sm:items-center sm:space-x-4">
                             {/* Botón de ayuda */}
-                            <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                            <button className="p-2 text-gray-400 hover:text-primary-600 transition-colors">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -206,7 +209,7 @@ export default function ClienteLayout({ children, header }) {
                             <Dropdown>
                                 <Dropdown.Trigger>
                                     <button className="flex items-center px-3 py-2 text-sm rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+                                        <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-semibold mr-3">
                                             {user.name.charAt(0).toUpperCase()}
                                         </div>
                                         <div className="text-left">
@@ -333,10 +336,10 @@ export default function ClienteLayout({ children, header }) {
                             © {new Date().getFullYear()} Inmobiliaria Imperial Cusco. Todos los derechos reservados.
                         </div>
                         <div className="flex space-x-4">
-                            <Link href="/ayuda" className="text-sm text-gray-500 hover:text-blue-600">
+                            <Link href="/ayuda" className="text-sm text-gray-500 hover:text-primary-600">
                                 Ayuda
                             </Link>
-                            <Link href="/contacto" className="text-sm text-gray-500 hover:text-blue-600">
+                            <Link href="/contacto" className="text-sm text-gray-500 hover:text-primary-600">
                                 Contacto
                             </Link>
                         </div>

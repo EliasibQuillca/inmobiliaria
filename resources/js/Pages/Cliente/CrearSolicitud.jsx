@@ -1,6 +1,10 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import PublicLayout from '@/Layouts/PublicLayout';
+import ClienteLayout from '@/Layouts/ClienteLayout';
+import Card from '@/Components/DS/Card';
+import Button from '@/Components/DS/Button';
+import Badge from '@/Components/DS/Badge';
+import Input from '@/Components/DS/Input';
 
 export default function CrearSolicitud({ auth, departamentoId, departamentos, asesores }) {
     const [departamento, setDepartamento] = useState(null);
@@ -89,7 +93,7 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
     };
 
     return (
-        <PublicLayout user={auth.user}>
+        <ClienteLayout>
             <Head title="Nueva Solicitud - Inmobiliaria Imperial Cusco" />
 
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12">
@@ -117,7 +121,7 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
                         {/* Información del Departamento */}
                         {departamento && (
                             <div className="lg:col-span-1">
-                                <div className="bg-white rounded-xl shadow-lg overflow-hidden sticky top-6">
+                                <Card className="rounded-xl shadow-lg overflow-hidden sticky top-6">
                                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
                                         <h2 className="text-lg font-semibold text-white">
                                             Propiedad Seleccionada
@@ -161,27 +165,24 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </Card>
                             </div>
                         )}
 
                         {/* Formulario de Solicitud */}
                         <div className={departamento ? "lg:col-span-2" : "lg:col-span-3"}>
-                            <div className="bg-white rounded-xl shadow-lg p-8">
+                            <Card className="rounded-xl shadow-lg p-8">
                                 <form onSubmit={submit} className="space-y-6">
                                     {/* Selector de Departamento (solo si NO viene pre-seleccionado) */}
                                     {!departamentoId && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                                Selecciona el Departamento <span className="text-red-500">*</span>
-                                            </label>
-
-                                            {/* Select compacto de departamentos */}
-                                            <select
+                                            <Input
+                                                label="Selecciona el Departamento"
+                                                as="select"
                                                 value={data.departamento_id}
                                                 onChange={(e) => handleSelectDepartamento(e.target.value)}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                                                 required
+                                                error={errors.departamento_id}
                                             >
                                                 <option value="">-- Selecciona un departamento --</option>
                                                 {departamentos?.map((dept) => (
@@ -189,11 +190,7 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
                                                         {dept.codigo} - {dept.titulo}
                                                     </option>
                                                 ))}
-                                            </select>
-
-                                            {errors.departamento_id && (
-                                                <p className="mt-2 text-sm text-red-600">{errors.departamento_id}</p>
-                                            )}
+                                            </Input>
 
                                             {/* Vista previa del departamento seleccionado */}
                                             {data.departamento_id && departamentos && (
@@ -316,24 +313,20 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
 
                                     {/* Número de Teléfono */}
                                     <div>
-                                        <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-2">
-                                            Número de Celular <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
+                                        <Input
+                                            label="Número de Celular"
                                             type="tel"
                                             id="telefono"
                                             value={data.telefono}
                                             onChange={(e) => setData('telefono', e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             placeholder="Ej: 987654321"
                                             maxLength="15"
+                                            required
+                                            error={errors.telefono}
                                         />
                                         <p className="mt-1 text-xs text-gray-500">
                                             Ingresa tu número de celular para que el asesor pueda contactarte
                                         </p>
-                                        {errors.telefono && (
-                                            <p className="mt-2 text-sm text-red-600">{errors.telefono}</p>
-                                        )}
                                     </div>
 
                                     {/* Selección de Asesor */}
@@ -420,15 +413,17 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
                                                                     )}
                                                                 </div>
                                                                 {/* Badge de disponibilidad */}
-                                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                                                    asesor.disponibilidad === 'alta' ? 'bg-green-100 text-green-800' :
-                                                                    asesor.disponibilidad === 'media' ? 'bg-yellow-100 text-yellow-800' :
-                                                                    'bg-red-100 text-red-800'
-                                                                }`}>
+                                                                <Badge
+                                                                    variant={
+                                                                        asesor.disponibilidad === 'alta' ? 'success' :
+                                                                        asesor.disponibilidad === 'media' ? 'warning' :
+                                                                        'danger'
+                                                                    }
+                                                                >
                                                                     {asesor.disponibilidad === 'alta' ? '✓ Disponible' :
                                                                      asesor.disponibilidad === 'media' ? '⏳ Ocupado' :
                                                                      '⚠️ Muy ocupado'}
-                                                                </span>
+                                                                </Badge>
                                                             </div>
                                                             <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 ml-15">
                                                                 {asesor.email && (
@@ -494,16 +489,19 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
 
                                     {/* Botones */}
                                     <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                        <Link
+                                        <Button
+                                            as={Link}
                                             href="/cliente/dashboard"
-                                            className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 text-center font-medium"
+                                            variant="secondary"
+                                            className="flex-1 justify-center"
                                         >
                                             Cancelar
-                                        </Link>
-                                        <button
+                                        </Button>
+                                        <Button
                                             type="submit"
                                             disabled={processing}
-                                            className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                            variant="primary"
+                                            className="flex-1 justify-center"
                                         >
                                             {processing ? (
                                                 <span className="flex items-center justify-center">
@@ -516,14 +514,14 @@ export default function CrearSolicitud({ auth, departamentoId, departamentos, as
                                             ) : (
                                                 '📩 Enviar Solicitud'
                                             )}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </form>
-                            </div>
+                            </Card>
                         </div>
                     </div>
                 </div>
             </div>
-        </PublicLayout>
+        </ClienteLayout>
     );
 }

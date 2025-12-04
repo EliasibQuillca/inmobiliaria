@@ -1,6 +1,9 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
-import PublicLayout from '@/Layouts/PublicLayout';
+import ClienteLayout from '@/Layouts/ClienteLayout';
+import Card from '@/Components/DS/Card';
+import Button from '@/Components/DS/Button';
+import Badge from '@/Components/DS/Badge';
 
 export default function Solicitudes({ auth, solicitudes }) {
     const { flash, aprobacionesPendientes } = usePage().props;
@@ -33,14 +36,14 @@ export default function Solicitudes({ auth, solicitudes }) {
     };
 
     const getEstadoBadge = (estado) => {
-        const badges = {
-            'pendiente': 'bg-yellow-100 text-yellow-800',
-            'en_proceso': 'bg-blue-100 text-blue-800',
-            'aprobada': 'bg-green-100 text-green-800',
-            'rechazada': 'bg-red-100 text-red-800',
-            'cancelada': 'bg-gray-100 text-gray-800'
+        const variants = {
+            'pendiente': 'warning',
+            'en_proceso': 'info',
+            'aprobada': 'success',
+            'rechazada': 'danger',
+            'cancelada': 'secondary'
         };
-        return badges[estado] || 'bg-gray-100 text-gray-800';
+        return variants[estado] || 'secondary';
     };
 
     const getEstadoTexto = (estado) => {
@@ -120,7 +123,7 @@ export default function Solicitudes({ auth, solicitudes }) {
     };
 
     return (
-        <PublicLayout user={auth.user}>
+        <ClienteLayout>
             <Head title="Mis Solicitudes - Inmobiliaria Imperial Cusco" />
 
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12">
@@ -173,44 +176,32 @@ export default function Solicitudes({ auth, solicitudes }) {
                     )}
 
                     {/* Filtros de Estado */}
-                    <div className="mb-6 bg-white rounded-lg shadow p-2">
+                    <Card className="mb-6 p-2">
                         <div className="flex flex-wrap gap-2">
-                            <button
+                            <Button
+                                variant={filtroEstado === 'activas' ? 'primary' : 'secondary'}
                                 onClick={() => setFiltroEstado('activas')}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                                    filtroEstado === 'activas'
-                                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
                             >
                                 🔵 Activas ({solicitudes.filter(s => !['cancelada', 'rechazada'].includes(s.estado)).length})
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant={filtroEstado === 'todas' ? 'primary' : 'secondary'}
                                 onClick={() => setFiltroEstado('todas')}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                                    filtroEstado === 'todas'
-                                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
                             >
                                 📋 Todas ({solicitudes.length})
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant={filtroEstado === 'canceladas' ? 'primary' : 'secondary'}
                                 onClick={() => setFiltroEstado('canceladas')}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                                    filtroEstado === 'canceladas'
-                                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
                             >
                                 ❌ Canceladas ({solicitudes.filter(s => s.estado === 'cancelada').length})
-                            </button>
+                            </Button>
                         </div>
-                    </div>
+                    </Card>
 
                     {/* Estadísticas */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                        <div className="bg-white rounded-lg shadow p-6">
+                        <Card className="p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0 bg-blue-100 rounded-lg p-3">
                                     <span className="text-2xl">📨</span>
@@ -220,8 +211,8 @@ export default function Solicitudes({ auth, solicitudes }) {
                                     <p className="text-2xl font-bold text-gray-900">{solicitudes.length}</p>
                                 </div>
                             </div>
-                        </div>
-                        <div className="bg-white rounded-lg shadow p-6">
+                        </Card>
+                        <Card className="p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0 bg-yellow-100 rounded-lg p-3">
                                     <span className="text-2xl">⏳</span>
@@ -233,8 +224,8 @@ export default function Solicitudes({ auth, solicitudes }) {
                                     </p>
                                 </div>
                             </div>
-                        </div>
-                        <div className="bg-white rounded-lg shadow p-6">
+                        </Card>
+                        <Card className="p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0 bg-blue-100 rounded-lg p-3">
                                     <span className="text-2xl">🔄</span>
@@ -246,8 +237,8 @@ export default function Solicitudes({ auth, solicitudes }) {
                                     </p>
                                 </div>
                             </div>
-                        </div>
-                        <div className="bg-white rounded-lg shadow p-6">
+                        </Card>
+                        <Card className="p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0 bg-green-100 rounded-lg p-3">
                                     <span className="text-2xl">✅</span>
@@ -259,7 +250,7 @@ export default function Solicitudes({ auth, solicitudes }) {
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     </div>
 
                     {/* Lista de Solicitudes */}
@@ -277,7 +268,7 @@ export default function Solicitudes({ auth, solicitudes }) {
                         return solicitudesFiltradas.length > 0 ? (
                         <div className="space-y-4">
                             {solicitudesFiltradas.map((solicitud) => (
-                                <div key={solicitud.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                                <Card key={solicitud.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
                                     <div className="p-6">
                                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                                             {/* Info Principal */}
@@ -289,9 +280,9 @@ export default function Solicitudes({ auth, solicitudes }) {
                                                     <h3 className="text-xl font-bold text-gray-900">
                                                         {solicitud.departamento?.titulo || 'Propiedad'}
                                                     </h3>
-                                                    <span className={`ml-3 px-3 py-1 rounded-full text-xs font-semibold ${getEstadoBadge(solicitud.estado)}`}>
+                                                    <Badge variant={getEstadoBadge(solicitud.estado)} className="ml-3">
                                                         {getEstadoTexto(solicitud.estado)}
-                                                    </span>
+                                                    </Badge>
                                                 </div>
                                                 <p className="text-sm text-gray-600 mb-2">
                                                     📍 {solicitud.departamento?.direccion || 'N/A'}
@@ -375,27 +366,30 @@ export default function Solicitudes({ auth, solicitudes }) {
 
                                                 {/* Botones de acción */}
                                                 <div className="flex flex-col sm:flex-row gap-3">
-                                                    <button
+                                                    <Button
+                                                        variant="success"
                                                         onClick={() => handleAceptarCotizacion(solicitud.id)}
                                                         disabled={procesando}
-                                                        className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="flex-1 justify-center"
                                                     >
                                                         ✓ Aceptar Cotización
-                                                    </button>
-                                                    <button
+                                                    </Button>
+                                                    <Button
+                                                        variant="warning"
                                                         onClick={() => handleModificarClick(solicitud)}
                                                         disabled={procesando}
-                                                        className="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="flex-1 justify-center"
                                                     >
                                                         ✏️ Solicitar Cambios
-                                                    </button>
-                                                    <button
+                                                    </Button>
+                                                    <Button
+                                                        variant="danger"
                                                         onClick={() => handleRechazarClick(solicitud)}
                                                         disabled={procesando}
-                                                        className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="flex-1 justify-center"
                                                     >
                                                         ✗ Rechazar
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             </div>
                                         )}
@@ -421,11 +415,11 @@ export default function Solicitudes({ auth, solicitudes }) {
                                             </Link>
                                         </div>
                                     </div>
-                                </div>
+                                </Card>
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-16 bg-white rounded-xl shadow">
+                        <Card className="text-center py-16">
                             <div className="flex justify-center mb-6">
                                 <div className="bg-gray-100 rounded-full p-8">
                                     <span className="text-6xl">📭</span>
@@ -453,7 +447,7 @@ export default function Solicitudes({ auth, solicitudes }) {
                                     🏠 Ver Catálogo
                                 </Link>
                             )}
-                        </div>
+                        </Card>
                     );
                     })()}
                 </div>
@@ -485,24 +479,26 @@ export default function Solicitudes({ auth, solicitudes }) {
                         />
 
                         <div className="flex gap-3">
-                            <button
+                            <Button
+                                variant="secondary"
                                 onClick={() => {
                                     setShowRechazarModal(false);
                                     setSolicitudSeleccionada(null);
                                     setMotivoRechazo('');
                                 }}
                                 disabled={procesando}
-                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                className="flex-1 justify-center"
                             >
                                 Cancelar
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="danger"
                                 onClick={handleRechazarSubmit}
                                 disabled={procesando || !motivoRechazo.trim()}
-                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 justify-center"
                             >
                                 {procesando ? 'Rechazando...' : 'Confirmar Rechazo'}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -534,28 +530,30 @@ export default function Solicitudes({ auth, solicitudes }) {
                         />
 
                         <div className="flex gap-3">
-                            <button
+                            <Button
+                                variant="secondary"
                                 onClick={() => {
                                     setShowModificarModal(false);
                                     setSolicitudSeleccionada(null);
                                     setMensajeModificacion('');
                                 }}
                                 disabled={procesando}
-                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                className="flex-1 justify-center"
                             >
                                 Cancelar
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="warning"
                                 onClick={handleModificarSubmit}
                                 disabled={procesando || !mensajeModificacion.trim()}
-                                className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 justify-center"
                             >
                                 {procesando ? 'Enviando...' : 'Enviar Solicitud'}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
             )}
-        </PublicLayout>
+        </ClienteLayout>
     );
 }

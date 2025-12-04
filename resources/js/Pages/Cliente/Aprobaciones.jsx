@@ -1,6 +1,9 @@
-import PublicLayout from '@/Layouts/PublicLayout';
+import ClienteLayout from '@/Layouts/ClienteLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import Card from '@/Components/DS/Card';
+import Button from '@/Components/DS/Button';
+import Badge from '@/Components/DS/Badge';
 
 export default function Aprobaciones({ auth, accionesPendientes, historial, estadisticas }) {
     const [mostrarHistorial, setMostrarHistorial] = useState(false);
@@ -12,10 +15,10 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
     const [procesando, setProcesando] = useState(false);
 
     const prioridadColor = {
-        'baja': 'bg-gray-100 text-gray-800',
-        'media': 'bg-blue-100 text-blue-800',
-        'alta': 'bg-orange-100 text-orange-800',
-        'urgente': 'bg-red-100 text-red-800'
+        'baja': 'secondary',
+        'media': 'info',
+        'alta': 'warning',
+        'urgente': 'danger'
     };
 
     const prioridadIcono = {
@@ -26,9 +29,9 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
     };
 
     const estadoColor = {
-        'pendiente': 'bg-yellow-100 text-yellow-800',
-        'aprobada': 'bg-green-100 text-green-800',
-        'rechazada': 'bg-red-100 text-red-800'
+        'pendiente': 'warning',
+        'aprobada': 'success',
+        'rechazada': 'danger'
     };
 
     const handleAprobar = (accion) => {
@@ -87,7 +90,7 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
     };
 
     return (
-        <PublicLayout user={auth.user}>
+        <ClienteLayout>
             <Head title="Aprobaciones Pendientes" />
 
             <div className="py-12">
@@ -104,7 +107,7 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
 
                     {/* Estadísticas */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white rounded-lg shadow p-6">
+                        <Card className="p-6">
                             <div className="flex items-center">
                                 <div className="p-3 bg-yellow-100 rounded-full">
                                     <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,9 +119,9 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
                                     <p className="text-2xl font-bold text-gray-900">{estadisticas.pendientes}</p>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
 
-                        <div className="bg-white rounded-lg shadow p-6">
+                        <Card className="p-6">
                             <div className="flex items-center">
                                 <div className="p-3 bg-green-100 rounded-full">
                                     <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,9 +133,9 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
                                     <p className="text-2xl font-bold text-gray-900">{estadisticas.aprobadas_hoy}</p>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
 
-                        <div className="bg-white rounded-lg shadow p-6">
+                        <Card className="p-6">
                             <div className="flex items-center">
                                 <div className="p-3 bg-blue-100 rounded-full">
                                     <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,9 +147,9 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
                                     <p className="text-2xl font-bold text-gray-900">{estadisticas.total_aprobadas}</p>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
 
-                        <div className="bg-white rounded-lg shadow p-6">
+                        <Card className="p-6">
                             <div className="flex items-center">
                                 <div className="p-3 bg-red-100 rounded-full">
                                     <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,38 +161,32 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
                                     <p className="text-2xl font-bold text-gray-900">{estadisticas.total_rechazadas}</p>
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     </div>
 
                     {/* Toggle Historial */}
                     <div className="mb-6 flex space-x-4">
-                        <button
+                        <Button
                             onClick={() => setMostrarHistorial(false)}
-                            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                                !mostrarHistorial
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                            }`}
+                            variant={!mostrarHistorial ? 'primary' : 'secondary'}
+                            size="lg"
                         >
                             ⏳ Pendientes ({accionesPendientes.length})
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             onClick={() => setMostrarHistorial(true)}
-                            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                                mostrarHistorial
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                            }`}
+                            variant={mostrarHistorial ? 'primary' : 'secondary'}
+                            size="lg"
                         >
                             📜 Historial ({historial.length})
-                        </button>
+                        </Button>
                     </div>
 
                     {/* Acciones Pendientes */}
                     {!mostrarHistorial && (
                         <div className="space-y-4">
                             {accionesPendientes.length === 0 ? (
-                                <div className="bg-white rounded-lg shadow p-12 text-center">
+                                <Card className="p-12 text-center">
                                     <div className="text-6xl mb-4">✅</div>
                                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
                                         ¡Todo al día!
@@ -197,18 +194,18 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
                                     <p className="text-gray-600">
                                         No tienes acciones pendientes de aprobación
                                     </p>
-                                </div>
+                                </Card>
                             ) : (
                                 accionesPendientes.map((accion) => (
-                                    <div key={accion.id} className="bg-white rounded-lg shadow-lg overflow-hidden border-l-4 border-yellow-400">
+                                    <Card key={accion.id} className="overflow-hidden border-l-4 border-yellow-400">
                                         <div className="p-6">
                                             {/* Header */}
                                             <div className="flex items-start justify-between mb-4">
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-3 mb-2">
-                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${prioridadColor[accion.prioridad]}`}>
+                                                        <Badge variant={prioridadColor[accion.prioridad]}>
                                                             {prioridadIcono[accion.prioridad]} {accion.prioridad.toUpperCase()}
-                                                        </span>
+                                                        </Badge>
                                                         <span className="text-sm text-gray-500">
                                                             {formatFecha(accion.created_at)}
                                                         </span>
@@ -257,27 +254,29 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
 
                                             {/* Botones de acción */}
                                             <div className="flex gap-3">
-                                                <button
+                                                <Button
                                                     onClick={() => handleAprobar(accion)}
-                                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                    variant="success"
+                                                    className="flex-1 justify-center"
                                                 >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                                                     </svg>
                                                     Aprobar
-                                                </button>
-                                                <button
+                                                </Button>
+                                                <Button
                                                     onClick={() => handleRechazar(accion)}
-                                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                    variant="danger"
+                                                    className="flex-1 justify-center"
                                                 >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                                     </svg>
                                                     Rechazar
-                                                </button>
+                                                </Button>
                                             </div>
                                         </div>
-                                    </div>
+                                    </Card>
                                 ))
                             )}
                         </div>
@@ -285,7 +284,7 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
 
                     {/* Historial */}
                     {mostrarHistorial && (
-                        <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <Card className="overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
@@ -311,10 +310,10 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
                                                     {accion.usuario?.name}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${estadoColor[accion.estado_aprobacion]}`}>
+                                                    <Badge variant={estadoColor[accion.estado_aprobacion]}>
                                                         {accion.estado_aprobacion === 'aprobada' && '✅ Aprobada'}
                                                         {accion.estado_aprobacion === 'rechazada' && '❌ Rechazada'}
-                                                    </span>
+                                                    </Badge>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-600">
                                                     {accion.motivo_respuesta || '-'}
@@ -324,7 +323,7 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        </Card>
                     )}
                 </div>
             </div>
@@ -332,7 +331,7 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
             {/* Modal Aprobar */}
             {mostrarModalAprobar && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6">
+                    <Card className="max-w-md w-full p-6">
                         <h3 className="text-xl font-bold text-gray-900 mb-4">
                             ✅ Aprobar Acción
                         </h3>
@@ -352,32 +351,33 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
                             />
                         </div>
                         <div className="flex gap-3">
-                            <button
+                            <Button
                                 onClick={confirmarAprobacion}
                                 disabled={procesando}
-                                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg disabled:opacity-50"
+                                variant="success"
+                                className="flex-1 justify-center"
                             >
                                 {procesando ? 'Procesando...' : 'Confirmar Aprobación'}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 onClick={() => {
                                     setMostrarModalAprobar(false);
                                     setComentario('');
                                 }}
                                 disabled={procesando}
-                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                                variant="secondary"
                             >
                                 Cancelar
-                            </button>
+                            </Button>
                         </div>
-                    </div>
+                    </Card>
                 </div>
             )}
 
             {/* Modal Rechazar */}
             {mostrarModalRechazar && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6">
+                    <Card className="max-w-md w-full p-6">
                         <h3 className="text-xl font-bold text-gray-900 mb-4">
                             ❌ Rechazar Acción
                         </h3>
@@ -398,27 +398,28 @@ export default function Aprobaciones({ auth, accionesPendientes, historial, esta
                             />
                         </div>
                         <div className="flex gap-3">
-                            <button
+                            <Button
                                 onClick={confirmarRechazo}
                                 disabled={procesando || motivo.trim().length < 10}
-                                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg disabled:opacity-50"
+                                variant="danger"
+                                className="flex-1 justify-center"
                             >
                                 {procesando ? 'Procesando...' : 'Confirmar Rechazo'}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 onClick={() => {
                                     setMostrarModalRechazar(false);
                                     setMotivo('');
                                 }}
                                 disabled={procesando}
-                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                                variant="secondary"
                             >
                                 Cancelar
-                            </button>
+                            </Button>
                         </div>
-                    </div>
+                    </Card>
                 </div>
             )}
-        </PublicLayout>
+        </ClienteLayout>
     );
 }

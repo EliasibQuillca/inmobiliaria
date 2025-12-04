@@ -1,6 +1,9 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import PublicLayout from '@/Layouts/PublicLayout';
+import ClienteLayout from '@/Layouts/ClienteLayout';
+import Card from '@/Components/DS/Card';
+import Button from '@/Components/DS/Button';
+import Badge from '@/Components/DS/Badge';
 
 export default function DetalleSolicitud({ auth, solicitud }) {
     const [showCancelModal, setShowCancelModal] = useState(false);
@@ -28,15 +31,15 @@ export default function DetalleSolicitud({ auth, solicitud }) {
         }).format(precio);
     };
 
-    const getEstadoBadge = (estado) => {
-        const badges = {
-            'pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-            'en_proceso': 'bg-blue-100 text-blue-800 border-blue-300',
-            'aprobada': 'bg-green-100 text-green-800 border-green-300',
-            'rechazada': 'bg-red-100 text-red-800 border-red-300',
-            'cancelada': 'bg-gray-100 text-gray-800 border-gray-300'
+    const getEstadoVariant = (estado) => {
+        const variants = {
+            'pendiente': 'warning',
+            'en_proceso': 'info',
+            'aprobada': 'success',
+            'rechazada': 'danger',
+            'cancelada': 'default'
         };
-        return badges[estado] || 'bg-gray-100 text-gray-800 border-gray-300';
+        return variants[estado] || 'default';
     };
 
     const getEstadoTexto = (estado) => {
@@ -73,7 +76,7 @@ export default function DetalleSolicitud({ auth, solicitud }) {
     };
 
     return (
-        <PublicLayout user={auth.user}>
+        <ClienteLayout>
             <Head title={`Solicitud #${solicitud.id}`} />
 
             <div className="min-h-screen bg-gray-50 py-8">
@@ -87,15 +90,15 @@ export default function DetalleSolicitud({ auth, solicitud }) {
 
                     {/* Encabezado */}
                     <div className="mb-6">
-                        <Link
-                            href="/cliente/solicitudes"
-                            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
-                        >
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            Volver a Mis Solicitudes
-                        </Link>
+                        <div className="mb-4">
+                            <Button
+                                variant="ghost"
+                                href="/cliente/solicitudes"
+                                className="pl-0 text-blue-600 hover:text-blue-800 hover:bg-transparent"
+                            >
+                                ← Volver a Mis Solicitudes
+                            </Button>
+                        </div>
 
                         <div className="flex justify-between items-start">
                             <div>
@@ -106,9 +109,9 @@ export default function DetalleSolicitud({ auth, solicitud }) {
                                     Creada el {formatFecha(solicitud.created_at)}
                                 </p>
                             </div>
-                            <span className={`px-4 py-2 rounded-full text-sm font-semibold border ${getEstadoBadge(solicitud.estado)}`}>
+                            <Badge variant={getEstadoVariant(solicitud.estado)} size="lg">
                                 {getEstadoTexto(solicitud.estado)}
-                            </span>
+                            </Badge>
                         </div>
                     </div>
 
@@ -116,7 +119,7 @@ export default function DetalleSolicitud({ auth, solicitud }) {
                         {/* Columna Principal */}
                         <div className="lg:col-span-2 space-y-6">
                             {/* Información de la Solicitud */}
-                            <div className="bg-white rounded-lg shadow-md p-6">
+                            <Card>
                                 <h2 className="text-xl font-bold text-gray-900 mb-4">
                                     Detalles de la Solicitud
                                 </h2>
@@ -152,11 +155,11 @@ export default function DetalleSolicitud({ auth, solicitud }) {
                                         </p>
                                     </div>
                                 </div>
-                            </div>
+                            </Card>
 
                             {/* Información del Departamento */}
                             {solicitud.departamento && (
-                                <div className="bg-white rounded-lg shadow-md p-6">
+                                <Card>
                                     <h2 className="text-xl font-bold text-gray-900 mb-4">
                                         Departamento
                                     </h2>
@@ -184,20 +187,23 @@ export default function DetalleSolicitud({ auth, solicitud }) {
                                                 <span>🚿 {solicitud.departamento.banos} baños</span>
                                                 <span>📐 {solicitud.departamento.area} m²</span>
                                             </div>
-                                            <Link
-                                                href={`/departamentos/${solicitud.departamento.id}`}
-                                                className="inline-block mt-3 text-blue-600 hover:text-blue-800 text-sm font-semibold"
-                                            >
-                                                Ver detalles completos →
-                                            </Link>
+                                            <div className="mt-3">
+                                                <Button
+                                                    variant="link"
+                                                    href={`/departamentos/${solicitud.departamento.id}`}
+                                                    className="pl-0 text-blue-600"
+                                                >
+                                                    Ver detalles completos →
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </Card>
                             )}
 
                             {/* Comentarios / Historial */}
                             {solicitud.comentarios && solicitud.comentarios.length > 0 && (
-                                <div className="bg-white rounded-lg shadow-md p-6">
+                                <Card>
                                     <h2 className="text-xl font-bold text-gray-900 mb-4">
                                         💬 Historial de Comentarios
                                     </h2>
@@ -219,7 +225,7 @@ export default function DetalleSolicitud({ auth, solicitud }) {
                                             </div>
                                         ))}
                                     </div>
-                                </div>
+                                </Card>
                             )}
                         </div>
 
@@ -227,7 +233,7 @@ export default function DetalleSolicitud({ auth, solicitud }) {
                         <div className="space-y-6">
                             {/* Información del Asesor */}
                             {solicitud.asesor && (
-                                <div className="bg-white rounded-lg shadow-md p-6">
+                                <Card>
                                     <h2 className="text-lg font-bold text-gray-900 mb-4">
                                         👤 Tu Asesor
                                     </h2>
@@ -250,41 +256,44 @@ export default function DetalleSolicitud({ auth, solicitud }) {
                                             </p>
                                         )}
                                     </div>
-                                </div>
+                                </Card>
                             )}
 
                             {/* Acciones */}
-                            <div className="bg-white rounded-lg shadow-md p-6">
+                            <Card>
                                 <h2 className="text-lg font-bold text-gray-900 mb-4">
                                     Acciones
                                 </h2>
 
                                 <div className="space-y-3">
                                     {(solicitud.estado === 'pendiente' || solicitud.estado === 'en_proceso') && (
-                                        <button
+                                        <Button
+                                            variant="danger"
                                             onClick={handleCancelar}
                                             disabled={processing}
-                                            className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                            className="w-full justify-center"
                                         >
                                             {processing ? '⏳ Cancelando...' : '❌ Cancelar Solicitud'}
-                                        </button>
+                                        </Button>
                                     )}
 
-                                    <Link
+                                    <Button
+                                        variant="secondary"
                                         href="/cliente/solicitudes"
-                                        className="block w-full bg-gray-200 text-gray-800 text-center py-2 px-4 rounded-lg hover:bg-gray-300 transition"
+                                        className="w-full justify-center"
                                     >
                                         📋 Ver Todas las Solicitudes
-                                    </Link>
+                                    </Button>
 
-                                    <Link
+                                    <Button
+                                        variant="primary"
                                         href="/catalogo"
-                                        className="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition"
+                                        className="w-full justify-center"
                                     >
                                         🏢 Explorar Más Departamentos
-                                    </Link>
+                                    </Button>
                                 </div>
-                            </div>
+                            </Card>
 
                             {/* Información de Ayuda */}
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -300,6 +309,6 @@ export default function DetalleSolicitud({ auth, solicitud }) {
                     </div>
                 </div>
             </div>
-        </PublicLayout>
+        </ClienteLayout>
     );
 }

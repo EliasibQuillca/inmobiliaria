@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
+import Button from '@/Components/DS/Button';
 
 // Componente NavLink con detección de ruta activa
 function NavLink({ href, active, children }) {
     const classes = active
-        ? 'inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out'
+        ? 'inline-flex items-center px-1 pt-1 border-b-2 border-primary-500 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-primary-700 transition duration-150 ease-in-out'
         : 'inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out';
 
     return (
@@ -92,8 +93,36 @@ export default function AdminLayout({ user, auth, header, children }) {
 
     const breadcrumbs = getBreadcrumbs();
 
-    const logout = () => {
-        router.post("/logout");
+    const getCsrfToken = () => {
+        const meta = document.head.querySelector('meta[name="csrf-token"]');
+        if (meta && meta.content) return meta.content;
+        const match = document.cookie.match('(^|;)\\s*XSRF-TOKEN=([^;]+)');
+        return match ? decodeURIComponent(match[2]) : '';
+    };
+
+    const logout = (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        const token = getCsrfToken();
+        const form = document.getElementById('logout-form');
+        if (form) {
+            const input = form.querySelector('input[name="_token"]');
+            if (input) input.value = token;
+            form.submit();
+            return;
+        }
+        fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-TOKEN': token,
+            },
+            credentials: 'same-origin',
+            body: `_token=${encodeURIComponent(token)}`,
+        }).then(() => {
+            window.location.href = '/';
+        }).catch(() => {
+            window.location.reload();
+        });
     };
 
     // Temporizador de cierre de sesión automático para admin (15 minutos)
@@ -120,7 +149,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                     <div className="bg-white rounded-lg shadow-lg p-6 text-center">
                         <h2 className="text-lg font-bold mb-2">Sesión por expirar</h2>
                         <p className="mb-4">Por seguridad, tu sesión se cerrará en 1 minuto por inactividad.</p>
-                        <button className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={() => { setShowTimeoutWarning(false); window.location.reload(); }}>Seguir conectado</button>
+                        <Button variant="primary" onClick={() => { setShowTimeoutWarning(false); window.location.reload(); }}>Seguir conectado</Button>
                     </div>
                 </div>
             )}
@@ -133,10 +162,10 @@ export default function AdminLayout({ user, auth, header, children }) {
                             {/* Logo */}
                             <div className="shrink-0 flex items-center">
                                 <Link href="/admin/dashboard" className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                                    <div className="w-8 h-8 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
+                                    <div className="w-8 h-8 bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700 rounded-lg flex items-center justify-center shadow-sm">
                                         <span className="text-white font-bold text-sm">A</span>
                                     </div>
-                                    <span className="ml-2 text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Admin Panel</span>
+                                    <span className="ml-2 text-lg sm:text-xl font-bold text-primary-700">Admin Panel</span>
                                 </Link>
                             </div>
 
@@ -191,11 +220,11 @@ export default function AdminLayout({ user, auth, header, children }) {
                                 <div>
                                     <button
                                         type="button"
-                                        className="bg-white flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm hover:shadow-md transition-shadow"
+                                        className="bg-white flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-sm hover:shadow-md transition-shadow"
                                         onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                                     >
                                         <span className="sr-only">Abrir menú de usuario</span>
-                                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700 flex items-center justify-center">
                                             <span className="text-white font-bold text-sm">
                                                 A
                                             </span>
@@ -224,29 +253,17 @@ export default function AdminLayout({ user, auth, header, children }) {
                                             Mi Perfil
                                         </Link>
 
-                                        {/* Configuración - Ocultado temporalmente */}
-                                        {/* <Link
-                                            href="/admin/configuracion"
-                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                            onClick={() => setShowProfileDropdown(false)}
-                                        >
-                                            <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            Configuración
-                                        </Link> */}
-
                                         <div className="border-t">
-                                            <button
+                                            <Button
+                                                variant="ghost"
                                                 onClick={logout}
-                                                className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                                                className="block w-full justify-start px-4 py-2 text-sm text-danger-700 hover:bg-danger-50 rounded-none"
                                             >
                                                 <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                                 </svg>
                                                 Cerrar Sesión
-                                            </button>
+                                            </Button>
                                         </div>
                                     </div>
                                 )}
@@ -257,7 +274,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                         <div className="-mr-2 flex items-center sm:hidden">
                             <button
                                 onClick={() => setShowingNavigationDropdown(!showingNavigationDropdown)}
-                                className="inline-flex items-center justify-center p-3 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:bg-indigo-50 focus:text-indigo-600 transition duration-150 ease-in-out shadow-sm border border-gray-200"
+                                className="inline-flex items-center justify-center p-3 rounded-lg text-gray-600 hover:text-primary-600 hover:bg-primary-50 focus:outline-none focus:bg-primary-50 focus:text-primary-600 transition duration-150 ease-in-out shadow-sm border border-gray-200"
                                 aria-label="Menú de navegación"
                             >
                                 <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -288,7 +305,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                             href="/admin/usuarios"
                             className={`flex items-center pl-3 pr-4 py-3 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
                                 url.startsWith('/admin/usuarios')
-                                    ? 'border-indigo-500 text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700'
+                                    ? 'border-primary-500 text-primary-700 bg-primary-50 focus:outline-none focus:text-primary-800 focus:bg-primary-100 focus:border-primary-700'
                                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
                             }`}
                         >
@@ -301,7 +318,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                             href="/admin/departamentos"
                             className={`flex items-center pl-3 pr-4 py-3 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
                                 url.startsWith('/admin/departamentos')
-                                    ? 'border-indigo-500 text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700'
+                                    ? 'border-primary-500 text-primary-700 bg-primary-50 focus:outline-none focus:text-primary-800 focus:bg-primary-100 focus:border-primary-700'
                                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
                             }`}
                         >
@@ -314,7 +331,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                             href="/admin/ventas"
                             className={`flex items-center pl-3 pr-4 py-3 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
                                 url.startsWith('/admin/ventas')
-                                    ? 'border-indigo-500 text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700'
+                                    ? 'border-primary-500 text-primary-700 bg-primary-50 focus:outline-none focus:text-primary-800 focus:bg-primary-100 focus:border-primary-700'
                                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
                             }`}
                         >
@@ -327,7 +344,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                             href="/admin/reportes"
                             className={`flex items-center pl-3 pr-4 py-3 border-l-4 text-base font-medium transition duration-150 ease-in-out ${
                                 url.startsWith('/admin/reportes')
-                                    ? 'border-indigo-500 text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700'
+                                    ? 'border-primary-500 text-primary-700 bg-primary-50 focus:outline-none focus:text-primary-800 focus:bg-primary-100 focus:border-primary-700'
                                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300'
                             }`}
                         >
@@ -343,7 +360,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                         <div className="px-4 py-3 bg-white border-b border-gray-200">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-500 rounded-full flex items-center justify-center">
                                         <span className="text-white font-bold text-lg">A</span>
                                     </div>
                                 </div>
@@ -357,33 +374,23 @@ export default function AdminLayout({ user, auth, header, children }) {
                         <div className="mt-3 space-y-1 px-2">
                             <Link
                                 href="/admin/perfil"
-                                className="flex items-center px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:text-indigo-600 focus:bg-indigo-50 transition duration-150 ease-in-out"
+                                className="flex items-center px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 focus:outline-none focus:text-primary-600 focus:bg-primary-50 transition duration-150 ease-in-out"
                             >
                                 <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                                 Mi Perfil
                             </Link>
-                            {/* Configuración - Ocultado temporalmente */}
-                            {/* <Link
-                                href="/admin/configuracion"
-                                className="flex items-center px-3 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:text-indigo-600 focus:bg-indigo-50 transition duration-150 ease-in-out"
-                            >
-                                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                Configuración
-                            </Link> */}
-                            <button
+                            <Button
+                                variant="ghost"
                                 onClick={logout}
-                                className="flex items-center w-full px-3 py-3 rounded-lg text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 focus:outline-none focus:text-red-700 focus:bg-red-50 transition duration-150 ease-in-out"
+                                className="flex items-center w-full justify-start px-3 py-3 rounded-lg text-base font-medium text-danger-600 hover:text-danger-700 hover:bg-danger-50 focus:outline-none focus:text-danger-700 focus:bg-danger-50 transition duration-150 ease-in-out"
                             >
                                 <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                 </svg>
                                 Cerrar Sesión
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -405,7 +412,7 @@ export default function AdminLayout({ user, auth, header, children }) {
                                         {crumb.href ? (
                                             <Link
                                                 href={crumb.href}
-                                                className="inline-flex items-center text-gray-700 hover:text-indigo-600 transition-colors"
+                                                className="inline-flex items-center text-gray-700 hover:text-primary-600 transition-colors"
                                             >
                                                 {crumb.name}
                                             </Link>

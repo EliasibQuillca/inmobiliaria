@@ -2,6 +2,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import Button from '@/Components/DS/Button';
 import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
@@ -11,8 +12,36 @@ export default function AuthenticatedLayout({ header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
 
-    const logout = () => {
-        router.post("/logout");
+    const getCsrfToken = () => {
+        const meta = document.head.querySelector('meta[name="csrf-token"]');
+        if (meta && meta.content) return meta.content;
+        const match = document.cookie.match('(^|;)\\s*XSRF-TOKEN=([^;]+)');
+        return match ? decodeURIComponent(match[2]) : '';
+    };
+
+    const logout = (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        const token = getCsrfToken();
+        const form = document.getElementById('logout-form');
+        if (form) {
+            const input = form.querySelector('input[name="_token"]');
+            if (input) input.value = token;
+            form.submit();
+            return;
+        }
+        fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-TOKEN': token,
+            },
+            credentials: 'same-origin',
+            body: `_token=${encodeURIComponent(token)}`,
+        }).then(() => {
+            window.location.href = '/';
+        }).catch(() => {
+            window.location.reload();
+        });
     };
 
     // Temporizador de cierre de sesión automático para cliente (30 minutos)
@@ -39,7 +68,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="bg-white rounded-lg shadow-lg p-6 text-center">
                         <h2 className="text-lg font-bold mb-2">Sesión por expirar</h2>
                         <p className="mb-4">Por seguridad, tu sesión se cerrará en 30 segundos por inactividad.</p>
-                        <button className="px-4 py-2 bg-teal-600 text-white rounded" onClick={() => { setShowTimeoutWarning(false); window.location.reload(); }}>Seguir conectado</button>
+                        <Button variant="primary" onClick={() => { setShowTimeoutWarning(false); window.location.reload(); }}>Seguir conectado</Button>
                     </div>
                 </div>
             )}
@@ -178,14 +207,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                         >
                                             Configuración
                                         </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={"/logout"}
-                                            method="post"
-                                            as="button"
-                                            className="hover:bg-gray-50"
-                                        >
-                                            Cerrar Sesión
-                                        </Dropdown.Link>
+                                        <form action="/logout" method="POST" data-logout className="m-0">
+                                            <input type="hidden" name="_token" value={getCsrfToken()} />
+                                            <Button type="submit" variant="ghost" className="w-full justify-start px-4 py-2 font-normal normal-case text-gray-700 hover:bg-gray-100 rounded-none">
+                                                Cerrar Sesión
+                                            </Button>
+                                        </form>
                                     </Dropdown.Content>
                                 </Dropdown>
                             </div>
@@ -278,13 +305,10 @@ export default function AuthenticatedLayout({ header, children }) {
                             <ResponsiveNavLink href="#">
                                 Configuración
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={"/logout"}
-                                as="button"
-                            >
-                                Cerrar Sesión
-                            </ResponsiveNavLink>
+                            <form action="/logout" method="POST" data-logout className="m-0">
+                                <input type="hidden" name="_token" value={getCsrfToken()} />
+                                <Button type="submit" variant="ghost" className="w-full justify-start px-4 py-2 font-normal normal-case text-gray-700 hover:bg-gray-100 rounded-md">Cerrar Sesión</Button>
+                            </form>
                         </div>
                     </div>
                 </div>

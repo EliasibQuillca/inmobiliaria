@@ -1,6 +1,9 @@
-import PublicLayout from '@/Layouts/PublicLayout';
+import ClienteLayout from '@/Layouts/ClienteLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import Card from '@/Components/DS/Card';
+import Button from '@/Components/DS/Button';
+import Badge from '@/Components/DS/Badge';
 
 export default function Asesores({ auth, asesores }) {
     const [asesorSeleccionado, setAsesorSeleccionado] = useState(null);
@@ -31,7 +34,7 @@ export default function Asesores({ auth, asesores }) {
     };
 
     return (
-        <PublicLayout user={auth.user}>
+        <ClienteLayout>
             <Head title="Nuestros Asesores" />
 
             {/* Hero Section */}
@@ -64,27 +67,27 @@ export default function Asesores({ auth, asesores }) {
                 {/* Grid de Asesores */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {asesores.map((asesor) => (
-                        <div key={asesor.id} className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden border border-gray-100">
+                        <Card key={asesor.id} className="rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden border border-gray-100">
                             {/* Header con estado */}
                             <div className="relative">
                                 <div className="h-32 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
                                 <div className="absolute top-4 right-4">
                                     {asesor.es_mi_asesor ? (
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white shadow-lg ring-2 ring-white">
+                                        <Badge variant="success" className="shadow-lg ring-2 ring-white">
                                             <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                             </svg>
                                             ✓ Asignado
-                                        </span>
+                                        </Badge>
                                     ) : asesor.disponible ? (
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500 text-white animate-pulse">
+                                        <Badge variant="success" className="animate-pulse">
                                             <span className="w-2 h-2 bg-white rounded-full mr-2"></span>
                                             Disponible
-                                        </span>
+                                        </Badge>
                                     ) : (
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-400 text-white">
+                                        <Badge variant="secondary">
                                             No disponible
-                                        </span>
+                                        </Badge>
                                     )}
                                 </div>
                                 {/* Avatar */}
@@ -173,15 +176,16 @@ export default function Asesores({ auth, asesores }) {
 
                                 {/* Botones de acción */}
                                 <div className="space-y-2">
-                                    <button
+                                    <Button
                                         onClick={() => handleSolicitarAsesoria(asesor)}
-                                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                                        variant="primary"
+                                        className="w-full justify-center shadow-md hover:shadow-lg"
                                     >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                         </svg>
                                         Solicitar Asesoría
-                                    </button>
+                                    </Button>
                                     {asesor.es_mi_asesor ? (
                                         <div className="w-full border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2">
                                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -190,19 +194,20 @@ export default function Asesores({ auth, asesores }) {
                                             Tu Asesor Asignado
                                         </div>
                                     ) : (
-                                        <button
+                                        <Button
                                             onClick={() => handleAsignarAsesor(asesor)}
-                                            className="w-full border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                                            variant="secondary"
+                                            className="w-full justify-center border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50"
                                         >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                             </svg>
                                             Asignar como mi asesor
-                                        </button>
+                                        </Button>
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     ))}
                 </div>
 
@@ -221,18 +226,20 @@ export default function Asesores({ auth, asesores }) {
                             No te preocupes, puedes crear una solicitud sin elegir asesor y nuestro sistema 
                             asignará automáticamente al mejor asesor disponible según tu consulta.
                         </p>
-                        <Link
+                        <Button
+                            as={Link}
                             href="/cliente/solicitudes/crear"
-                            className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                            variant="danger"
+                            className="inline-flex items-center px-8 py-3 shadow-lg hover:shadow-xl"
                         >
                             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
                             </svg>
                             Crear Solicitud Ahora
-                        </Link>
+                        </Button>
                     </div>
                 </div>
             </div>
-        </PublicLayout>
+        </ClienteLayout>
     );
 }

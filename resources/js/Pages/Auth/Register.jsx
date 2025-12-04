@@ -1,7 +1,7 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
+import Button from '@/Components/DS/Button';
+import Input from '@/Components/DS/Input';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -34,7 +34,7 @@ export default function Register() {
                 <div>
                     <InputLabel htmlFor="name" value="Nombre" />
 
-                    <TextInput
+                    <Input
                         id="name"
                         name="name"
                         value={data.name}
@@ -43,6 +43,7 @@ export default function Register() {
                         isFocused={true}
                         onChange={(e) => setData('name', e.target.value)}
                         required
+                        error={!!errors.name}
                     />
 
                     <InputError message={errors.name} className="mt-2" />
@@ -51,7 +52,7 @@ export default function Register() {
                 <div className="mt-4">
                     <InputLabel htmlFor="email" value="Correo Electrónico" />
 
-                    <TextInput
+                    <Input
                         id="email"
                         type="email"
                         name="email"
@@ -60,6 +61,7 @@ export default function Register() {
                         autoComplete="username"
                         onChange={(e) => setData('email', e.target.value)}
                         required
+                        error={!!errors.email}
                     />
 
                     <InputError message={errors.email} className="mt-2" />
@@ -68,7 +70,7 @@ export default function Register() {
                 <div className="mt-4">
                     <InputLabel htmlFor="password" value="Contraseña" />
 
-                    <TextInput
+                    <Input
                         id="password"
                         type="password"
                         name="password"
@@ -77,6 +79,7 @@ export default function Register() {
                         autoComplete="new-password"
                         onChange={(e) => setData('password', e.target.value)}
                         required
+                        error={!!errors.password}
                     />
 
                     <InputError message={errors.password} className="mt-2" />
@@ -85,7 +88,7 @@ export default function Register() {
                 <div className="mt-4">
                     <InputLabel htmlFor="password_confirmation" value="Confirmar Contraseña" />
 
-                    <TextInput
+                    <Input
                         id="password_confirmation"
                         type="password"
                         name="password_confirmation"
@@ -94,15 +97,16 @@ export default function Register() {
                         autoComplete="new-password"
                         onChange={(e) => setData('password_confirmation', e.target.value)}
                         required
+                        error={!!errors.password_confirmation}
                     />
 
                     <InputError message={errors.password_confirmation} className="mt-2" />
                 </div>
 
                 <div className="mt-6">
-                    <PrimaryButton className="w-full justify-center bg-indigo-600 hover:bg-indigo-700 py-3" disabled={processing}>
+                    <Button className="w-full justify-center py-3" disabled={processing}>
                         Registrarse
-                    </PrimaryButton>
+                    </Button>
                 </div>
             </form>
 
@@ -111,7 +115,7 @@ export default function Register() {
                     ¿Ya tienes una cuenta?{' '}
                     <Link
                         href={"/login"}
-                        className="font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                        className="font-medium text-primary-600 hover:text-primary-700 transition-colors"
                     >
                         Iniciar Sesión
                     </Link>

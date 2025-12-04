@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Head, useForm, usePage, Link, router } from '@inertiajs/react';
-import PublicLayout from '@/Layouts/PublicLayout';
+import ClienteLayout from '@/Layouts/ClienteLayout';
+import Card from '@/Components/DS/Card';
+import Button from '@/Components/DS/Button';
+import Input from '@/Components/DS/Input';
 
 export default function Perfil({ auth, cliente }) {
     const [activeTab, setActiveTab] = useState('datos-personales');
@@ -112,7 +115,7 @@ export default function Perfil({ auth, cliente }) {
     };
 
     return (
-        <PublicLayout auth={auth} user={auth.user}>
+        <ClienteLayout>
             <Head title="Mi Perfil" />
 
             <div className="min-h-screen bg-gray-50 py-8">
@@ -126,15 +129,15 @@ export default function Perfil({ auth, cliente }) {
                                     Gestiona tu información personal
                                 </p>
                             </div>
-                            <Link
+                            <Button
                                 href={route('cliente.dashboard')}
-                                className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                                variant="secondary"
                             >
                                 <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                 </svg>
                                 Volver al Panel
-                            </Link>
+                            </Button>
                         </div>
                     </div>
 
@@ -151,14 +154,14 @@ export default function Perfil({ auth, cliente }) {
                     )}
 
                     {/* Tabs */}
-                    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <Card className="overflow-hidden">
                         <div className="border-b border-gray-200">
                             <nav className="-mb-px flex">
                                 <button
                                     onClick={() => setActiveTab('datos-personales')}
                                     className={`${
                                         activeTab === 'datos-personales'
-                                            ? 'border-blue-500 text-blue-600'
+                                            ? 'border-primary-500 text-primary-600'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
                                 >
@@ -171,7 +174,7 @@ export default function Perfil({ auth, cliente }) {
                                     onClick={() => setActiveTab('seguridad')}
                                     className={`${
                                         activeTab === 'seguridad'
-                                            ? 'border-blue-500 text-blue-600'
+                                            ? 'border-primary-500 text-primary-600'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm ml-8`}
                                 >
@@ -189,7 +192,7 @@ export default function Perfil({ auth, cliente }) {
                                 {/* Sección: Información Personal */}
                                 <div>
                                     <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
-                                        <svg className="mr-2 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="mr-2 h-5 w-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
                                         Información Personal
@@ -200,17 +203,14 @@ export default function Perfil({ auth, cliente }) {
                                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                 Nombre Completo *
                                             </label>
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={data.nombre}
                                                 onChange={(e) => setData('nombre', e.target.value)}
                                                 placeholder="Ej: Juan Pérez García"
                                                 disabled={!isEditing}
-                                                className={`w-full px-3 py-2 border ${
-                                                    errors.nombre ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                }`}
+                                                className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                                                error={errors.nombre}
                                                 required
                                             />
                                             {errors.nombre && (
@@ -223,18 +223,15 @@ export default function Perfil({ auth, cliente }) {
                                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                 DNI *
                                             </label>
-                                            <input
+                                            <Input
                                                 type="text"
                                                 value={data.dni}
                                                 onChange={(e) => setData('dni', e.target.value)}
                                                 maxLength="8"
                                                 placeholder="11111111"
                                                 disabled={!isEditing}
-                                                className={`w-full px-3 py-2 border ${
-                                                    errors.dni ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                }`}
+                                                className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                                                error={errors.dni}
                                                 required
                                             />
                                             {errors.dni && (
@@ -248,17 +245,14 @@ export default function Perfil({ auth, cliente }) {
                                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                 Teléfono <span className="text-gray-400 text-xs">(Opcional)</span>
                                             </label>
-                                            <input
+                                            <Input
                                                 type="tel"
                                                 value={data.telefono}
                                                 onChange={(e) => setData('telefono', e.target.value)}
                                                 placeholder="987654321"
                                                 disabled={!isEditing}
-                                                className={`w-full px-3 py-2 border ${
-                                                    errors.telefono ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                }`}
+                                                className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                                                error={errors.telefono}
                                             />
                                             {errors.telefono && (
                                                 <p className="mt-1 text-xs text-red-600">{errors.telefono}</p>
@@ -270,17 +264,14 @@ export default function Perfil({ auth, cliente }) {
                                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                 Fecha de Nacimiento *
                                             </label>
-                                            <input
+                                            <Input
                                                 type="date"
                                                 value={data.fecha_nacimiento}
                                                 onChange={(e) => setData('fecha_nacimiento', e.target.value)}
                                                 max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                                                 disabled={!isEditing}
-                                                className={`w-full px-3 py-2 border ${
-                                                    errors.fecha_nacimiento ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                    !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                }`}
+                                                className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                                                error={errors.fecha_nacimiento}
                                                 required
                                             />
                                             {errors.fecha_nacimiento && (
@@ -312,7 +303,7 @@ export default function Perfil({ auth, cliente }) {
                                         className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors rounded-lg"
                                     >
                                         <div className="flex items-center">
-                                            <svg className="mr-2 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="mr-2 h-5 w-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                             </svg>
                                             <div>
@@ -347,7 +338,7 @@ export default function Perfil({ auth, cliente }) {
                                                         value={data.tipo_propiedad}
                                                         onChange={(e) => setData('tipo_propiedad', e.target.value)}
                                                         disabled={!isEditing}
-                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${
                                                             !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
                                                         }`}
                                                     >
@@ -369,7 +360,7 @@ export default function Perfil({ auth, cliente }) {
                                                         value={data.habitaciones_deseadas}
                                                         onChange={(e) => setData('habitaciones_deseadas', e.target.value)}
                                                         disabled={!isEditing}
-                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${
                                                             !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
                                                         }`}
                                                     >
@@ -387,16 +378,14 @@ export default function Perfil({ auth, cliente }) {
                                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                         Presupuesto Mín. (S/)
                                                     </label>
-                                                    <input
+                                                    <Input
                                                         type="number"
                                                         value={data.presupuesto_min}
                                                         onChange={(e) => setData('presupuesto_min', e.target.value)}
                                                         placeholder="150000"
                                                         step="1000"
                                                         disabled={!isEditing}
-                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                        }`}
+                                                        className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                                                     />
                                                 </div>
 
@@ -405,16 +394,14 @@ export default function Perfil({ auth, cliente }) {
                                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                         Presupuesto Máx. (S/)
                                                     </label>
-                                                    <input
+                                                    <Input
                                                         type="number"
                                                         value={data.presupuesto_max}
                                                         onChange={(e) => setData('presupuesto_max', e.target.value)}
                                                         placeholder="300000"
                                                         step="1000"
                                                         disabled={!isEditing}
-                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                        }`}
+                                                        className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                                                     />
                                                 </div>
 
@@ -423,15 +410,13 @@ export default function Perfil({ auth, cliente }) {
                                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                         Zona Preferida
                                                     </label>
-                                                    <input
+                                                    <Input
                                                         type="text"
                                                         value={data.zona_preferida}
                                                         onChange={(e) => setData('zona_preferida', e.target.value)}
                                                         placeholder="Ej: Miraflores, San Isidro, Surco..."
                                                         disabled={!isEditing}
-                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                        }`}
+                                                        className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                                                     />
                                                 </div>
                                             </div>
@@ -478,15 +463,13 @@ export default function Perfil({ auth, cliente }) {
                                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                         Dirección Actual
                                                     </label>
-                                                    <input
+                                                    <Input
                                                         type="text"
                                                         value={data.direccion}
                                                         onChange={(e) => setData('direccion', e.target.value)}
                                                         placeholder="Av. Principal 123, Dpto 101"
                                                         disabled={!isEditing}
-                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                        }`}
+                                                        className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                                                     />
                                                 </div>
 
@@ -495,15 +478,13 @@ export default function Perfil({ auth, cliente }) {
                                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                         Ciudad
                                                     </label>
-                                                    <input
+                                                    <Input
                                                         type="text"
                                                         value={data.ciudad}
                                                         onChange={(e) => setData('ciudad', e.target.value)}
                                                         placeholder="Lima"
                                                         disabled={!isEditing}
-                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                        }`}
+                                                        className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                                                     />
                                                 </div>
 
@@ -512,15 +493,13 @@ export default function Perfil({ auth, cliente }) {
                                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                         Ocupación
                                                     </label>
-                                                    <input
+                                                    <Input
                                                         type="text"
                                                         value={data.ocupacion}
                                                         onChange={(e) => setData('ocupacion', e.target.value)}
                                                         placeholder="Ej: Ingeniero"
                                                         disabled={!isEditing}
-                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                        }`}
+                                                        className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                                                     />
                                                 </div>
 
@@ -533,7 +512,7 @@ export default function Perfil({ auth, cliente }) {
                                                         value={data.estado_civil}
                                                         onChange={(e) => setData('estado_civil', e.target.value)}
                                                         disabled={!isEditing}
-                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${
                                                             !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
                                                         }`}
                                                     >
@@ -551,16 +530,14 @@ export default function Perfil({ auth, cliente }) {
                                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                         Ingresos Mensuales (S/)
                                                     </label>
-                                                    <input
+                                                    <Input
                                                         type="number"
                                                         value={data.ingresos_mensuales}
                                                         onChange={(e) => setData('ingresos_mensuales', e.target.value)}
                                                         placeholder="5000"
                                                         step="100"
                                                         disabled={!isEditing}
-                                                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                                                            !isEditing ? 'bg-gray-50 cursor-not-allowed' : ''
-                                                        }`}
+                                                        className={`w-full ${!isEditing ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                                                     />
                                                     <p className="mt-0.5 text-xs text-gray-500">Información confidencial</p>
                                                 </div>
@@ -572,32 +549,32 @@ export default function Perfil({ auth, cliente }) {
                                 {/* Botones de acción */}
                                 <div className="flex justify-end gap-3 pt-4">
                                     {!isEditing ? (
-                                        <button
+                                        <Button
                                             type="button"
                                             onClick={handleEditClick}
-                                            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center text-sm shadow-sm"
+                                            variant="primary"
                                         >
                                             <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
                                             Editar Perfil
-                                        </button>
+                                        </Button>
                                     ) : (
                                         <>
-                                            <button
+                                            <Button
                                                 type="button"
                                                 onClick={handleCancelEdit}
-                                                className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium flex items-center text-sm"
+                                                variant="secondary"
                                             >
                                                 <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                                 </svg>
                                                 Cancelar
-                                            </button>
-                                            <button
+                                            </Button>
+                                            <Button
                                                 type="submit"
                                                 disabled={processing}
-                                                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                                variant="primary"
                                             >
                                                 {processing ? (
                                                     <>
@@ -615,7 +592,7 @@ export default function Perfil({ auth, cliente }) {
                                                         Guardar Cambios
                                                     </>
                                                 )}
-                                            </button>
+                                            </Button>
                                         </>
                                     )}
                                 </div>
@@ -628,7 +605,7 @@ export default function Perfil({ auth, cliente }) {
                                 {/* Sección: Datos de Cuenta */}
                                 <div className="max-w-xl">
                                     <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                        <svg className="mr-2 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="mr-2 h-5 w-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
                                         Datos de Cuenta
@@ -640,17 +617,14 @@ export default function Perfil({ auth, cliente }) {
                                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                                     Email de Acceso *
                                                 </label>
-                                                <input
+                                                <Input
                                                     type="email"
                                                     value={data.email}
                                                     onChange={(e) => setData('email', e.target.value)}
                                                     placeholder="correo@ejemplo.com"
                                                     disabled={!isEditing}
-                                                    className={`w-full px-4 py-2 border ${
-                                                        errors.email ? 'border-red-500' : 'border-gray-300'
-                                                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                                        !isEditing ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
-                                                    }`}
+                                                    className={`w-full ${!isEditing ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
+                                                    error={errors.email}
                                                     required
                                                 />
                                                 {errors.email && (
@@ -662,33 +636,33 @@ export default function Perfil({ auth, cliente }) {
                                             {/* Botones de acción para datos de cuenta */}
                                             <div className="flex justify-end gap-3 pt-2">
                                                 {!isEditing ? (
-                                                    <button
+                                                    <Button
                                                         type="button"
                                                         onClick={handleEditClick}
-                                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center text-sm shadow-sm"
+                                                        variant="primary"
                                                     >
                                                         <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                         </svg>
                                                         Editar Email
-                                                    </button>
+                                                    </Button>
                                                 ) : (
                                                     <>
-                                                        <button
+                                                        <Button
                                                             type="button"
                                                             onClick={handleCancelEdit}
-                                                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium flex items-center text-sm"
+                                                            variant="secondary"
                                                         >
                                                             <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                                             </svg>
                                                             Cancelar
-                                                        </button>
-                                                        <button
+                                                        </Button>
+                                                        <Button
                                                             type="button"
                                                             onClick={handleSubmit}
                                                             disabled={processing}
-                                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                                            variant="primary"
                                                         >
                                                             {processing ? (
                                                                 <>
@@ -706,7 +680,7 @@ export default function Perfil({ auth, cliente }) {
                                                                     Guardar Cambios
                                                                 </>
                                                             )}
-                                                        </button>
+                                                        </Button>
                                                     </>
                                                 )}
                                             </div>
@@ -717,7 +691,7 @@ export default function Perfil({ auth, cliente }) {
                                 {/* Sección: Cambiar Contraseña */}
                                 <form onSubmit={handlePasswordSubmit} className="max-w-xl">
                                     <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                        <svg className="mr-2 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="mr-2 h-5 w-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                         </svg>
                                         Cambiar Contraseña
@@ -729,13 +703,12 @@ export default function Perfil({ auth, cliente }) {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Contraseña Actual *
                                             </label>
-                                            <input
+                                            <Input
                                                 type="password"
                                                 value={passwordForm.data.current_password}
                                                 onChange={(e) => passwordForm.setData('current_password', e.target.value)}
-                                                className={`w-full px-4 py-2 border ${
-                                                    passwordForm.errors.current_password ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                                className="w-full"
+                                                error={passwordForm.errors.current_password}
                                                 required
                                             />
                                             {passwordForm.errors.current_password && (
@@ -748,14 +721,13 @@ export default function Perfil({ auth, cliente }) {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Nueva Contraseña *
                                             </label>
-                                            <input
+                                            <Input
                                                 type="password"
                                                 value={passwordForm.data.password}
                                                 onChange={(e) => passwordForm.setData('password', e.target.value)}
                                                 minLength="8"
-                                                className={`w-full px-4 py-2 border ${
-                                                    passwordForm.errors.password ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                                className="w-full"
+                                                error={passwordForm.errors.password}
                                                 required
                                             />
                                             {passwordForm.errors.password && (
@@ -769,14 +741,13 @@ export default function Perfil({ auth, cliente }) {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                 Confirmar Nueva Contraseña *
                                             </label>
-                                            <input
+                                            <Input
                                                 type="password"
                                                 value={passwordForm.data.password_confirmation}
                                                 onChange={(e) => passwordForm.setData('password_confirmation', e.target.value)}
                                                 minLength="8"
-                                                className={`w-full px-4 py-2 border ${
-                                                    passwordForm.errors.password_confirmation ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                                className="w-full"
+                                                error={passwordForm.errors.password_confirmation}
                                                 required
                                             />
                                             {passwordForm.errors.password_confirmation && (
@@ -787,30 +758,28 @@ export default function Perfil({ auth, cliente }) {
 
                                     {/* Botón de Cambiar Contraseña */}
                                     <div className="mt-6">
-                                        <button
+                                        <Button
                                             type="submit"
                                             disabled={passwordForm.processing}
-                                            className={`px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm ${
-                                                passwordForm.processing ? 'opacity-50 cursor-not-allowed' : ''
-                                            }`}
+                                            variant="primary"
                                         >
                                             {passwordForm.processing ? 'Cambiando...' : 'Cambiar Contraseña'}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </form>
                             </div>
                         )}
-                    </div>
+                    </Card>
                 </div>
             </div>
 
             {/* Modal de Confirmación de Contraseña */}
             {showPasswordModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                    <Card className="max-w-md w-full p-6">
                         <div className="flex items-center mb-4">
-                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                                <svg className="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
                             </div>
@@ -828,16 +797,15 @@ export default function Perfil({ auth, cliente }) {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Contraseña Actual *
                                 </label>
-                                <input
+                                <Input
                                     type="password"
                                     value={passwordForm.data.current_password}
                                     onChange={(e) => passwordForm.setData('current_password', e.target.value)}
-                                    className={`w-full px-4 py-2 border ${
-                                        errors.current_password ? 'border-red-500' : 'border-gray-300'
-                                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                    className="w-full"
                                     placeholder="••••••••"
                                     required
                                     autoFocus
+                                    error={errors.current_password}
                                 />
                                 {errors.current_password && (
                                     <p className="mt-1 text-sm text-red-600 font-medium">{errors.current_password}</p>
@@ -845,21 +813,21 @@ export default function Perfil({ auth, cliente }) {
                             </div>
 
                             <div className="flex gap-3 justify-end">
-                                <button
+                                <Button
                                     type="button"
                                     onClick={() => {
                                         setShowPasswordModal(false);
                                         passwordForm.reset('current_password');
                                     }}
                                     disabled={processing}
-                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium text-sm"
+                                    variant="secondary"
                                 >
                                     Cancelar
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                                    variant="primary"
                                 >
                                     {processing ? (
                                         <>
@@ -872,12 +840,12 @@ export default function Perfil({ auth, cliente }) {
                                     ) : (
                                         'Confirmar'
                                     )}
-                                </button>
+                                </Button>
                             </div>
                         </form>
-                    </div>
+                    </Card>
                 </div>
             )}
-        </PublicLayout>
+        </ClienteLayout>
     );
 }
