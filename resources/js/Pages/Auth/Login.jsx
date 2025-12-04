@@ -44,11 +44,15 @@ export default function Login({ status, canResetPassword }) {
         console.log('Submitting login with CSRF token:', csrf_token.substring(0, 10) + '...');
 
         post(route('login'), {
-            preserveState: true,
-            preserveScroll: true,
+            preserveState: false,
+            preserveScroll: false,
             forceFormData: true,
             headers: {
                 'X-CSRF-TOKEN': csrf_token,
+            },
+            onSuccess: () => {
+                // Recarga completa después de login exitoso para resetear todo el estado
+                window.location.reload();
             },
             onFinish: () => reset('password'),
             onError: (errors) => {

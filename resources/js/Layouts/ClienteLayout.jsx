@@ -12,8 +12,17 @@ export default function ClienteLayout({ children, header }) {
     const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
     const [notifications, setNotifications] = useState([]);
 
-    const logout = () => {
-        router.post('/logout');
+    const logout = (e) => {
+        if (e) e.preventDefault();
+        router.post('/logout', {}, {
+            onSuccess: () => {
+                window.location.href = '/';
+            },
+            onError: () => {
+                // Forzar recarga incluso si hay error
+                window.location.href = '/';
+            }
+        });
     };
 
     // Sistema de notificaciones automático
@@ -36,8 +45,9 @@ export default function ClienteLayout({ children, header }) {
         });
     }, [notifications]);
 
-    // Temporizador de sesión
+    // Temporizador de sesión DESACTIVADO - Sin límite de tiempo
     useEffect(() => {
+        /* TEMPORIZADOR DESACTIVADO
         const warningTimer = setTimeout(() => {
             setShowTimeoutWarning(true);
         }, 1770000); // 29.5 minutos
@@ -50,6 +60,7 @@ export default function ClienteLayout({ children, header }) {
             clearTimeout(warningTimer);
             clearTimeout(logoutTimer);
         };
+        */
     }, []);
 
     // Helper para verificar si la ruta está activa

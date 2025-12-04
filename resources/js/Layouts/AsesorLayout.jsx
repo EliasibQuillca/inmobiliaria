@@ -13,8 +13,17 @@ export default function AsesorLayout({ user, header, children }) {
         return currentPath.startsWith(path);
     };
 
-    const logout = () => {
-        router.post("/logout");
+    const logout = (e) => {
+        if (e) e.preventDefault();
+        router.post('/logout', {}, {
+            onSuccess: () => {
+                window.location.href = '/';
+            },
+            onError: () => {
+                // Forzar recarga incluso si hay error
+                window.location.href = '/';
+            }
+        });
     };
 
     // Cerrar dropdown al hacer clic fuera
@@ -29,8 +38,9 @@ export default function AsesorLayout({ user, header, children }) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showProfileDropdown]);
 
-    // Temporizador de cierre de sesión automático para asesor (15 minutos)
+    // Temporizador de cierre de sesión DESACTIVADO - Sin límite de tiempo
     useEffect(() => {
+        /* TEMPORIZADOR DESACTIVADO
         // Aviso 30 segundos antes
         const warningTimer = setTimeout(() => {
             setShowTimeoutWarning(true);
@@ -43,6 +53,7 @@ export default function AsesorLayout({ user, header, children }) {
             clearTimeout(timer);
             clearTimeout(warningTimer);
         };
+        */
     }, []);
 
     return (

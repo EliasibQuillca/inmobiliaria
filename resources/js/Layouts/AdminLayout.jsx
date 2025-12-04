@@ -92,12 +92,22 @@ export default function AdminLayout({ user, auth, header, children }) {
 
     const breadcrumbs = getBreadcrumbs();
 
-    const logout = () => {
-        router.post("/logout");
+    const logout = (e) => {
+        if (e) e.preventDefault();
+        router.post('/logout', {}, {
+            onSuccess: () => {
+                window.location.href = '/';
+            },
+            onError: () => {
+                // Forzar recarga incluso si hay error
+                window.location.href = '/';
+            }
+        });
     };
 
-    // Temporizador de cierre de sesión automático para admin (15 minutos)
+    // Temporizador de cierre de sesión DESACTIVADO - Sin límite de tiempo
     useEffect(() => {
+        /* TEMPORIZADOR DESACTIVADO
         // Aviso 1 minuto antes
         const warningTimer = setTimeout(() => {
             setShowTimeoutWarning(true);
@@ -107,9 +117,10 @@ export default function AdminLayout({ user, auth, header, children }) {
             logout();
         }, 900000); // 15 minutos
         return () => {
-            clearTimeout(timer);
-            clearTimeout(warningTimer);
+            clearTimeout(timer);r);
+            // clearTimeout(warningTimer);
         };
+        */
     }, []);
 
     return (

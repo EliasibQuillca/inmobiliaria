@@ -81,11 +81,16 @@ class LoginRequest extends FormRequest
 
     /**
      * Ensure the login request is not rate limited.
+     * DESACTIVADO - Sin límite de intentos de login
      *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function ensureIsNotRateLimited(): void
     {
+        // Rate limiting desactivado - permite intentos ilimitados
+        return;
+        
+        /* CÓDIGO ORIGINAL COMENTADO
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
@@ -98,6 +103,7 @@ class LoginRequest extends FormRequest
         throw ValidationException::withMessages([
             'email' => "Demasiados intentos de inicio de sesión. Por favor, intenta de nuevo en {$minutes} minuto(s).",
         ]);
+        */
     }
 
     /**
