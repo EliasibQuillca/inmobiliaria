@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import Card from '@/Components/DS/Card';
+import Card from '@/Components/DS/card';
 import Button from '@/Components/DS/Button';
 import Badge from '@/Components/DS/Badge';
 
